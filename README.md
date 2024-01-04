@@ -35,6 +35,7 @@ A page that is the user's profile page that has:
 - profile photo
 - task board above their full TOC that contains pinned notes
 - options menu as well for settings, if applicable.
+- download note tree option
 
 The visibility of elements on this page would depend on whether they were marked private or not and if the viewer has access to see them.
 
