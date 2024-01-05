@@ -4,7 +4,7 @@ const SignIn = () => {
   const [loginType, setLoginType] = useState("login");
 
   return (
-    <div className="grid place-items-center bg-gray-100 px-4 py-4 border rounded-md max-w-96">
+    <div className="grid place-items-center bg-gray-100 px-6 py-6 border rounded-md max-w-96">
       {/* slider system register vs login*/}
       <div
         className="grid grid-cols-2 place-items-center rounded-md bg-gray-300 py-2 relative mb-2 w-3/4"
@@ -54,9 +54,9 @@ const SignIn = () => {
             <button className="px-6 py-2 mt-4 text-white font-bold bg-blue-500 rounded-lg hover:bg-blue-900">
               Submit
             </button>
-            <a href="#" className="text-sm text-blue-400 hover:underline">
+            {loginType === 'login' ? <a href="#" className="text-sm text-blue-400 hover:underline">
               Forgot password?
-            </a>
+            </a> : null}
           </div>
         </div>
       </form>

@@ -10,6 +10,7 @@ function App() {
   return (
     <>
       <main className="grid place-items-center w-screen h-screen bg-neutral-500">
+        <NavBar />
         <SignIn />
       </main>
     </>
