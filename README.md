@@ -1,71 +1,36 @@
----
-title: "mark my words design document"
----
+This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-# Mark My Words Design Document
+## Getting Started
 
-## Overall function / Purpose
+First, run the development server:
 
-This web-app will allow users to write notes in md format and have it be automatically converted to HTML and published to their profile as either public or private. Its secondary purpose is to act as a portfolio project that demonstrates that I can create full-stack app using React, TS, Tailwind, and other technologies.
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-## Pages
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### Landing page
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-The public homepage for the app. 
-This has a:
-- logo, 
-- maybe some art / screenshots of it working, 
-- an explanation of what it does, 
-- a login / register option,
-- a profile search to find other users' public profiles
+This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
-### Login || register page
+## Learn More
 
-A basic login or registration page.
+To learn more about Next.js, take a look at the following resources:
 
-### Profile page
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-A page that is the user's profile page that has: 
-- their table of contents (TOC) of notes & directories
-    - The TOC should be editable by drag and drop and maintain order via an internal ID
-    - An edit icon to edit the note
-    - upload button to upload md documents to the site and drop them at the top of the TOC.
-- their bio. 
-- profile photo
-- task board above their full TOC that contains pinned notes
-- options menu as well for settings, if applicable.
-- download note tree option
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
 
-The visibility of elements on this page would depend on whether they were marked private or not and if the viewer has access to see them.
+## Deploy on Vercel
 
-### Note Editor page
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-This page will be where the user writes a new note. It will consist of a:
-- background area where they type the note, 
-- a tool bar at the top to control formatting (would auto insert md symbols ie ** for bold text)
-- A title field (gets auto filled with the first heading 1 it sees, #, if not manually typed in)
-- A save & publish button
-- A save as draft option
-- A public / Private switch button
-
-### Search users page
-
-A page to search all users on the site and generate a list of results of names, if a name is clicked it routes to their profile
-
-### Nav bar (on all pages)
-
-- Home button / icon, will route to landing page if not logged in, else to profile page
-- search bar to find your notes
-- search users button (will route to search page)
-
-
-## Technologies
-
-- React
-- TS
-- Tailwind
-- SQL?
-- Authentication
-- linode
-...
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
