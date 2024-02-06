@@ -17,14 +17,26 @@ import { useState } from "react";
 
 const formSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters long" })
+    .refine((value) => /[a-z]/.test(value), {
+      message: "Password must contain at least one lowercase letter.",
+    })
+    .refine((value) => /[A-Z]/.test(value), {
+      message: "Password must contain at least one uppercase letter.",
+    })
+    .refine((value) => /\d/.test(value), {
+      message: "Password must contain at least one number.",
+    }),
 });
 
 const AuthPage = () => {
   const [variant, setVariant] = useState<"signin" | "signup">("signin");
   const toggleVariant = () => {
     setVariant(variant === "signin" ? "signup" : "signin");
-  }
+    form.reset();
+  };
 
   // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
@@ -45,15 +57,17 @@ const AuthPage = () => {
 
   // 2. Define a submit handler.
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
+    // Call the appropriate function based on the form variant.
     variant === "signin" ? signin() : signup();
+
+    // Clear the form.
+    form.reset();
     console.log(values);
   }
 
   return (
-    <body className="grid place-items-center w-full h-screen">
-      <div className="grid place-items-center border rounded-md w-auto h-auto p-12">
+    <main className="grid place-items-center w-full h-screen">
+      <div className="grid place-items-center border rounded-md w-80 h-auto p-12">
         <Form {...form}>
           <FormDescription className="text-black font-bold mb-8 ">
             {variant === "signin"
@@ -87,11 +101,13 @@ const AuthPage = () => {
                 </FormItem>
               )}
             />
-            <Button type="submit">Submit</Button>
-            <p className="text-gray-500">    
-                {variant === "signin"
-                    ? "Don't have an account? "
-                    : "Already have an account? "}          
+            <Button type="submit">
+              {variant === "signin" ? "Sign in" : "Sign up"}
+            </Button>
+            <p className="text-gray-500">
+              {variant === "signin"
+                ? "Don't have an account? "
+                : "Already have an account? "}
               <span
                 onClick={toggleVariant}
                 className="text-black text-semibold hover:underline cursor-pointer">
@@ -101,7 +117,7 @@ const AuthPage = () => {
           </form>
         </Form>
       </div>
-    </body>
+    </main>
   );
 };
 
