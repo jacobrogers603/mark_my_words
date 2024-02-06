@@ -35,10 +35,19 @@ const AuthPage = () => {
     },
   });
 
+  const signin = () => {
+    console.log("signin");
+  };
+
+  const signup = () => {
+    console.log("signup");
+  };
+
   // 2. Define a submit handler.
   function onSubmit(values: z.infer<typeof formSchema>) {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
+    variant === "signin" ? signin() : signup();
     console.log(values);
   }
 
@@ -46,7 +55,7 @@ const AuthPage = () => {
     <body className="grid place-items-center w-full h-screen">
       <div className="grid place-items-center border rounded-md w-auto h-auto p-12">
         <Form {...form}>
-          <FormDescription className="font-bold mb-8 ">
+          <FormDescription className="text-black font-bold mb-8 ">
             {variant === "signin"
               ? "Sign in to your account"
               : "Create an account"}
@@ -79,10 +88,13 @@ const AuthPage = () => {
               )}
             />
             <Button type="submit">Submit</Button>
-            <p className="">              
+            <p className="text-gray-500">    
+                {variant === "signin"
+                    ? "Don't have an account? "
+                    : "Already have an account? "}          
               <span
                 onClick={toggleVariant}
-                className="hover:underline cursor-pointer">
+                className="text-black text-semibold hover:underline cursor-pointer">
                 {variant === "signin" ? " Create an Account" : " Login"}
               </span>
             </p>
