@@ -1,6 +1,7 @@
 "use client";
+import axios from "axios";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -38,7 +39,10 @@ const AuthPage = () => {
     form.reset();
   };
 
-  // 1. Define your form.
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  // Define the form.
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -51,18 +55,31 @@ const AuthPage = () => {
     console.log("signin");
   };
 
-  const signup = () => {
-    console.log("signup");
-  };
+  const signup = useCallback(async () => {
+    try {
+      await axios.post("/api/signup", {
+        email,
+        password,
+      });
 
-  // 2. Define a submit handler.
+      signin();
+    } catch (error) {
+      console.error(error);
+    }
+    console.log("signup");
+  },[onSubmit]);
+
+  // Define a submit handler.
   function onSubmit(values: z.infer<typeof formSchema>) {
+    // Using a shadcn form library so we get the values the user typed into the inputs as follows:
+    setEmail(values.email);
+    setPassword(values.password);
+
     // Call the appropriate function based on the form variant.
     variant === "signin" ? signin() : signup();
 
     // Clear the form.
     form.reset();
-    console.log(values);
   }
 
   return (
