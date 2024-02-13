@@ -1,36 +1,36 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Mark My Words
 
-## Getting Started
+An app that will host notes for the user; They will have a dashboard that contains their tree of notes; they can edit notes in an in-browser editor, or upload notes; notes may contain text or images; all notes should be written in markdown; when they publish a note it will be converted to HTML and published to their profile page; if a note (or dir) is marked as public, another user can search for that user's profile and see the note (or dir); editing privileges can be given to different users; if a note (or dir) is marked as private only the creator can see the note (or dir) or anyone else they list 
 
-First, run the development server:
+## Tech stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Next Js 14
+- Prismadb
+- TailwindCSS
+- MongoDB
+- TypeScript
+- Next-auth
+- Vercel
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Ideas for pages
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### auth - working
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+An authentication page that allows creation of an account or logging in.
 
-## Learn More
+### note tree - todo
 
-To learn more about Next.js, take a look at the following resources:
+A tree of all the notes a user has. Each note (or dir) will have a row that has buttons that allow changing the settings for it ie access settings, editing option, delete option, drag and move option; only one layer will be shown at a time; or do we want to show a full TOC like github does?; at the top of the page will be a button to go to the user's profile page
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### profile - todo
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+Settings for the profile of the user including: profile avatar, email address, change password, delete account, make notes public or private by default, etc
 
-## Deploy on Vercel
+### navbar - todo
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+have search: will cover the user's own notes (possible options for keyword vs file name vs user); have a button to go to search profiles page
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+
+### search results - todo
+
+display the search results for a search, whether it be a search for users, or a search for a note or dir, or a search for a keyword; maybe copy github a bit
