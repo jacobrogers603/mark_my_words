@@ -15,6 +15,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useCallback, useState } from "react";
+import { on } from "events";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { log } from "console";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -33,14 +38,15 @@ const formSchema = z.object({
 });
 
 const AuthPage = () => {
+  const router = useRouter();
   const [variant, setVariant] = useState<"signin" | "signup">("signin");
   const toggleVariant = () => {
     setVariant(variant === "signin" ? "signup" : "signin");
     form.reset();
+    setErrMssg("");
   };
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [errMssg, setErrMssg] = useState("");
 
   // Define the form.
   const form = useForm<z.infer<typeof formSchema>>({
@@ -51,45 +57,66 @@ const AuthPage = () => {
     },
   });
 
-  const signin = () => {
-    console.log("signin");
-  };
+  const signin = async (email: string, password: string) => {
+    try {
+      const loginResult = await signIn("credentials", {
+        email: email,
+        password: password,
+        redirect: false,
+      });
 
-  const signup = useCallback(async () => {
+      if(loginResult?.ok){
+        router.push("/");
+      }
+      else{
+        setErrMssg("Invalid Login");
+      }
+      
+    } catch (error) {
+      console.error("Error during sign-in:", error);
+      setErrMssg("An error occurred during sign-in");
+    }
+  };
+  
+
+  const signup = async (email: string, password: string) => {
     try {
       await axios.post("/api/signup", {
         email,
         password,
       });
-
-      signin();
+      
+      signin(email, password);
     } catch (error) {
       console.error(error);
     }
-    console.log("signup");
-  },[onSubmit]);
+  };
 
-  // Define a submit handler.
+  // Define a submit handler. This will validate the data automatically.
   function onSubmit(values: z.infer<typeof formSchema>) {
     // Using a shadcn form library so we get the values the user typed into the inputs as follows:
-    setEmail(values.email);
-    setPassword(values.password);
+    
+    const { email, password } = values;
 
     // Call the appropriate function based on the form variant.
-    variant === "signin" ? signin() : signup();
+    variant === "signin" ? signin(email, password) : signup(email, password);
 
     // Clear the form.
     form.reset();
+    setErrMssg("");
   }
 
   return (
     <main className="grid place-items-center w-full h-screen">
       <div className="grid place-items-center border rounded-md w-80 h-auto p-12">
         <Form {...form}>
-          <FormDescription className="text-black font-bold mb-8 ">
+          <FormDescription className="flex flex-col text-black font-bold mb-8 ">
             {variant === "signin"
               ? "Sign in to your account"
               : "Create an account"}
+            <span className="text-red-500 self-center">
+              {errMssg !== "" ? errMssg : ""}
+            </span>
           </FormDescription>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField
@@ -112,7 +139,7 @@ const AuthPage = () => {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input placeholder="" {...field} />
+                    <Input type="password" placeholder="" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
