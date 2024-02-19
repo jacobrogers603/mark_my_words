@@ -14,18 +14,26 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { on } from "events";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { log } from "console";
 
+interface IFormInput {
+  email: string;
+  password: string;
+}
+
 const formSchema = z.object({
-  email: z.string().email(),
-  password: z
-    .string()
-    .min(8, { message: "Password must be at least 8 characters long" })
+  email: z.string().email({ message: "Invalid email format" }),
+  password: z.string().min(1, { message: "Password is required" }),
+});
+
+const signUpFormSchema = formSchema.extend({
+  password: formSchema.shape.password
+    .min(8, { message: "Password must be at least 8 characters long" }) // Enforce length
     .refine((value) => /[a-z]/.test(value), {
       message: "Password must contain at least one lowercase letter.",
     })
@@ -49,13 +57,22 @@ const AuthPage = () => {
   const [errMssg, setErrMssg] = useState("");
 
   // Define the form.
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<IFormInput>({
+    resolver: zodResolver(variant === "signup" ? signUpFormSchema : formSchema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
+
+  useEffect(() => {
+    form.reset(
+      {},
+      {
+        keepDefaultValues: true, // Adjust according to your needs
+      }
+    );
+  }, [variant, form]);
 
   const signin = async (email: string, password: string) => {
     try {
@@ -65,19 +82,16 @@ const AuthPage = () => {
         redirect: false,
       });
 
-      if(loginResult?.ok){
+      if (loginResult?.ok) {
         router.push("/");
-      }
-      else{
+      } else {
         setErrMssg("Invalid Login");
       }
-      
     } catch (error) {
       console.error("Error during sign-in:", error);
       setErrMssg("An error occurred during sign-in");
     }
   };
-  
 
   const signup = async (email: string, password: string) => {
     try {
@@ -85,7 +99,7 @@ const AuthPage = () => {
         email,
         password,
       });
-      
+
       signin(email, password);
     } catch (error) {
       console.error(error);
@@ -95,7 +109,7 @@ const AuthPage = () => {
   // Define a submit handler. This will validate the data automatically.
   function onSubmit(values: z.infer<typeof formSchema>) {
     // Using a shadcn form library so we get the values the user typed into the inputs as follows:
-    
+
     const { email, password } = values;
 
     // Call the appropriate function based on the form variant.
@@ -137,7 +151,15 @@ const AuthPage = () => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>
+                    Password{" "}
+                    {variant === "signup" ? (
+                      <span className="text-gray-500 italic">
+                        Min length 8, at least one uppercase, one lowercase and one number
+                        required
+                      </span>
+                    ) : null}{" "}
+                  </FormLabel>
                   <FormControl>
                     <Input type="password" placeholder="" {...field} />
                   </FormControl>
