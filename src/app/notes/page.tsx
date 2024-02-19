@@ -1,12 +1,12 @@
 "use client";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { redirect, useRouter } from "next/navigation";
 
-export default function Home() {
+export default function Notes() {
+
   const router = useRouter();
 
-  // const { data: user } = useCurrentUser();
-  const { data: session, status } = useSession({
+  const { data: session, status } = useSession({ 
     required: true,
     onUnauthenticated() {
       console.log("redirected");
@@ -14,9 +14,9 @@ export default function Home() {
     },
   });
 
-  const routeToNotes = () => {
-    router.push("/notes");
-  };
+  const routeHome = () => {
+    router.push("/");
+  }
 
   if (status === "loading") {
     return (
@@ -29,14 +29,9 @@ export default function Home() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      Main Page
-      <button className="w-auto h-10 bg-blue-400" onClick={routeToNotes}>
-        notes
-      </button>
-      <button className="h-10 w-auto bg-red-200" onClick={() => signOut()}>
-        Sign Out
-      </button>
+    <main className="bg-amber-100">
+      Notes
+      <button className="bg-blue-200 w-auto h-10" onClick={routeHome}>Home</button>
     </main>
-  );
+    );
 }
