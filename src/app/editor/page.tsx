@@ -4,7 +4,16 @@ import { redirect, useRouter } from "next/navigation";
 import ComboBox from "@/components/ComboBox";
 import { HiDotsHorizontal } from "react-icons/hi";
 import FormattingButton from "@/components/FormattingButton";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { set } from "react-hook-form";
 
 export default function Editor() {
   const router = useRouter();
@@ -23,18 +32,29 @@ export default function Editor() {
 
   const [noteText, setNoteText] = useState("");
   const [title, setTitle] = useState("");
-
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
 
-  const saveNote = () => {
-    if (textAreaRef.current) {
-      setNoteText(textAreaRef.current.value);
+  const saveNote = useCallback(() => {
+    const currentText = textAreaRef.current ? textAreaRef.current.value : '';
+    const currentTitle = titleRef.current ? titleRef.current.value : ''; 
+    setNoteText(currentText);
+    setTitle(currentTitle);
+
+    if (currentTitle === "") {
+      setIsDialogOpen(true);
+    } else {
+      console.log("Note saving");
     }
-  };
+  },[]);
+
+  const closeDialog = () => setIsDialogOpen(false);
 
   useEffect(() => {
-    console.log(noteText);
-  }, [noteText]);
+    console.log('noteText:', noteText);
+    console.log('title:', title);
+  }, [noteText, title]);
 
   if (status === "loading") {
     return (
@@ -48,6 +68,23 @@ export default function Editor() {
 
   return (
     <main className="w-full h-screen grid place-items-center">
+      <div className="absolute top-[40%] right-[40%] z-10">
+        {/* Dialog component */}
+        {isDialogOpen && (
+          <Dialog open={isDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Missing Information</DialogTitle>
+                <DialogDescription>
+                  Your note needs a title before you can save it.
+                </DialogDescription>
+              </DialogHeader>
+              {/* Close button or similar action */}
+              <button onClick={closeDialog}>Close</button>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
       <div className="relative border-solid border-black border-2 rounded-md w-[80%] h-[75%]">
         <nav className="absolute top-0 right-0 left-0 h-16 grid grid-rows-1 grid-cols-5 place-items-center border-b-2 border-b-black">
           <div className="grid grid-cols-1 grid-rows-2 place-items-center">
@@ -59,6 +96,7 @@ export default function Editor() {
             <input
               type="text"
               placeholder=""
+              ref={titleRef}
               className="border-solid border-2 border-black rounded-lg"
             />
           </div>
