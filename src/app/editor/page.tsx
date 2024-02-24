@@ -4,6 +4,7 @@ import { redirect, useRouter } from "next/navigation";
 import ComboBox from "@/components/ComboBox";
 import { HiDotsHorizontal } from "react-icons/hi";
 import FormattingButton from "@/components/FormattingButton";
+import { useState, useRef, useEffect } from "react";
 
 export default function Editor() {
   const router = useRouter();
@@ -19,6 +20,21 @@ export default function Editor() {
   const routeHome = () => {
     router.push("/");
   };
+
+  const [noteText, setNoteText] = useState("");
+  const [title, setTitle] = useState("");
+
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
+  const saveNote = () => {
+    if (textAreaRef.current) {
+      setNoteText(textAreaRef.current.value);
+    }
+  };
+
+  useEffect(() => {
+    console.log(noteText);
+  }, [noteText]);
 
   if (status === "loading") {
     return (
@@ -50,7 +66,9 @@ export default function Editor() {
             <ComboBox />
           </div>
           <div className="flex">
-            <button className="rounded-lg py-2 px-4 bg-black text-white font-bold">
+            <button
+              onClick={saveNote}
+              className="rounded-lg py-2 px-4 bg-black text-white font-bold">
               Save
             </button>
             <button className="ml-2 rounded-lg py-2 px-4 bg-gray-500 text-white font-bold">
@@ -59,15 +77,16 @@ export default function Editor() {
           </div>
         </nav>
         <div className="grid grid-cols-5 grid-rows-1 w-full absolute top-16 bottom-0 right-0 left-0 place-items-center">
-            <div className="grid place-items-center col-start-1 col-end-5 w-full h-full">
-                <textarea
-                    className="focus:outline-none focus:shadow-none h-[90%] w-[90%] resize-none border-gray-500 border-[1px] rounded-lg"
-                    placeholder=" Start writing..."></textarea>
-            </div>
-            {/* formatting bar */}
-            <div className="p-4 flex flex-col col-start-5 h-full border-l-2 border-l-black ">
-                <FormattingButton name="Bold" />
-                {/* <FormattingButton name="H1" />
+          <div className="grid place-items-center col-start-1 col-end-5 w-full h-full">
+            <textarea
+              className="focus:outline-none focus:shadow-none h-[90%] w-[90%] resize-none border-gray-500 border-[1px] rounded-lg"
+              placeholder=" Start writing..."
+              ref={textAreaRef}></textarea>
+          </div>
+          {/* formatting bar */}
+          <div className="p-4 flex flex-col col-start-5 h-full border-l-2 border-l-black ">
+            <FormattingButton name="Bold" />
+            {/* <FormattingButton name="H1" />
                 <FormattingButton name="H2" />
                 <FormattingButton name="H3" />
                 <FormattingButton name="italic" />
@@ -75,7 +94,7 @@ export default function Editor() {
                 <FormattingButton name="image" />
                 <FormattingButton name="list" />
                 <FormattingButton name="code" /> */}
-            </div>
+          </div>
         </div>
       </div>
     </main>
