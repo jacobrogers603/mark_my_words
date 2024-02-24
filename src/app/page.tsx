@@ -1,6 +1,7 @@
 "use client";
 import { signOut, useSession } from "next-auth/react";
 import { redirect, useRouter } from "next/navigation";
+import CurrentDirectory from "@/components/CurrentDirectory";
 
 export default function Home() {
   const router = useRouter();
@@ -18,6 +19,10 @@ export default function Home() {
     router.push("/notes");
   };
 
+  const createNote = () => {
+    router.push("/editor");
+  }
+
   if (status === "loading") {
     return (
     <main className="w-full h-screen grid place-items-center">
@@ -31,9 +36,8 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       Main Page
-      <button className="w-auto h-10 bg-blue-400" onClick={routeToNotes}>
-        notes
-      </button>
+      <CurrentDirectory />
+      <button className="h-10 w-auto bg-amber-700" onClick={createNote}>Create Note</button>
       <button className="h-10 w-auto bg-red-200" onClick={() => signOut()}>
         Sign Out
       </button>

@@ -1,24 +1,41 @@
 generator cleint {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "mongodb"
-    url     = env("DATABASE_URL")
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id String @id @default(auto()) @map("_id") @db.ObjectId 
-  email String @unique
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  email          String    @unique
   hashedPassword String
-  sessions Session[]
+  sessions       Session[]
+  Note           Note[]
 }
 
 model Session {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  sessionToken String @unique
-  userId String @db.ObjectId
-  expires DateTime
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Note {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  content     String
+  isDirectory Boolean
+  userId      String   @db.ObjectId
+  parentId    String   @db.ObjectId
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  children Note[] @relation("ParentChild")
+  parent   Note?  @relation("ParentChild", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
