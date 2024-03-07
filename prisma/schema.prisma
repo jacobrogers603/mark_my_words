@@ -12,6 +12,7 @@ model User {
   email          String    @unique
   hashedPassword String
   sessions       Session[]
+  noteIDs        String[]  @db.ObjectId
   Note           Note[]
 }
 
@@ -25,17 +26,11 @@ model Session {
 }
 
 model Note {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   content     String?
   isDirectory Boolean
-  userId      String   @db.ObjectId
-  parentId    String   @db.ObjectId
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  children Note[] @relation("ParentChild")
-  parent   Note?  @relation("ParentChild", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  userId      String  @db.ObjectId
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

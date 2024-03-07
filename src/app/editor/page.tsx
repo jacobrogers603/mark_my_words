@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { set } from "react-hook-form";
+import axios from "axios";
 
 export default function Editor() {
   const router = useRouter();
@@ -36,25 +37,38 @@ export default function Editor() {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
 
-  const saveNote = useCallback(() => {
-    const currentText = textAreaRef.current ? textAreaRef.current.value : '';
-    const currentTitle = titleRef.current ? titleRef.current.value : ''; 
+  const saveNote = useCallback(async () => {
+    const currentText = textAreaRef.current ? textAreaRef.current.value : "";
+    const currentTitle = titleRef.current ? titleRef.current.value : "";
     setNoteText(currentText);
     setTitle(currentTitle);
 
     if (currentTitle === "") {
       setIsDialogOpen(true);
-    } else {
-      console.log("Note saving");
+      return;
     }
-  },[]);
+
+    try {
+      await axios.post("/api/saveNote", {
+        title: currentTitle,
+        content: currentText,
+        isDirectory: false,
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
 
   const closeDialog = () => setIsDialogOpen(false);
 
-  useEffect(() => {
-    console.log('noteText:', noteText);
-    console.log('title:', title);
-  }, [noteText, title]);
+  // useEffect(() => {
+  //   console.log("noteText:", noteText);
+  //   console.log("title:", title);
+  // }, [noteText, title]);
+
+  const goHome = () => {
+    router.push("/");
+  };
 
   if (status === "loading") {
     return (
@@ -100,6 +114,9 @@ export default function Editor() {
               className="border-solid border-2 border-black rounded-lg"
             />
           </div>
+          <button className="h-10 w-auto bg-amber-700" onClick={goHome}>
+            Back
+          </button>
           <div className="col-start-4">
             <ComboBox />
           </div>
