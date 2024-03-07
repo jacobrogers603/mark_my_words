@@ -95,12 +95,14 @@ const AuthPage = () => {
 
   const signup = async (email: string, password: string) => {
     try {
-      await axios.post("/api/signup", {
+      const signupResult = await axios.post("/api/signup", {
         email,
         password,
       });
 
-      signin(email, password);
+      if (signupResult.status === 200) {
+        signin(email, password);
+      }
     } catch (error) {
       console.error(error);
     }
@@ -155,8 +157,8 @@ const AuthPage = () => {
                     Password{" "}
                     {variant === "signup" ? (
                       <span className="text-gray-500 italic">
-                        Min length 8, at least one uppercase, one lowercase and one number
-                        required
+                        Min length 8, at least one uppercase, one lowercase and
+                        one number required
                       </span>
                     ) : null}{" "}
                   </FormLabel>

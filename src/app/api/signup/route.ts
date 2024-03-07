@@ -5,7 +5,7 @@ import prismadb from "@/lib/prismadb";
 export const POST = async (req: Request) => {
   try {
     const { email, password } = await req.json();
-    
+
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password are required" });
     }
@@ -25,11 +25,31 @@ export const POST = async (req: Request) => {
     const user = await prismadb.user.create({
       data: {
         email,
-        hashedPassword
+        hashedPassword,
       },
     });
 
-    return NextResponse.json(user);
+    const rootDir = await prismadb.note.create({
+      data: {
+        title: email,
+        content: "",
+        isDirectory: true,
+        userId: user.id || "", // Ensure userId is of type string
+      },
+    });
+
+    const updatedUser = await prismadb.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        noteIDs: {
+          push: rootDir.id,
+        },
+      },
+    });
+
+    return NextResponse.json(updatedUser);
   } catch (error) {
     console.log(error);
     return NextResponse.json(error);

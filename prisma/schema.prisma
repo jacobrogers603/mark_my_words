@@ -13,16 +13,6 @@ model User {
   hashedPassword String
   sessions       Session[]
   noteIDs        String[]  @db.ObjectId
-  Note           Note[]
-}
-
-model Session {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  sessionToken String   @unique
-  userId       String   @db.ObjectId
-  expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Note {
@@ -31,6 +21,15 @@ model Note {
   content     String?
   isDirectory Boolean
   userId      String  @db.ObjectId
+  childrenIds String[] @db.ObjectId
+  parentId   String? @db.ObjectId
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
