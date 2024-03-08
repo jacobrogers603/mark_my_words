@@ -1,18 +1,13 @@
-import React from "react";
+import { JsonObject } from "@prisma/client/runtime/library";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
 
-const DirectoryItem = ({noteID}: {noteID: string}) => {
-
-  const findTitle = (NoteID: string) => {
-    // This is a placeholder function that will be replaced with a call to the API
-    // to retrieve the title of the note from the database.
-    return "Note Title" + NoteID;
-  }
-
+const DirectoryItem = ({ note }: { note: JsonObject }) => {
 
   return (
     <main>
       <div className="grid place-items-center w-64 h-10 border-solid rounded-md border-2 border-amber-500">
-        {findTitle(noteID)}
+        {note?.title?.toString() ?? 'No title'}
       </div>
     </main>
   );

@@ -1,14 +1,14 @@
 import React from "react";
 import DirectoryItem from "./DirectoryItem";
-interface DirectoryItemsProps {
-  title: string;
-  type: "file" | "directory";
-}
+import { JsonObject } from "@prisma/client/runtime/library";
 
-const DirectoryItems = (props: {title: string; type: "file" | "directory"}) => {
+
+const DirectoryItems = ({currentDirNotes}: {currentDirNotes: JsonObject[] | null}) => {
   return (
     <main>
-      <DirectoryItem noteID={'1'} />
+      {currentDirNotes && currentDirNotes.map((note) => (
+        <DirectoryItem note={note ?? null} />
+      ))}
     </main>
   );
 };

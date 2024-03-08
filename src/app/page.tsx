@@ -1,14 +1,14 @@
 "use client";
 import { signOut, useSession } from "next-auth/react";
 import { redirect, useRouter } from "next/navigation";
-import CurrentDirectory from "@/components/CurrentDirectory";
 import { useCallback, useState } from "react";
 import axios from "axios";
+import DirectoryItems from "@/components/DirectoryItems";
+import useCurrentDirectory from "@/hooks/useCurrentDirectory";
 
 export default function Home() {
   const router = useRouter();
 
-  // const { data: user } = useCurrentUser();
   const { data: session, status } = useSession({
     required: true,
     onUnauthenticated() {
@@ -44,6 +44,8 @@ export default function Home() {
   ) => {
     setDirectoryTitle(event.target.value);
   };
+  
+  const { data: currentDirNotes = [] } = useCurrentDirectory();
 
   if (status === "loading") {
     return (
@@ -58,7 +60,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       Main Page
-      <CurrentDirectory />
+      <DirectoryItems currentDirNotes={currentDirNotes}/>
       <button className="h-10 w-auto bg-amber-700" onClick={createNote}>
         Create Note
       </button>
