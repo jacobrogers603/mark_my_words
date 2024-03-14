@@ -3,11 +3,12 @@ import authOptions from "../../../../auth";
 import prismadb from "@/lib/prismadb";
 import { NextResponse } from "next/server";
 
+// Return a note from the server based on its id
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
 
   if (session) {
-    // const { noteID } = await req.json();
+
     const noteID = (req as any).query.noteID;
     
     console.log("Note ID", noteID);

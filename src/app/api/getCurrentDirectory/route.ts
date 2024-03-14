@@ -3,9 +3,12 @@ import authOptions from "../../../../auth";
 import prismadb from '@/lib/prismadb';
 import { NextResponse } from "next/server";
 
+
+// Return the notes from a directory.
 export async function GET(req: Request) {
     const session = await getServerSession(authOptions);
     if (session) {
+        
         try {
             const user = await prismadb.user.findUnique({
                 where: {
@@ -15,7 +18,8 @@ export async function GET(req: Request) {
             const currentDirNotes = await prismadb.note.findMany({
                 where: {
                     id: {
-                        in: user?.noteIDs
+                        in: user?.noteIDs,
+
                     }
                 }
             })

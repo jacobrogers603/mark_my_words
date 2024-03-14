@@ -18,7 +18,7 @@ export default function Home() {
   });
 
   const routeToNotes = () => {
-    router.push("/notes");
+    router.push("/note");
   };
 
   const createNote = () => {
@@ -44,7 +44,7 @@ export default function Home() {
   ) => {
     setDirectoryTitle(event.target.value);
   };
-  
+
   const { data: currentDirNotes = [] } = useCurrentDirectory();
 
   if (status === "loading") {

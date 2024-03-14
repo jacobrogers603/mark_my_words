@@ -28,6 +28,10 @@ export const POST = async (req: Request) => {
           return NextResponse.json({ error: "User not found" });
         }
 
+        if (user.email === title) {
+          return NextResponse.json({ error: "Title cannot be the same as email, this is reserved for the root note!" });
+        }
+
         const userId = user?.id;
 
         const newNote = await prismadb.note.create({
