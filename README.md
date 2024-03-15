@@ -27,6 +27,8 @@ A tree of all the notes a user has. Each note (or dir) will have a row that has 
 
 Settings for the profile of the user including: profile avatar, email address, change password, delete account, make notes public or private by default, etc; configure note templates
 
+https://ui.shadcn.com/docs/components/hover-card use for profile
+
 ### navbar - todo
 
 have search: will cover the user's own notes (possible options for keyword vs file name vs user); have a button to go to search profiles page
