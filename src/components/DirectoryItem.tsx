@@ -11,10 +11,17 @@ const DirectoryItem = ({ note }: DirectoryItemsProps) => {
 
   const router = useRouter();
 
-  const handleItemClick = () => {
+  const handleItemClick = async() => {
     const noteId = note?.id;
     if(note.isDirectory) {
       console.log('change the current dir');
+      try {
+        await axios.post('/api/setCurrentDirectory', {
+          directoryId: noteId
+        });
+      } catch (error) {
+        console.log('Failed to change dir', error);
+      }
     }
     else {
       router.push(`/note/${noteId?.toString()}`);

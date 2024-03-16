@@ -1,8 +1,6 @@
 import React from "react";
 import DirectoryItem from "./DirectoryItem";
 import { JsonObject } from "@prisma/client/runtime/library";
-import { useRouter } from "next/router";
-
 
 const DirectoryItems = ({currentDirNotes}: {currentDirNotes: JsonObject[] | null}) => {
 

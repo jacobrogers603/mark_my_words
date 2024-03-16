@@ -49,7 +49,7 @@ export const POST = async (req: Request) => {
         // Update the parent directory's child array to contain this note.
         const updatedDirectory = await prismadb.note.update({
           where: {
-            id: user?.currentDirectoryId,
+            id: user?.currentDirectoryId ?? undefined,
           },
           data: {
             childrenIds: {
