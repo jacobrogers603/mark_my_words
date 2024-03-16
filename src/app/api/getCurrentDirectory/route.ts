@@ -15,15 +15,30 @@ export async function GET(req: Request) {
                     email: session?.user?.email || ''
                 }
             })
+
+            // Find the current directory.
+            const currentDir = await prismadb.note.findUnique({
+                where: {
+                    id: user?.currentDirectoryId
+                }
+            })
+
+            // Get all the children notes of that directory.
             const currentDirNotes = await prismadb.note.findMany({
                 where: {
                     id: {
-                        in: user?.noteIDs,
-
+                        in: currentDir?.childrenIds
                     }
                 }
-            })
-            return NextResponse.json(currentDirNotes)
+            });
+
+             // Combine the current directory note with its children notes
+             const responsePayload = {
+                currentDirectory: currentDir,
+                notes: currentDirNotes
+            };
+
+            return NextResponse.json(responsePayload)
         }
         catch (error) {
             return NextResponse.json(error)

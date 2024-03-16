@@ -13,6 +13,7 @@ model User {
   hashedPassword String
   sessions       Session[]
   noteIDs        String[]  @db.ObjectId
+  currentDirectoryId String? @db.ObjectId
 }
 
 model Note {
@@ -22,7 +23,6 @@ model Note {
   isDirectory Boolean
   userId      String  @db.ObjectId
   childrenIds String[] @db.ObjectId
-  parentId   String? @db.ObjectId
 }
 
 model Session {

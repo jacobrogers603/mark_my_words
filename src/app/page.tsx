@@ -17,10 +17,6 @@ export default function Home() {
     },
   });
 
-  const routeToNotes = () => {
-    router.push("/note");
-  };
-
   const createNote = () => {
     router.push("/editor");
   };
