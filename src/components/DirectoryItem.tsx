@@ -16,7 +16,7 @@ const DirectoryItem = ({ note }: DirectoryItemsProps) => {
     if(note.isDirectory) {
       console.log('change the current dir');
       try {
-        await axios.post('/api/setCurrentDirectory', {
+        await axios.post('/api/setCurrentPath', {
           directoryId: noteId
         });
       } catch (error) {

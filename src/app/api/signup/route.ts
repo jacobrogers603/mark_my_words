@@ -26,7 +26,6 @@ export const POST = async (req: Request) => {
       data: {
         email,
         hashedPassword,
-        currentDirectoryId: null,
       },
     });
 
@@ -47,7 +46,9 @@ export const POST = async (req: Request) => {
         noteIDs: {
           push: rootDir.id,
         },
-        currentDirectoryId: rootDir.id,
+        currentPath: {
+          push: rootDir.id,
+        }
       },
     });
 

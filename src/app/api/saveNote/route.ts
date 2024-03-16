@@ -1,7 +1,5 @@
 import prismadb from "@/lib/prismadb";
 import { NextResponse } from "next/server";
-import { getSession } from "next-auth/react";
-import { NextApiRequest } from "next";
 import { getServerSession } from "next-auth";
 import authOptions from "../../../../auth";
 
@@ -36,6 +34,7 @@ export const POST = async (req: Request) => {
         }
 
         const userId = user?.id;
+       
         // Create the new note.
         const newNote = await prismadb.note.create({
           data: {
@@ -47,9 +46,11 @@ export const POST = async (req: Request) => {
         });
 
         // Update the parent directory's child array to contain this note.
+        const currentDirectoryId = user?.currentPath[user?.currentPath.length - 1];
+
         const updatedDirectory = await prismadb.note.update({
           where: {
-            id: user?.currentDirectoryId ?? undefined,
+            id: currentDirectoryId ?? undefined,
           },
           data: {
             childrenIds: {

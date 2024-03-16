@@ -17,11 +17,13 @@ export async function GET(req: Request) {
             })
 
             // Find the current directory.
+            const currentDirId = user?.currentPath[user?.currentPath.length - 1];
+
             const currentDir = await prismadb.note.findUnique({
                 where: {
-                    id: user?.currentDirectoryId ?? undefined
+                    id: currentDirId
                 }
-            })
+            }); 
 
             // Get all the children notes of that directory.
             const currentDirNotes = await prismadb.note.findMany({

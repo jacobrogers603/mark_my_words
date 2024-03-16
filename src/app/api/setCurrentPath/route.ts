@@ -23,13 +23,15 @@ export const POST = async (req: Request) => {
         }
 
         const userId = user?.id;
-        // Create the new note.
+
         const updatedUser = await prismadb.user.update({
             where: {
                 id: userId,
             },
             data: {
-                currentDirectoryId: directoryId,
+                currentPath: {
+                    push: directoryId,
+                },
             },
         });
 
