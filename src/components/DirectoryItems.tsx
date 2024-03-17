@@ -1,8 +1,6 @@
 import React from "react";
 import DirectoryItem from "./DirectoryItem";
 import { JsonObject } from "@prisma/client/runtime/library";
-import useCurrentPath from "@/hooks/useCurrentPath";
-import axios from "axios";
 import useNote from "@/hooks/useNote";
 
 interface DirectoryItemsProps {
@@ -23,13 +21,16 @@ const DirectoryItems: React.FC<DirectoryItemsProps> = ({
     let path = "";
     for (let i = 0; i < currentPath.length; i++) {
       const { data: note } = useNote(currentPath[i] as string);
-      path += note?.title;
+      if(note?.title === undefined) {
+        path += "loading...";
+      }else {
+        path += note.title;
+      }
 
       if(i < currentPath.length - 1) {
-        path += "/";
+        path += " / ";
       }
     }
-
 
     return path;
   };
