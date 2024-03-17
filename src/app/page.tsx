@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import axios from "axios";
 import DirectoryItems from "@/components/DirectoryItems";
 import useCurrentDirectory from "@/hooks/useCurrentDirectory";
+import useCurrentPath from "@/hooks/useCurrentPath";
 
 export default function Home() {
   const router = useRouter();
@@ -42,6 +43,8 @@ export default function Home() {
   };
 
   const { data: currentDirNotes = [] } = useCurrentDirectory();
+  const { data: currentPathIds = [] } = useCurrentPath();
+
 
   if (status === "loading") {
     return (
@@ -56,7 +59,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       Main Page
-      <DirectoryItems currentDirNotes={currentDirNotes}/>
+      <DirectoryItems currentDirNotes={currentDirNotes} currentPath={currentPathIds} />
       <button className="h-10 w-auto bg-amber-700" onClick={createNote}>
         Create Note
       </button>
