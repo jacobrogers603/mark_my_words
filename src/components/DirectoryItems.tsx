@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import DirectoryItem from "./DirectoryItem";
 import { JsonObject } from "@prisma/client/runtime/library";
 import axios from "axios";
+import { FaFolderClosed } from "react-icons/fa6";
 
 interface DirectoryItemsProps {
   currentDirNotes: JsonObject[] | null;
@@ -58,9 +59,10 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
       <h2>{path}</h2>
       {currentPath && currentPath.length > 1 ? (
         <div
-          className="grid place-items-center w-64 h-10 border-solid rounded-md border-2 border-red-500"
+          className="grid place-items-center grid-cols-3 w-64 h-10 border-solid rounded-md border-2 border-red-500"
           onClick={() => updateCurrentPath()}>
-          ...
+          <FaFolderClosed />
+          <span className="grid-span-2">...</span>
         </div>
       ) : null}
       {notes.map((note) => (
