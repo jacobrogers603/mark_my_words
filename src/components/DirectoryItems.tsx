@@ -1,69 +1,75 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import DirectoryItem from "./DirectoryItem";
 import { JsonObject } from "@prisma/client/runtime/library";
-import useNote from "@/hooks/useNote";
 import axios from "axios";
 
 interface DirectoryItemsProps {
   currentDirNotes: JsonObject[] | null;
   currentPath: string[] | null;
-  onDirectoryChange: () => void;
+  updateCurrentPath: (directoryId?: string) => Promise<void>;
 }
 
 export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
   currentDirNotes,
   currentPath,
-  onDirectoryChange,
+  updateCurrentPath,
 }) => {
-  const getCurrentPathString = () => {
-    if (currentPath === null) {
-      return "null path";
-    }
+  const [notes, setNotes] = useState<JsonObject[]>([]);
+  const [pathTitles, setPathTitles] = useState<string[]>([]);
 
-    let path = "";
-    for (let i = 0; i < currentPath.length; i++) {
-      const { data: note } = useNote(currentPath[i] as string);
-      if (note?.title === undefined) {
-        path += "loading...";
-      } else {
-        path += note.title;
+  useEffect(() => {
+    const fetchNotes = async () => {
+      try {
+        const response = await axios.get("/api/getCurrentDirectory");
+        setNotes(response.data);
+      } catch (error) {
+        console.log("Failed to fetch notes", error);
       }
-      if (i < currentPath.length - 1) {
-        path += " / ";
+    };
+
+    fetchNotes();
+  }, [currentPath]);
+
+  useEffect(() => {
+    const fetchPathTitles = async () => {
+      if (currentPath) {
+        const titles = await Promise.all(
+          currentPath.map(async (directoryId) => {
+            try {
+              const response = await axios.get(`/api/getNote/${directoryId}`);
+              return response.data.title || "";
+            } catch (error) {
+              console.error("Failed to fetch note:", error);
+              return "";
+            }
+          })
+        );
+        setPathTitles(titles);
       }
-    }
-    return path;
-  };
+    };
 
-  const path = getCurrentPathString();
+    fetchPathTitles();
+  }, [currentPath]);
 
-  // Go back up one directory.
-  const cdUp = async () => {
-    try {
-      await axios.delete("/api/setCurrentPath");
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  const path = pathTitles.join(" / ");
 
   return (
     <main>
       <h2>{path}</h2>
-      {currentPath?.length ?? 0 > 1 ? (
+      {currentPath && currentPath.length > 1 ? (
         <div
           className="grid place-items-center w-64 h-10 border-solid rounded-md border-2 border-red-500"
-          onClick={cdUp}
-        >
+          onClick={() => updateCurrentPath()}>
           ...
         </div>
       ) : null}
-      {currentDirNotes &&
-        currentDirNotes.map((note) => (
-          <DirectoryItem
-            key={note.id?.toString()}
-            note={note ?? null}
-          />
-        ))}
+      {notes.map((note) => (
+        <DirectoryItem
+          key={note.id?.toString()}
+          note={note ?? null}
+          updateCurrentPath={updateCurrentPath}
+        />
+      ))}
     </main>
   );
 };

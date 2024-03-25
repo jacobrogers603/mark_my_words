@@ -1,37 +1,30 @@
 import { JsonObject } from "@prisma/client/runtime/library";
-import axios from "axios";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React from "react";
 
-type DirectoryItemsProps = {
+type DirectoryItemProps = {
   note: JsonObject;
+  updateCurrentPath: (directoryId?: string) => Promise<void>;
 };
 
-const DirectoryItem = ({ note }: DirectoryItemsProps) => {
-
+const DirectoryItem = ({ note, updateCurrentPath }: DirectoryItemProps) => {
   const router = useRouter();
 
-  const handleItemClick = async() => {
+  const handleItemClick = async () => {
     const noteId = note?.id;
-    if(note.isDirectory) {
-      console.log('change the current dir');
-      try {
-        await axios.post('/api/setCurrentPath', {
-          directoryId: noteId
-        });
-      } catch (error) {
-        console.log('Failed to change dir', error);
-      }
-    }
-    else {
+    if (note.isDirectory) {
+      await updateCurrentPath(noteId?.toString());
+    } else {
       router.push(`/note/${noteId?.toString()}`);
     }
   };
 
   return (
-      <div onClick={handleItemClick} className="grid place-items-center w-64 h-10 border-solid rounded-md border-2 border-amber-500">
-        {note?.title?.toString() ?? 'No title'}
-      </div>
+    <div
+      onClick={handleItemClick}
+      className="grid place-items-center w-64 h-10 border-solid rounded-md border-2 border-amber-500">
+      {note?.title?.toString() ?? "No title"}
+    </div>
   );
 };
 
