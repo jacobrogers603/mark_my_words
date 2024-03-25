@@ -20,7 +20,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
   useEffect(() => {
     const fetchNotes = async () => {
       try {
-        const response = await axios.get("/api/getCurrentDirectory");
+        const response = await axios.get("/api/getCurrentDirectoryNotes");
         setNotes(response.data);
       } catch (error) {
         console.log("Failed to fetch notes", error);

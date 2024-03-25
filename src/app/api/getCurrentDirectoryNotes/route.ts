@@ -3,7 +3,6 @@ import authOptions from "../../../../auth";
 import prismadb from '@/lib/prismadb';
 import { NextResponse } from "next/server";
 
-
 // Return the notes from a directory.
 export async function GET(req: Request) {
     const session = await getServerSession(authOptions);

@@ -4,8 +4,6 @@ import { redirect, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import DirectoryItems from "@/components/DirectoryItems";
-import useCurrentDirectory from "@/hooks/useCurrentDirectory";
-import useCurrentPath from "@/hooks/useCurrentPath";
 
 export default function Home() {
   const router = useRouter();
@@ -42,7 +40,20 @@ export default function Home() {
     setDirectoryTitle(event.target.value);
   };
 
-  const { data: currentDirNotes = [] } = useCurrentDirectory();
+  const [currentDirNotes, setCurrentDirNotes] = useState([]);
+
+  useEffect(() => {
+    const fetchCurrentDirectory = async () => {
+      try {
+        const response = await axios.get("/api/getCurrentDirectoryNotes");
+        setCurrentDirNotes(response.data);
+      } catch (error) {
+        console.log("Failed to fetch current directory", error);
+      }
+    };
+
+    fetchCurrentDirectory();
+  }, []);
 
   const [currentPath, setCurrentPath] = useState<string[]>([]);
 
