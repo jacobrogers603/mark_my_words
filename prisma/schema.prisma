@@ -13,16 +13,16 @@ model User {
   hashedPassword String
   sessions       Session[]
   noteIDs        String[]  @db.ObjectId
+  currentPath    String[]  @db.ObjectId
 }
 
 model Note {
-  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   content     String?
   isDirectory Boolean
-  userId      String  @db.ObjectId
+  userId      String   @db.ObjectId
   childrenIds String[] @db.ObjectId
-  parentId   String? @db.ObjectId
 }
 
 model Session {

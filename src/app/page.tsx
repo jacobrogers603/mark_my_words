@@ -1,10 +1,9 @@
 "use client";
 import { signOut, useSession } from "next-auth/react";
 import { redirect, useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import DirectoryItems from "@/components/DirectoryItems";
-import useCurrentDirectory from "@/hooks/useCurrentDirectory";
 
 export default function Home() {
   const router = useRouter();
@@ -16,10 +15,6 @@ export default function Home() {
       redirect("/api/auth/signin");
     },
   });
-
-  const routeToNotes = () => {
-    router.push("/note");
-  };
 
   const createNote = () => {
     router.push("/editor");
@@ -45,7 +40,49 @@ export default function Home() {
     setDirectoryTitle(event.target.value);
   };
 
-  const { data: currentDirNotes = [] } = useCurrentDirectory();
+  const [currentDirNotes, setCurrentDirNotes] = useState([]);
+
+  useEffect(() => {
+    const fetchCurrentDirectory = async () => {
+      try {
+        const response = await axios.get("/api/getCurrentDirectoryNotes");
+        setCurrentDirNotes(response.data);
+      } catch (error) {
+        console.log("Failed to fetch current directory", error);
+      }
+    };
+
+    fetchCurrentDirectory();
+  }, []);
+
+  const [currentPath, setCurrentPath] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchCurrentPath = async () => {
+      try {
+        const response = await axios.get("/api/getCurrentPath");
+        setCurrentPath(response.data);
+      } catch (error) {
+        console.log("Failed to fetch current path", error);
+      }
+    };
+
+    fetchCurrentPath();
+  }, []);
+
+  const updateCurrentPath = async (directoryId?: string) => {
+    try {
+      if (directoryId) {
+        await axios.post("/api/setCurrentPath", { directoryId });
+        setCurrentPath([...currentPath, directoryId]);
+      } else {
+        await axios.delete("/api/setCurrentPath");
+        setCurrentPath(currentPath.slice(0, -1));
+      }
+    } catch (error) {
+      console.log("Failed to update current path", error);
+    }
+  };
 
   if (status === "loading") {
     return (
@@ -60,7 +97,11 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       Main Page
-      <DirectoryItems currentDirNotes={currentDirNotes}/>
+      <DirectoryItems
+        currentDirNotes={currentDirNotes}
+        currentPath={currentPath}
+        updateCurrentPath={updateCurrentPath}
+      />
       <button className="h-10 w-auto bg-amber-700" onClick={createNote}>
         Create Note
       </button>

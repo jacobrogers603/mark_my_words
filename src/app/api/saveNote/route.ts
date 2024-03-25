@@ -1,7 +1,5 @@
 import prismadb from "@/lib/prismadb";
 import { NextResponse } from "next/server";
-import { getSession } from "next-auth/react";
-import { NextApiRequest } from "next";
 import { getServerSession } from "next-auth";
 import authOptions from "../../../../auth";
 
@@ -29,30 +27,49 @@ export const POST = async (req: Request) => {
         }
 
         if (user.email === title) {
-          return NextResponse.json({ error: "Title cannot be the same as email, this is reserved for the root note!" });
+          return NextResponse.json({
+            error:
+              "Title cannot be the same as email, this is reserved for the root note!",
+          });
         }
 
         const userId = user?.id;
-
+       
+        // Create the new note.
         const newNote = await prismadb.note.create({
-            data: {
-                title,
-                content,
-                isDirectory,
-                userId: userId || "", // Ensure userId is of type string
-            },
+          data: {
+            title,
+            content,
+            isDirectory,
+            userId: userId || "", // Ensure userId is of type string
+          },
         });
 
+        // Update the parent directory's child array to contain this note.
+        const currentDirectoryId = user?.currentPath[user?.currentPath.length - 1];
+
+        const updatedDirectory = await prismadb.note.update({
+          where: {
+            id: currentDirectoryId ?? undefined,
+          },
+          data: {
+            childrenIds: {
+              push: newNote.id,
+            },
+          },
+        });
+
+        // Update the user's noteIDs array to contain the new note.
         const updatedUser = await prismadb.user.update({
-            where: {
-                id: userId,
+          where: {
+            id: userId,
+          },
+          data: {
+            noteIDs: {
+              push: newNote.id,
             },
-            data: {
-                noteIDs: {
-                    push: newNote.id,
-                }
-            },
-        });        
+          },
+        });
 
         return NextResponse.json(newNote);
       } catch (error) {
@@ -63,7 +80,6 @@ export const POST = async (req: Request) => {
       console.log("no session");
       return new Response(null, { status: 401 }); // 401 Unauthorized
     }
-
   } catch (error) {
     console.log(error);
     return NextResponse.json(error);

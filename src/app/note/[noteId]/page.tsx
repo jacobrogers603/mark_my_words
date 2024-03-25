@@ -17,6 +17,10 @@ const note = () => {
   const { noteId } = useParams();
   const { data: note } = useNote(noteId as string);
 
+  const routeHome = () => {
+    router.push("/");
+  };
+
   if (status === "loading") {
     return (
       <main className="w-full h-screen grid place-items-center">
@@ -29,6 +33,9 @@ const note = () => {
 
   return (
     <main className="grid place-items-center">
+      <button className="h-10 w-auto bg-amber-700" onClick={routeHome}>
+        Back
+      </button>
       <div className="">{note?.content}</div>
     </main>
   );
