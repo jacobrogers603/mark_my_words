@@ -56,7 +56,8 @@ export const POST = async (req: Request) => {
               title,
               content,
               isDirectory,
-              userId: userId || "", // Ensure userId is of type string
+              userId: userId || "",
+              parentId: user?.currentPath[user?.currentPath.length - 1],
             },
           });
 
@@ -121,60 +122,76 @@ export const DELETE = async (req: Request) => {
           return NextResponse.json({ error: "User not found" });
         }
 
-        // Delete the note
-        const note = await prismadb.note.findUnique({
-          where: {
-            id: noteId,
-          },
-        });
-
-        if(!note) {
-          return NextResponse.json({ error: "Note not found" });
-        }
-
-        if(note.title === user.email) {
-          return NextResponse.json({ error: "Cannot delete the root note!" });
-        }
-
-        const deletedNote = await prismadb.note.delete({
-          where: {
-            id: noteId,
-          },
-        });
-
-        // Update the parent directory's child array to no longer contain this note.
-        const currentDirectoryId =
-          user?.currentPath[user?.currentPath.length - 1];
-        const updatedDirectory = await prismadb.note.update({
-          where: {
-            id: currentDirectoryId,
-          },
-          data: {
-            childrenIds: {
-              set: (
-                await prismadb.note.findUnique({
-                  where: { id: currentDirectoryId },
-                })
-              )?.childrenIds.filter((id) => id !== noteId),
+        const recursiveDelete = async (noteId: string) => {
+          // Get the note
+          const note = await prismadb.note.findUnique({
+            where: {
+              id: noteId,
             },
-          },
-        });
+          });
 
-        // Update the user's noteIDs array to no longer contain this note.
-        const updatedUser = await prismadb.user.update({
-          where: {
-            id: user.id,
-          },
-          data: {
-            noteIDs: {
-              set: (
-                await prismadb.user.findUnique({
-                  where: { id: user.id },
-                })
-              )?.noteIDs.filter((id) => id !== noteId),
+          // Check the note for some things.
+          if (!note) {
+            return NextResponse.json({ error: "Note not found" });
+          }
+
+          if (note.title === user.email) {
+            return NextResponse.json({ error: "Cannot delete the root note!" });
+          }
+
+          // If it's a directory, delete all of its children.
+          if (note.isDirectory) {
+            for (const childId of note.childrenIds) {
+              await recursiveDelete(childId);
+            }
+          }
+
+          // Remove the note from the parent directory's children array.
+          const parentDirectoryId = note.parentId;
+          if (!parentDirectoryId) {
+            return;
+          }
+
+          const updatedParentDirectory = await prismadb.note.update({
+            where: {
+              id: parentDirectoryId,
             },
-          },
-        });
+            data: {
+              childrenIds: {
+                set: (
+                  await prismadb.note.findUnique({
+                    where: { id: parentDirectoryId },
+                  })
+                )?.childrenIds.filter((id) => id !== noteId),
+              },
+            },
+          });
+
+          // Remove the note from the user's noteIDs array.
+          const updatedUser = await prismadb.user.update({
+            where: {
+              id: user.id,
+            },
+            data: {
+              noteIDs: {
+                set: (
+                  await prismadb.user.findUnique({
+                    where: { id: user.id },
+                  })
+                )?.noteIDs.filter((id) => id !== noteId),
+              },
+            },
+          });
+
+          // Delete the note.
+          await prismadb.note.delete({
+            where: {
+              id: noteId,
+            },
+          });
+        };
+
+        await recursiveDelete(noteId);
       } catch (error) {
         console.log(error);
         return NextResponse.json(error);

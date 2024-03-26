@@ -23,6 +23,7 @@ model Note {
   isDirectory Boolean
   userId      String   @db.ObjectId
   childrenIds String[] @db.ObjectId
+  parentId    String?  @db.ObjectId
 }
 
 model Session {
