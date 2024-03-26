@@ -3,14 +3,23 @@ import fetcher from "@/lib/fetcher";
 
 const useNote = (id?: string) => {
   const { data, error, isLoading } = useSWR(
-    id ? `/api/getNote/${id}` : null,
+    id && id !== "new" ? `/api/getNote/${id}` : null,
     fetcher,
     {
       revalidateIfStale: false,
-      revalidateOnFocus: false,
+      revalidateOnFocus: true,
       revalidateOnReconnect: false,
     }
   );
+
+  if (id === "new") {
+    return {
+      data: { title: "", content: "" },
+      error: null,
+      isLoading: false,
+    };
+  }
+
   return { data, error, isLoading };
 };
 

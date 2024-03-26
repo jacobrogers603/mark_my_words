@@ -17,7 +17,7 @@ export default function Home() {
   });
 
   const createNote = () => {
-    router.push("/editor");
+    router.push("/editor/new");
   };
 
   const [directoryTitle, setDirectoryTitle] = useState("");
@@ -95,7 +95,7 @@ export default function Home() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
+    <main className="flex min-h-screen flex-col items-center justify-between w-full bg-teal-100">
       Main Page
       <DirectoryItems
         currentDirNotes={currentDirNotes}

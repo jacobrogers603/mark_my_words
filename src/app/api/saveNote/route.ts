@@ -5,7 +5,7 @@ import authOptions from "../../../../auth";
 
 export const POST = async (req: Request) => {
   try {
-    const { title, content, isDirectory } = await req.json();
+    const { id, title, content, isDirectory } = await req.json();
 
     if (!title) {
       return NextResponse.json({ error: "Title is required" });
@@ -34,44 +34,60 @@ export const POST = async (req: Request) => {
         }
 
         const userId = user?.id;
-       
-        // Create the new note.
-        const newNote = await prismadb.note.create({
-          data: {
-            title,
-            content,
-            isDirectory,
-            userId: userId || "", // Ensure userId is of type string
-          },
-        });
 
-        // Update the parent directory's child array to contain this note.
-        const currentDirectoryId = user?.currentPath[user?.currentPath.length - 1];
-
-        const updatedDirectory = await prismadb.note.update({
-          where: {
-            id: currentDirectoryId ?? undefined,
-          },
-          data: {
-            childrenIds: {
-              push: newNote.id,
+        if (id) {
+          // Update an existing note
+          const updatedNote = await prismadb.note.update({
+            where: {
+              id: id,
             },
-          },
-        });
-
-        // Update the user's noteIDs array to contain the new note.
-        const updatedUser = await prismadb.user.update({
-          where: {
-            id: userId,
-          },
-          data: {
-            noteIDs: {
-              push: newNote.id,
+            data: {
+              title,
+              content,
+              isDirectory,
             },
-          },
-        });
+          });
 
-        return NextResponse.json(newNote);
+          return NextResponse.json(updatedNote);
+        } else {
+          // Create a new note
+          const newNote = await prismadb.note.create({
+            data: {
+              title,
+              content,
+              isDirectory,
+              userId: userId || "", // Ensure userId is of type string
+            },
+          });
+
+          // Update the parent directory's child array to contain this note.
+          const currentDirectoryId =
+            user?.currentPath[user?.currentPath.length - 1];
+          const updatedDirectory = await prismadb.note.update({
+            where: {
+              id: currentDirectoryId ?? undefined,
+            },
+            data: {
+              childrenIds: {
+                push: newNote.id,
+              },
+            },
+          });
+
+          // Update the user's noteIDs array to contain the new note.
+          const updatedUser = await prismadb.user.update({
+            where: {
+              id: userId,
+            },
+            data: {
+              noteIDs: {
+                push: newNote.id,
+              },
+            },
+          });
+
+          return NextResponse.json(newNote);
+        }
       } catch (error) {
         return NextResponse.json(error);
       }

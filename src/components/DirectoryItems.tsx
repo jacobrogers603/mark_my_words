@@ -59,7 +59,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
       <h2>{path}</h2>
       {currentPath && currentPath.length > 1 ? (
         <div
-          className="grid place-items-center grid-cols-3 w-64 h-10 border-solid rounded-md border-2 border-red-500"
+          className="grid place-items-center grid-cols-3 w-full h-10 border-solid rounded-md border-2 border-red-500 cursor-pointer"
           onClick={() => updateCurrentPath()}>
           <FaFolderClosed />
           <span className="grid-span-2">...</span>

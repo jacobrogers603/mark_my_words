@@ -24,7 +24,7 @@ export async function GET(req: Request, { params }: { params: { noteId: string}}
                 }
             });
             if(!note){
-                throw new Error('Invalid id');
+                throw new Error('No Such Note Found');
             }
             console.log('note', note)
             return NextResponse.json(note);

@@ -1,6 +1,6 @@
 "use client";
 import { useSession } from "next-auth/react";
-import { redirect, useRouter } from "next/navigation";
+import { redirect, useParams, useRouter } from "next/navigation";
 import ComboBox from "@/components/ComboBox";
 import { HiDotsHorizontal } from "react-icons/hi";
 import FormattingButton from "@/components/FormattingButton";
@@ -15,8 +15,26 @@ import {
 } from "@/components/ui/dialog";
 import { set } from "react-hook-form";
 import axios from "axios";
+import useNote from "@/hooks/useNote";
+import useSWR from "swr";
+import fetcher from "@/lib/fetcher";
 
 export default function Editor() {
+  const { noteId } = useParams();
+  const { data: note, mutate } = useSWR(`/api/getNote/${noteId}`, fetcher);
+  const [noteText, setNoteText] = useState("");
+  const [title, setTitle] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (noteId !== "new" && note) {
+      setTitle(note.title);
+      setNoteText(note.content);
+    }
+  }, [noteId, note]);
+
   const router = useRouter();
 
   const { data: session, status } = useSession({
@@ -31,12 +49,6 @@ export default function Editor() {
     router.push("/");
   };
 
-  const [noteText, setNoteText] = useState("");
-  const [title, setTitle] = useState("");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  const titleRef = useRef<HTMLInputElement>(null);
-
   const saveNote = useCallback(async () => {
     const currentText = textAreaRef.current ? textAreaRef.current.value : "";
     const currentTitle = titleRef.current ? titleRef.current.value : "";
@@ -48,23 +60,33 @@ export default function Editor() {
       return;
     }
 
-    try {
-      await axios.post("/api/saveNote", {
-        title: currentTitle,
-        content: currentText,
-        isDirectory: false,
-      });
-    } catch (error) {
-      console.log(error);
+    if (noteId === "new") {
+      try {
+        await axios.post("/api/saveNote", {
+          title: currentTitle,
+          content: currentText,
+          isDirectory: false,
+        });
+      } catch (error) {
+        console.log(error);
+      }
     }
+    else{
+      try {
+        await axios.post("/api/saveNote", {
+          id: noteId,
+          title: currentTitle,
+          content: currentText,
+          isDirectory: false,
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    mutate();
   }, []);
 
   const closeDialog = () => setIsDialogOpen(false);
-
-  // useEffect(() => {
-  //   console.log("noteText:", noteText);
-  //   console.log("title:", title);
-  // }, [noteText, title]);
 
   const goHome = () => {
     router.push("/");
@@ -110,6 +132,8 @@ export default function Editor() {
             <input
               type="text"
               placeholder=""
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               ref={titleRef}
               className="border-solid border-2 border-black rounded-lg"
             />
@@ -136,7 +160,9 @@ export default function Editor() {
             <textarea
               className="focus:outline-none focus:shadow-none h-[90%] w-[90%] resize-none border-gray-500 border-[1px] rounded-lg"
               placeholder=" Start writing..."
-              ref={textAreaRef}></textarea>
+              ref={textAreaRef}
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}></textarea>
           </div>
           {/* formatting bar */}
           <div className="p-4 flex flex-col col-start-5 h-full border-l-2 border-l-black ">
