@@ -40,7 +40,7 @@ const DirectoryItem = ({ note, updateCurrentPath }: DirectoryItemProps) => {
   return (
     <div
       onClick={handleItemClick}
-      className="grid grid-cols-4 place-items-center w-full h-10 border-solid rounded-md border-2 border-amber-500 cursor-pointer "
+      className="grid grid-cols-4 place-items-center w-full h-10 border-solid rounded-md border-black border-2 text-black font-semibold bg-amber-400 cursor-pointer"
     >
       <div className="">{note.isDirectory ? <FaFolderClosed /> : <PiNoteFill />}</div>
       <div className="grid-span-2">{note?.title?.toString() ?? "No title"}</div>

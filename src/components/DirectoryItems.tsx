@@ -45,6 +45,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
             }
           })
         );
+
         setPathTitles(titles);
       }
     };
@@ -52,11 +53,26 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
     fetchPathTitles();
   }, [currentPath]);
 
-  const path = pathTitles.join(" / ");
+  const formatPath = (titles: string[]) => {
+    if (titles.length === 0) {
+      return "";
+    }
+
+    const formattedTitles = titles.map((title, index) => {
+      if (index === 0) {
+        return `${title}:/ `;
+      }
+      return title;
+    });
+
+    return formattedTitles[0] + formattedTitles.slice(1).join(" / ");
+  };
+
+  const path = formatPath(pathTitles);
 
   return (
-    <main>
-      <h2>{path}</h2>
+    <main className="w-[50%]">
+      <h2 className="font-bold m-8 p-2 border-solid border-gray-600 text-gray-600 border-2 rounded-md">{path}</h2>
       {currentPath && currentPath.length > 1 ? (
         <div
           className="grid place-items-center grid-cols-3 w-full h-10 border-solid rounded-md border-2 border-red-500 cursor-pointer"

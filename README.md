@@ -19,9 +19,9 @@ An app that will host notes for the user; They will have a dashboard that contai
 
 An authentication page that allows creation of an account or logging in.
 
-### note tree - todo
+### note tree - working
 
-A tree of all the notes a user has. Each note (or dir) will have a row that has buttons that allow changing the settings for it ie access settings, editing option, delete option, ~~drag and move option~~; only one layer will be shown at a time; or do we want to show a full TOC like github does?; at the top of the page will be a button to go to the user's profile page
+A tree of all the notes a user has. Each note (or dir) will have a row that has buttons that allow changing the settings for it ie access settings, editing option, delete option, ~~drag and move option~~; only one layer will be shown at a time; at the top of the page will be a button to go to the user's profile page
 
 ### profile - todo
 
