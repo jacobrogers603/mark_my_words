@@ -84,6 +84,7 @@ export default function Editor() {
       }
     }
     mutate();
+    goHome();
   }, []);
 
   const closeDialog = () => setIsDialogOpen(false);

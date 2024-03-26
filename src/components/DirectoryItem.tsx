@@ -32,6 +32,11 @@ const DirectoryItem = ({ note, updateCurrentPath }: DirectoryItemProps) => {
     }
   };
 
+  const handleSettingsClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation();
+    router.push(`/note/settings/${note.id}`);
+  };
+
   return (
     <div
       onClick={handleItemClick}
@@ -45,7 +50,9 @@ const DirectoryItem = ({ note, updateCurrentPath }: DirectoryItemProps) => {
       >
         <div className="">{!note.isDirectory ? <FaEdit size={20} /> : null}</div>
       </div>
-      <IoSettingsSharp />
+      <div className="grid place-items-center w-full h-full border-solid border-2 border-blue-300 z-100" onClick={handleSettingsClick}>
+        <IoSettingsSharp />
+      </div>
     </div>
   );
 };
