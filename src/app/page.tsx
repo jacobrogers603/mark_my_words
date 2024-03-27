@@ -95,8 +95,9 @@ export default function Home() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between w-full bg-white">
-      Main Page
+    <main className="flex min-h-screen flex-col items-center justify-between w-full bg-white mt-16">
+      {/* note: use shadcn nav menu on this */}
+      <nav className="w-full h-12 absolute top-0 bg-blue-400"></nav>      
       <DirectoryItems
         currentDirNotes={currentDirNotes}
         currentPath={currentPath}

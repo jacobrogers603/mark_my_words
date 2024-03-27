@@ -8,7 +8,7 @@ export async function GET(req: Request, { params }: { params: { noteId: string}}
     const session = await getServerSession(authOptions);
 
     if(session){
-        console.log('getting note')
+        
         const id = params.noteId;
 
         if(typeof id !== 'string'){
@@ -26,7 +26,7 @@ export async function GET(req: Request, { params }: { params: { noteId: string}}
             if(!note){
                 throw new Error('No Such Note Found');
             }
-            console.log('note', note)
+            
             return NextResponse.json(note);
         } catch (error) {
             return NextResponse.json(error);

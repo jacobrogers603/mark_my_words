@@ -70,18 +70,36 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
 
   const path = formatPath(pathTitles);
 
+  // Separate directories and notes
+  const dirNotes = notes.filter((note) => note.isDirectory == true);
+  const nonDirNotes = notes.filter((note) => note.isDirectory == false);
+
   return (
     <main className="w-[50%]">
-      <h2 className="font-bold m-8 p-2 border-solid border-gray-600 text-gray-600 border-2 rounded-md">{path}</h2>
+      <h2 className="font-bold m-8 p-2 border-solid border-gray-600 text-gray-600 border-2 rounded-md">
+        {path}
+      </h2>
+
       {currentPath && currentPath.length > 1 ? (
         <div
-          className="grid place-items-center grid-cols-3 w-full h-10 border-solid rounded-md border-2 border-red-500 cursor-pointer"
+          className="grid place-items-center grid-cols-8 w-full h-10 border-solid rounded-md border-2 bg-blue-400 border-black cursor-pointer mb-2 font-extrabold"
           onClick={() => updateCurrentPath()}>
           <FaFolderClosed />
-          <span className="grid-span-2">...</span>
+          <span className="col-start-2 col-end-5">↑ . . .</span>
         </div>
       ) : null}
-      {notes.map((note) => (
+
+      {/* Render directories first */}
+      {dirNotes.map((note) => (
+        <DirectoryItem
+          key={note.id?.toString()}
+          note={note ?? null}
+          updateCurrentPath={updateCurrentPath}
+        />
+      ))}
+
+      {/* Render non-directory notes */}
+      {nonDirNotes.map((note) => (
         <DirectoryItem
           key={note.id?.toString()}
           note={note ?? null}

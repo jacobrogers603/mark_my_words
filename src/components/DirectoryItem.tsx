@@ -40,17 +40,17 @@ const DirectoryItem = ({ note, updateCurrentPath }: DirectoryItemProps) => {
   return (
     <div
       onClick={handleItemClick}
-      className="grid grid-cols-4 place-items-center w-full h-10 border-solid rounded-md border-black border-2 text-black font-semibold bg-amber-400 cursor-pointer"
+      className={`grid grid-cols-8 place-items-center w-full h-10 border-solid rounded-md border-black border-2 text-black font-semibold cursor-pointer mb-2 ${note.isDirectory ? "bg-amber-400" : "bg-amber-100"}`}
     >
       <div className="">{note.isDirectory ? <FaFolderClosed /> : <PiNoteFill />}</div>
-      <div className="grid-span-2">{note?.title?.toString() ?? "No title"}</div>
+      <div className="col-start-2 col-end-5">{note?.title?.toString() ?? "No title"}</div>
       <div
-        className="grid place-items-center w-full h-full border-solid border-2 border-green-300 z-100"
+        className="grid place-items-center w-full h-full z-100 col-start-7"
         onClick={handleEditClick}
       >
         <div className="">{!note.isDirectory ? <FaEdit size={20} /> : null}</div>
       </div>
-      <div className="grid place-items-center w-full h-full border-solid border-2 border-blue-300 z-100" onClick={handleSettingsClick}>
+      <div className="grid place-items-center w-full h-full z-100 col-start-8" onClick={handleSettingsClick}>
         <IoSettingsSharp />
       </div>
     </div>
