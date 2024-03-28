@@ -4,6 +4,8 @@ import { redirect, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import DirectoryItems from "@/components/DirectoryItems";
+import NavBar from "@/components/NavBar";
+import { FiPlusCircle } from "react-icons/fi";
 
 export default function Home() {
   const router = useRouter();
@@ -15,30 +17,6 @@ export default function Home() {
       redirect("/api/auth/signin");
     },
   });
-
-  const createNote = () => {
-    router.push("/editor/new");
-  };
-
-  const [directoryTitle, setDirectoryTitle] = useState("");
-  const createDirectory = useCallback(async () => {
-    try {
-      await axios.post("/api/saveNote", {
-        title: directoryTitle,
-        content: "",
-        isDirectory: true,
-      });
-    } catch (error) {
-      console.log(error);
-    }
-    setDirectoryTitle("");
-  }, [directoryTitle]);
-
-  const handleDirectoryTitleChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setDirectoryTitle(event.target.value);
-  };
 
   const [currentDirNotes, setCurrentDirNotes] = useState([]);
 
@@ -96,29 +74,12 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between w-full bg-white mt-16">
-      {/* note: use shadcn nav menu on this */}
-      <nav className="w-full h-12 absolute top-0 bg-blue-400"></nav>      
+      <NavBar />
       <DirectoryItems
         currentDirNotes={currentDirNotes}
         currentPath={currentPath}
         updateCurrentPath={updateCurrentPath}
       />
-      <button className="h-10 w-auto bg-amber-700" onClick={createNote}>
-        Create Note
-      </button>
-      <button className="h-10 w-auto bg-amber-400" onClick={createDirectory}>
-        Create Directory
-      </button>
-      <input
-        className="border-solid border-black border-2"
-        placeholder="Dir Title"
-        type="text"
-        value={directoryTitle}
-        onChange={handleDirectoryTitleChange}
-      />
-      <button className="h-10 w-auto bg-red-200" onClick={() => signOut()}>
-        Sign Out
-      </button>
     </main>
   );
 }

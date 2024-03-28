@@ -40,3 +40,7 @@ display the search results for a search, whether it be a search for users, or a 
 ### note editor - todo
 
 A space to write the note; buttons in the taskbar that will insert formats for md; templates option dropdown; save/publish button; rewind button to see previous versions?; edit access button 
+
+todo:
+
+- add right clicking to notes: https://ui.shadcn.com/docs/components/context-menu
