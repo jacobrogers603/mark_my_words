@@ -2,8 +2,46 @@ import prismadb from "@/lib/prismadb";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import authOptions from "../../../../auth";
+import { unified } from 'unified';
+import remarkParse from 'remark-parse';
+import remarkGfm from 'remark-gfm';
+import remarkRehype from 'remark-rehype';
+import rehypeStringify from 'rehype-stringify';
+import { visit } from 'unist-util-visit';
+
 
 export const POST = async (req: Request) => {
+  
+  function addLinkAttributes() {
+    return (tree: any) => {
+      visit(tree, 'element', (node) => {
+        if (node.tagName === 'a') {
+          // Ensure properties object exists
+          if (!node.properties) node.properties = {};
+          node.properties.target = '_blank';
+          node.properties.rel = 'noopener noreferrer';
+        }
+      });
+    };
+  }
+  
+  async function convertMarkdownToHtml(markdown: string) {
+    if (!markdown || markdown === '') {
+      return '';
+    }
+  
+    const processor = unified()
+      .use(remarkParse) // Parse the Markdown text
+      .use(remarkGfm) // Support GitHub Flavored Markdown
+      .use(remarkRehype) // Turn Markdown into HTML
+      .use(addLinkAttributes) // Custom plugin to add attributes to links
+      .use(rehypeStringify); // Serialize the HTML
+  
+    const file = await processor.process(markdown);
+    return String(file);
+  }
+  
+
   try {
     const { id, title, content, isDirectory } = await req.json();
 
@@ -37,6 +75,8 @@ export const POST = async (req: Request) => {
 
         if (id) {
           // Update an existing note
+          const htmlContent = await convertMarkdownToHtml(content);
+
           const updatedNote = await prismadb.note.update({
             where: {
               id: id,
@@ -44,6 +84,7 @@ export const POST = async (req: Request) => {
             data: {
               title,
               content,
+              htmlContent,
               isDirectory,
             },
           });
@@ -51,10 +92,13 @@ export const POST = async (req: Request) => {
           return NextResponse.json(updatedNote);
         } else {
           // Create a new note
+          const htmlContent = await convertMarkdownToHtml(content);
+
           const newNote = await prismadb.note.create({
             data: {
               title,
               content,
+              htmlContent,
               isDirectory,
               userId: userId || "",
               parentId: user?.currentPath[user?.currentPath.length - 1],

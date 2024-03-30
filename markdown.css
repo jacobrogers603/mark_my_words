@@ -1,0 +1,27 @@
+.markdown-content h1 {
+    @apply text-4xl font-bold mb-4;
+  }
+  
+  .markdown-content p {
+    @apply mb-4;
+  }
+  
+  .markdown-content strong {
+    @apply font-bold;
+  }
+  
+  .markdown-content em {
+    @apply italic;
+  }
+  
+  .markdown-content ul {
+    @apply list-disc ml-6 mb-4;
+  }
+  
+  .markdown-content li {
+    @apply mb-2;
+  }
+
+  .markdown-content a {
+    @apply underline text-blue-500;
+  }
