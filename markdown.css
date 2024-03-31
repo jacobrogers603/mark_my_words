@@ -1,27 +1,100 @@
-.markdown-content h1 {
-    @apply text-4xl font-bold mb-4;
-  }
-  
-  .markdown-content p {
-    @apply mb-4;
-  }
-  
-  .markdown-content strong {
-    @apply font-bold;
-  }
-  
-  .markdown-content em {
-    @apply italic;
-  }
-  
-  .markdown-content ul {
-    @apply list-disc ml-6 mb-4;
-  }
-  
-  .markdown-content li {
-    @apply mb-2;
-  }
+:root {
+  --color-canvas-default: #ffffff;
+  --color-canvas-subtle: #f6f8fa;
+  --color-border-default: #d0d7de;
+  --color-border-muted: hsla(210, 18%, 87%, 1);
+  --link-color: #58a6ff;
+}
 
-  .markdown-content a {
-    @apply underline text-blue-500;
-  }
+.markdown-content {
+    
+}
+
+.markdown-content h1 {
+  @apply text-4xl font-bold mb-4;
+}
+
+.markdown-content p {
+  @apply mb-4;
+}
+
+.markdown-content strong {
+  @apply font-bold;
+}
+
+.markdown-content em {
+  @apply italic;
+}
+
+.markdown-content ul {
+  @apply list-disc ml-6 mb-4;
+}
+
+.markdown-content li {
+  @apply mb-2;
+}
+
+.markdown-content a {
+    @apply bg-transparent;
+    @apply text-blue-500;
+    @apply decoration-inherit;
+}
+
+.markdown-content a:active,
+.markdown-content a:hover {
+    @apply outline-0;
+}
+
+.markdown-content a:not([href]) {
+    @apply text-inherit;
+    @apply decoration-inherit;
+}
+
+.markdown-content del code {
+    @apply decoration-inherit;
+}
+
+.markdown-content table {
+    @apply border-spacing-0;
+    @apply border-collapse;
+    @apply block;
+    @apply mt-0;
+    @apply mb-4;
+    @apply w-max;
+    @apply max-w-[100%];
+    @apply overflow-auto;
+}
+
+.markdown-content tr {
+    @apply bg-white;
+    @apply border-t-2;
+}
+
+.markdown-content tr:nth-child(2n) {
+    @apply bg-[#f6f8fa];
+}
+
+.markdown-content td,
+.markdown-content th {
+    @apply pt-[6px];
+    @apply pb-[6px];
+    @apply pl-[13px];
+    @apply pr-[13px];
+    @apply border-[#d0d7de];
+}
+
+.markdown-content th {
+    @apply font-semibold;
+}
+
+.markdown-content table img {
+    @apply bg-transparent;
+}
+
+.markdown-content input[type="checkbox"] {
+    @apply mt-0;
+    @apply mr-[0.2em];
+    @apply mb-[0.25em];
+    @apply ml-[-1.6em];
+    @apply align-middle;
+}
