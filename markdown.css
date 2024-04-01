@@ -11,7 +11,27 @@
 }
 
 .markdown-content h1 {
-  @apply text-4xl font-bold mb-4;
+  @apply text-3xl font-black mb-4;
+}
+
+.markdown-content h2 {
+  @apply text-2xl font-extrabold mb-4;
+}
+
+.markdown-content h3 {
+  @apply text-xl font-bold mb-4;
+}
+
+.markdown-content h4 {
+  @apply text-lg font-semibold mb-4;
+}
+
+.markdown-content h5 {
+  @apply text-lg font-medium mb-4;
+}
+
+.markdown-content h6 {
+  @apply text-lg font-normal italic mb-4;
 }
 
 .markdown-content p {
