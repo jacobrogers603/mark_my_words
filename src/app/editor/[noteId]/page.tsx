@@ -36,6 +36,8 @@ export default function Editor() {
   const titleRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const [isSaved, setIsSaved] = useState(true);
+  const [homePressed, setHomePressed] = useState(false);
+  const [settingsPressed, setSettingsPressed] = useState(false);
 
   useEffect(() => {
     if (noteId !== "new" && note) {
@@ -55,6 +57,7 @@ export default function Editor() {
   });
 
   const routeHome = () => {
+    setHomePressed(true);
     if (!isSaved && !isUnsavedDialogOpen) {
       setIsUnsavedDialogOpen(true);
       return;
@@ -64,6 +67,7 @@ export default function Editor() {
   };
 
   const routeSettings = () => {
+    setSettingsPressed(true);
     if (!isSaved && !isUnsavedDialogOpen) {
       setIsUnsavedDialogOpen(true);
       return;
@@ -119,6 +123,20 @@ export default function Editor() {
     setIsSaved(false);
   };
 
+  const handleCloseWithoutSavingPress = () => {
+    if (homePressed) {
+      router.push("/");
+    } else if (settingsPressed) {
+      router.push(`/note/settings/${noteId}`);
+    }
+  };
+
+  const handleReturnPress = () => {
+    setHomePressed(false);
+    setSettingsPressed(false);
+    setIsUnsavedDialogOpen(false);
+  };
+
   if (status === "loading") {
     return (
       <main className="w-full h-screen grid place-items-center">
@@ -161,10 +179,12 @@ export default function Editor() {
                 </DialogDescription>
               </DialogHeader>
               <div className="flex">
-                <Button className="mr-6" onClick={closeUnsavedDialog}>
+                <Button className="mr-6" onClick={handleReturnPress}>
                   Return
                 </Button>
-                <Button onClick={routeHome}>Close w/o saving</Button>
+                <Button onClick={handleCloseWithoutSavingPress}>
+                  Close w/o saving
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
