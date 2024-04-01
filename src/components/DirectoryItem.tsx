@@ -41,7 +41,7 @@ const DirectoryItem = ({ note, updateCurrentPath }: DirectoryItemProps) => {
   return (
     <div
       onClick={handleItemClick}
-      className={`grid grid-cols-8 place-items-center w-full h-10 border-solid rounded-md border-black border-2 text-black font-normal cursor-pointer mb-2 ${note.isDirectory ? "bg-amber-400" : "bg-blue-100"}`}
+      className={`grid grid-cols-8 place-items-center w-full h-10 border-solid rounded-md border-black border-2 text-black font-normal cursor-pointer mb-2 ${note.isDirectory ? "bg-amber-400 hover:bg-amber-500" : "bg-blue-100 hover:bg-blue-200"} `}
     >
       <div className="">{note.isDirectory ? <FolderClosed  /> : <NotebookText />}</div>
       <div className="col-start-2 col-end-5">{note?.title?.toString() ?? "No title"}</div>
