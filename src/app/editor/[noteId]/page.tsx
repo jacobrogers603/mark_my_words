@@ -18,6 +18,12 @@ import axios from "axios";
 import useNote from "@/hooks/useNote";
 import useSWR from "swr";
 import fetcher from "@/lib/fetcher";
+import { Button } from "@/components/ui/button";
+import { Home } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { Toaster } from "@/components/ui/toaster";
+import NavBar from "@/components/NavBar";
+import { IoSettingsSharp } from "react-icons/io5";
 
 export default function Editor() {
   const { noteId } = useParams();
@@ -25,8 +31,11 @@ export default function Editor() {
   const [noteText, setNoteText] = useState("");
   const [title, setTitle] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isUnsavedDialogOpen, setIsUnsavedDialogOpen] = useState(false);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+  const [isSaved, setIsSaved] = useState(true);
 
   useEffect(() => {
     if (noteId !== "new" && note) {
@@ -46,7 +55,21 @@ export default function Editor() {
   });
 
   const routeHome = () => {
+    if (!isSaved && !isUnsavedDialogOpen) {
+      setIsUnsavedDialogOpen(true);
+      return;
+    }
+
     router.push("/");
+  };
+
+  const routeSettings = () => {
+    if (!isSaved && !isUnsavedDialogOpen) {
+      setIsUnsavedDialogOpen(true);
+      return;
+    }
+
+    router.push(`/note/settings/${noteId}`);
   };
 
   const saveNote = useCallback(async () => {
@@ -62,7 +85,7 @@ export default function Editor() {
 
     if (noteId === "new") {
       try {
-        await axios.post("/api/saveNote", {
+        const newlySavedNote = await axios.post("/api/saveNote", {
           title: currentTitle,
           content: currentText,
           isDirectory: false,
@@ -70,8 +93,7 @@ export default function Editor() {
       } catch (error) {
         console.log(error);
       }
-    }
-    else{
+    } else {
       try {
         await axios.post("/api/saveNote", {
           id: noteId,
@@ -84,13 +106,17 @@ export default function Editor() {
       }
     }
     mutate();
-    goHome();
+    setIsSaved(true);
+    toast({
+      description: `Your note: ${currentTitle} has been saved!`,
+    });
   }, []);
 
   const closeDialog = () => setIsDialogOpen(false);
+  const closeUnsavedDialog = () => setIsUnsavedDialogOpen(false);
 
-  const goHome = () => {
-    router.push("/");
+  const handleTextareaChange = () => {
+    setIsSaved(false);
   };
 
   if (status === "loading") {
@@ -104,12 +130,13 @@ export default function Editor() {
   }
 
   return (
-    <main className="w-full h-screen grid place-items-center">
+    <main className="w-full h-screen grid place-items-center bg-blue-100">
+      <NavBar />
       <div className="absolute top-[40%] right-[40%] z-10">
-        {/* Dialog component */}
+        {/* No Title Dialog */}
         {isDialogOpen && (
           <Dialog open={isDialogOpen}>
-            <DialogContent>
+            <DialogContent className="w-auto grid place-items-center">
               <DialogHeader>
                 <DialogTitle>Missing Information</DialogTitle>
                 <DialogDescription>
@@ -117,13 +144,36 @@ export default function Editor() {
                 </DialogDescription>
               </DialogHeader>
               {/* Close button or similar action */}
-              <button onClick={closeDialog}>Close</button>
+              <Button className="w-[50%]" onClick={closeDialog}>
+                Close
+              </Button>
             </DialogContent>
           </Dialog>
         )}
+        {/* unsaved dialog */}
+        {isUnsavedDialogOpen && (
+          <Dialog open={isUnsavedDialogOpen}>
+            <DialogContent className="w-auto grid place-items-center">
+              <DialogHeader>
+                <DialogTitle>Unsaved Changes!</DialogTitle>
+                <DialogDescription>
+                  Warning, your note has unsaved changes.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex">
+                <Button className="mr-6" onClick={closeUnsavedDialog}>
+                  Return
+                </Button>
+                <Button onClick={routeHome}>Close w/o saving</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+        {/* Note saved toast */}
+        <Toaster />
       </div>
-      <div className="relative border-solid border-black border-2 rounded-md w-[80%] h-[75%]">
-        <nav className="absolute top-0 right-0 left-0 h-16 grid grid-rows-1 grid-cols-5 place-items-center border-b-2 border-b-black">
+      <div className="relative border-solid border-black border-2 rounded-md w-[80%] h-[75%] bg-white">
+        <nav className="absolute top-0 right-0 left-0 h-16 flex border-b-2 border-b-black items-center justify-between pl-4 pr-4">
           <div className="grid grid-cols-1 grid-rows-2 place-items-center">
             <h1 className="font-bold text-lg">Note Editor</h1>
             <p className="text-gray-500">Markdown Format</p>
@@ -134,27 +184,32 @@ export default function Editor() {
               type="text"
               placeholder=""
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                handleTextareaChange();
+              }}
               ref={titleRef}
               className="border-solid border-2 border-black rounded-lg"
             />
           </div>
-          <button className="h-10 w-auto bg-amber-700" onClick={goHome}>
-            Back
-          </button>
           <div className="col-start-4">
             <ComboBox />
           </div>
-          <div className="flex">
-            <button
-              onClick={saveNote}
-              className="rounded-lg py-2 px-4 bg-black text-white font-bold">
-              Save
-            </button>
-            <button className="ml-2 rounded-lg py-2 px-4 bg-gray-500 text-white font-bold">
-              <HiDotsHorizontal />
-            </button>
-          </div>
+
+          <Button className="mr-2 w-[9rem]" onClick={routeHome}>
+            <Home size={15} />
+            <span className="ml-2">Home</span>
+          </Button>
+          <Button className="w-[9rem]" onClick={routeSettings}>
+            <IoSettingsSharp />
+            <span className="ml-2">Note settings</span>
+          </Button>
+          <Button
+            onClick={saveNote}
+            variant={isSaved ? "secondary" : "default"}
+            disabled={isSaved}>
+            {isSaved ? "Saved" : "Save"}
+          </Button>
         </nav>
         <div className="grid grid-cols-5 grid-rows-1 w-full absolute top-16 bottom-0 right-0 left-0 place-items-center">
           <div className="grid place-items-center col-start-1 col-end-5 w-full h-full">
@@ -163,7 +218,10 @@ export default function Editor() {
               placeholder=" Start writing..."
               ref={textAreaRef}
               value={noteText}
-              onChange={(e) => setNoteText(e.target.value)}></textarea>
+              onChange={(e) => {
+                setNoteText(e.target.value);
+                handleTextareaChange();
+              }}></textarea>
           </div>
           {/* formatting bar */}
           <div className="p-4 flex flex-col col-start-5 h-full border-l-2 border-l-black ">
