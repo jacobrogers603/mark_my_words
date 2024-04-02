@@ -97,7 +97,7 @@ const noteSettings = () => {
                   note?.title
                 }? ${
                   note?.isDirectory
-                    ? "This will also delete all of its sub-notes and sub-directories."
+                    ? "This will also delete its notes and subdirectories."
                     : ""
                 }`}
               </DialogDescription>
@@ -128,7 +128,7 @@ const noteSettings = () => {
           <CardDescription>
             <span>{`Control which users have access to this ${
               note?.isDirectory
-                ? "directory, and thus all of its sub-notes and sub-directories (unless manually overridden on a case by case basis)."
+                ? "directory, and thus its notes and subdirectories as well (unless manually overridden on a case by case basis)."
                 : "note."
             }`}</span>
           </CardDescription>

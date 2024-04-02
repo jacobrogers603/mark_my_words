@@ -14,6 +14,7 @@ model User {
   sessions       Session[]
   noteIDs        String[]  @db.ObjectId
   currentPath    String[]  @db.ObjectId
+  templateIDs    String[]  @db.ObjectId
 }
 
 model Note {
@@ -27,6 +28,12 @@ model Note {
   parentId    String?  @db.ObjectId
   photoUrls   String[]
   videoUrls   String[]
+}
+
+model Template {
+  id      String  @id @default(auto()) @map("_id") @db.ObjectId
+  title   String
+  content String?
 }
 
 model Session {
