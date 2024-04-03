@@ -4,17 +4,23 @@ import axios from "axios";
 import { X } from "lucide-react";
 import React from "react";
 
-const templateItem = ({ template }: { template: Template }) => {
-  const handleXClick = async () => {
-    await axios.delete(`/api/saveTemplate/${template.id.toString()}`);
+interface TemplateItemProps {
+  template: Template;
+  onDelete: (templateId: string) => Promise<void>;
+}
+
+const TemplateItem: React.FC<TemplateItemProps> = ({ template, onDelete }) => {
+  const handleXClick = () => {
+    console.log("onDelete(", template.id, ")");
+    onDelete(template.id); // This will call the deleteTemplate function in the parent component
   };
 
   return (
     <>
-      <div key={template?.id} className="flex relative w-full">
-        <div className="text-sm">{template?.title}</div>
+      <div className="flex relative w-full">
+        <div className="text-sm">{template.title}</div>
         <div className="cursor-pointer">
-            <X onClick={handleXClick} size={20} className="absolute right-2" />
+          <X onClick={handleXClick} size={20} className="absolute right-2" />
         </div>
       </div>
       <Separator className="h-[1px] bg-gray-400 my-2" />
@@ -22,4 +28,4 @@ const templateItem = ({ template }: { template: Template }) => {
   );
 };
 
-export default templateItem;
+export default TemplateItem;

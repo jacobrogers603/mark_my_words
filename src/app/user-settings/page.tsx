@@ -30,6 +30,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
 import TemplateItem from "@/components/TemplateItem";
+import { set } from "react-hook-form";
 
 const userSettings = () => {
   const router = useRouter();
@@ -40,15 +41,20 @@ const userSettings = () => {
 
   const fetchTemplates = async () => {
     const response = await axios.get("/api/getTemplates");
+    console.log("fetching templates");
+    console.log(response.data);
     return response.data;
   };
 
   const updateTemplates = async () => {
+    console.log("updating templates");
     const updatedTemplates = await fetchTemplates();
     setTemplates(updatedTemplates);
+    console.log("templates:", templates);
   };
 
   const saveTemplate = async () => {
+    console.log("saving template");
     await axios.post("/api/saveTemplate", {
       title: templateTitle,
       content: templateContent,
@@ -92,6 +98,21 @@ const userSettings = () => {
 
   const closeDialog = () => {
     setIsDialogOpen(false);
+  };
+
+  const deleteTemplate = async (templateId: string) => {
+    console.log("deleting template, templateId:", templateId);
+
+    try {
+      const res = await axios.delete(`/api/deleteTemplate`, {
+        data: { templateId: templateId },
+      });
+      console.log("deleted:", res);
+    } catch (error) {
+      console.error("deleteTemplate tryCatch error:", error);
+    }
+
+    updateTemplates();
   };
 
   if (status === "loading") {
@@ -150,7 +171,11 @@ const userSettings = () => {
                 Templates
               </h4>
               {templates.map((template) => (
-                <TemplateItem key={template?.id} template={template ?? null} />
+                <TemplateItem
+                  key={template.id}
+                  template={template}
+                  onDelete={deleteTemplate}
+                />
               ))}
             </div>
           </ScrollArea>
