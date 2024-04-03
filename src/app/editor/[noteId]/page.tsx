@@ -26,6 +26,14 @@ import NavBar from "@/components/NavBar";
 import { IoSettingsSharp } from "react-icons/io5";
 
 export default function Editor() {
+  const { data: session, status } = useSession({
+    required: true,
+    onUnauthenticated() {
+      console.log("redirected");
+      redirect("/api/auth/signin");
+    },
+  });
+
   const { noteId } = useParams();
   const { data: note, mutate } = useSWR(`/api/getNote/${noteId}`, fetcher);
   const [noteText, setNoteText] = useState("");
@@ -48,13 +56,6 @@ export default function Editor() {
 
   const router = useRouter();
 
-  const { data: session, status } = useSession({
-    required: true,
-    onUnauthenticated() {
-      console.log("redirected");
-      redirect("/api/auth/signin");
-    },
-  });
 
   const routeHome = () => {
     setHomePressed(true);

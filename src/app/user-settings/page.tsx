@@ -115,6 +115,10 @@ const userSettings = () => {
     updateTemplates();
   };
 
+  const routeHome = () => {
+    router.push("/");
+  };
+
   if (status === "loading") {
     return (
       <main className="w-full h-screen grid place-items-center">
@@ -128,6 +132,7 @@ const userSettings = () => {
   return (
     <main className="grid grid-cols-3 grid-rows-5 w-full h-screen place-items-center">
       <NavBar />
+      <Button onClick={routeHome}>Home</Button>
       {isDialogOpen && (
         <Dialog open={isDialogOpen}>
           <DialogContent className="w-auto flex flex-col place-items-center">

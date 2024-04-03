@@ -20,7 +20,7 @@ const NavBar = () => {
 
   return (
     <nav className="w-full h-14 absolute top-0 bg-amber-400 border-solid border-black border-b-2 grid grid-cols-8 place-items-center">
-      <div className="col-start-8">
+      <div className="col-start-8 z-20">
         <Popover>
           <PopoverTrigger>
             <GiRamProfile
