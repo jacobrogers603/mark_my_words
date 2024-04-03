@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import {
   Popover,
   PopoverContent,
@@ -5,25 +6,27 @@ import {
 } from "@/components/ui/popover";
 import { ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import React from "react";
 import { Command, CommandItem } from "@/components/ui/command";
-import { Template } from "@prisma/client";
 import axios from "axios";
+import { Template } from "@prisma/client";
 
+interface ComboBoxProps {
+  appendTemplate: (templateContent: string) => void;
+}
 
-
-const ComboBox = () => {
+const ComboBox: React.FC<ComboBoxProps> = ({ appendTemplate }) => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
   const [templates, setTemplates] = useState<Template[]>([]);
 
-  const fetchTemplates = async () => {
-    const response = await axios.get("/api/getTemplates");
-    setTemplates(response.data);
-  }
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      const response = await axios.get("/api/getTemplates");
+      setTemplates(response.data);
+    };
 
-  fetchTemplates();
+    fetchTemplates();
+  }, []); // Empty dependency array means this effect runs only once on mount
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -39,16 +42,16 @@ const ComboBox = () => {
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">
         <Command>
-          {/* Remove CommandInput and CommandEmpty if you don't need them */}
           {templates.length === 0 ? (
             <CommandItem>No templates found.</CommandItem>
           ) : (
             templates.map((template) => (
               <CommandItem
-                key={template.id} // Assuming 'id' is a unique identifier
+                key={template.id}
                 onSelect={() => {
-                  setValue(template.title); // Set the selected template's title as value
+                  setValue(template.title);
                   setOpen(false);
+                  appendTemplate(template.content || "");
                 }}>
                 {template.title}
               </CommandItem>

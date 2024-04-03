@@ -138,6 +138,11 @@ export default function Editor() {
     setIsUnsavedDialogOpen(false);
   };
 
+  const appendTemplate = (templateContent: string) => { 
+    setNoteText((prev) => prev + "\n\n" + templateContent);
+    setIsSaved(false);
+  };
+
   if (status === "loading") {
     return (
       <main className="w-full h-screen grid place-items-center">
@@ -150,7 +155,7 @@ export default function Editor() {
 
   return (
     <main className="w-full h-screen grid place-items-center bg-blue-100">
-      <NavBar />
+      <NavBar editor={true} routeHome={routeHome}/>
       <div className="absolute top-[40%] right-[40%] z-10">
         {/* No Title Dialog */}
         {isDialogOpen && (
@@ -214,7 +219,7 @@ export default function Editor() {
             />
           </div>
           <div className="col-start-4">
-            <ComboBox />
+            <ComboBox appendTemplate={appendTemplate}/>
           </div>
 
           <Button className="mr-2 w-[9rem]" onClick={routeHome}>
