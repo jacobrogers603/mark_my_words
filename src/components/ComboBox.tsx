@@ -1,47 +1,32 @@
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
+import React, { useState, useEffect } from "react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import React from "react";
+import { Command, CommandItem } from "@/components/ui/command";
+import axios from "axios";
+import { Template } from "@prisma/client";
 
-const ComboBox = () => {
+interface ComboBoxProps {
+  appendTemplate: (templateContent: string) => void;
+}
+
+const ComboBox: React.FC<ComboBoxProps> = ({ appendTemplate }) => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
+  const [templates, setTemplates] = useState<Template[]>([]);
 
-  const tmpData = [
-    {
-      value: "next.js",
-      label: "Next.js",
-    },
-    {
-      value: "sveltekit",
-      label: "SvelteKit",
-    },
-    {
-      value: "nuxt.js",
-      label: "Nuxt.js",
-    },
-    {
-      value: "remix",
-      label: "Remix",
-    },
-    {
-      value: "astro",
-      label: "Astro",
-    },
-  ]
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      const response = await axios.get("/api/getTemplates");
+      setTemplates(response.data);
+    };
+
+    fetchTemplates();
+  }, []); // Empty dependency array means this effect runs only once on mount
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -51,35 +36,27 @@ const ComboBox = () => {
           role="combobox"
           aria-expanded={open}
           className="w-[200px] justify-between">
-          {value
-            ? tmpData.find((tmpData) => tmpData.value === value)?.label
-            : "templates..."}
+          {value || "Select a template"}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">
         <Command>
-          <CommandInput placeholder="Search tmpData..." />
-          <CommandEmpty>No tmpData found.</CommandEmpty>
-          <CommandGroup>
-            {tmpData.map((tmpData) => (
+          {templates.length === 0 ? (
+            <CommandItem>No templates found.</CommandItem>
+          ) : (
+            templates.map((template) => (
               <CommandItem
-                key={tmpData.value}
-                value={tmpData.value}
-                onSelect={(currentValue) => {
-                  setValue(currentValue === value ? "" : currentValue);
+                key={template.id}
+                onSelect={() => {
+                  setValue(template.title);
                   setOpen(false);
+                  appendTemplate(template.content || "");
                 }}>
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    value === tmpData.value ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {tmpData.label}
+                {template.title}
               </CommandItem>
-            ))}
-          </CommandGroup>
+            ))
+          )}
         </Command>
       </PopoverContent>
     </Popover>

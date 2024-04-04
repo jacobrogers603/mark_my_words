@@ -24,8 +24,17 @@ import { useToast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import NavBar from "@/components/NavBar";
 import { IoSettingsSharp } from "react-icons/io5";
+import { Separator } from "@radix-ui/react-separator";
 
 export default function Editor() {
+  const { data: session, status } = useSession({
+    required: true,
+    onUnauthenticated() {
+      console.log("redirected");
+      redirect("/api/auth/signin");
+    },
+  });
+
   const { noteId } = useParams();
   const { data: note, mutate } = useSWR(`/api/getNote/${noteId}`, fetcher);
   const [noteText, setNoteText] = useState("");
@@ -48,13 +57,6 @@ export default function Editor() {
 
   const router = useRouter();
 
-  const { data: session, status } = useSession({
-    required: true,
-    onUnauthenticated() {
-      console.log("redirected");
-      redirect("/api/auth/signin");
-    },
-  });
 
   const routeHome = () => {
     setHomePressed(true);
@@ -137,6 +139,11 @@ export default function Editor() {
     setIsUnsavedDialogOpen(false);
   };
 
+  const appendTemplate = (templateContent: string) => { 
+    setNoteText((prev) => prev + "\n\n" + templateContent);
+    setIsSaved(false);
+  };
+
   if (status === "loading") {
     return (
       <main className="w-full h-screen grid place-items-center">
@@ -149,7 +156,7 @@ export default function Editor() {
 
   return (
     <main className="w-full h-screen grid place-items-center bg-blue-100">
-      <NavBar />
+      <NavBar editor={true} routeHome={routeHome}/>
       <div className="absolute top-[40%] right-[40%] z-10">
         {/* No Title Dialog */}
         {isDialogOpen && (
@@ -192,7 +199,7 @@ export default function Editor() {
         {/* Note saved toast */}
         <Toaster />
       </div>
-      <div className="relative border-solid border-black border-2 rounded-md w-[80%] h-[75%] bg-white">
+      <div className="relative border-solid border-black border-2 rounded-md w-[80%] h-[80%] bg-white">
         <nav className="absolute top-0 right-0 left-0 h-16 flex border-b-2 border-b-black items-center justify-between pl-4 pr-4">
           <div className="grid grid-cols-1 grid-rows-2 place-items-center">
             <h1 className="font-bold text-lg">Note Editor</h1>
@@ -213,7 +220,7 @@ export default function Editor() {
             />
           </div>
           <div className="col-start-4">
-            <ComboBox />
+            <ComboBox appendTemplate={appendTemplate}/>
           </div>
 
           <Button className="mr-2 w-[9rem]" onClick={routeHome}>
@@ -244,16 +251,32 @@ export default function Editor() {
               }}></textarea>
           </div>
           {/* formatting bar */}
-          <div className="p-4 flex flex-col col-start-5 h-full border-l-2 border-l-black ">
-            <FormattingButton name="Bold" />
-            {/* <FormattingButton name="H1" />
-                <FormattingButton name="H2" />
-                <FormattingButton name="H3" />
-                <FormattingButton name="italic" />
-                <FormattingButton name="link" />
-                <FormattingButton name="image" />
-                <FormattingButton name="list" />
-                <FormattingButton name="code" /> */}
+          <div className="p-4 flex flex-col col-start-5 h-full border-l-2 border-l-black text-center">
+            <h2 className="font-extrabold">Markdown Cheat Sheet</h2>
+            <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
+            <ul>
+              <li><span className="font-bold italic"># Text</span> Heading</li>
+              <Separator className="h-[2px] bg-gray-800 my-2"   orientation="horizontal" />
+              <li><span className="font-bold italic">## Text</span> Sub Heading (max 6)</li>
+              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
+              <li><span className="font-bold italic">*Text*</span> Italic</li>
+              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
+              <li><span className="font-bold italic">**Text**</span> Bold</li>
+              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
+              <li><span className="font-bold italic">~~Text~~</span> Strikethrough</li>
+              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
+              <li><span className="font-bold italic">- List Item</span> Bulleted List</li>
+              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
+              <li><span className="font-bold italic">1. List Item</span> Numeric List</li>
+              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
+              <li><span className="font-bold italic">`Code`</span> Code Block</li>
+              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
+              <li><span className="font-bold italic">---</span> Horizontal Line</li>
+              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
+              <li><span className="font-bold italic">[Link Text](URL)</span> Link</li>
+              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
+              <li><span className="font-bold italic">![Alt Text](Image Path)</span> Image</li>
+            </ul>
           </div>
         </div>
       </div>
