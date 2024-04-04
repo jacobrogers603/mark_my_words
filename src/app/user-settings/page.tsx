@@ -28,7 +28,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { X } from "lucide-react";
+import { Home, X } from "lucide-react";
 import TemplateItem from "@/components/TemplateItem";
 import { set } from "react-hook-form";
 
@@ -130,9 +130,8 @@ const userSettings = () => {
   }
 
   return (
-    <main className="grid grid-cols-3 grid-rows-5 w-full h-screen place-items-center">
+    <main className="flex flex-col w-full h-screen place-items-center">
       <NavBar />
-      <Button onClick={routeHome}>Home</Button>
       {isDialogOpen && (
         <Dialog open={isDialogOpen}>
           <DialogContent className="w-auto flex flex-col place-items-center">
@@ -160,16 +159,16 @@ const userSettings = () => {
           </DialogContent>
         </Dialog>
       )}
-      <Card className="w-auto max-w-[25rem] h-auto grid place-items-center row-start-2 col-start-2 row-end-4">
-        <CardHeader className="text-center">
-          <CardTitle>Templates</CardTitle>
+      <Card className="w-auto h-auto mt-16 grid place-items-center grid-cols-2 grid-rows-5 border-solid border-gray-500 rounded-md border-2 mb-6 min-w-[470px]">
+        <CardHeader className="text-center col-span-2 ">
+          <CardTitle className="font-extrabold">Current Templates</CardTitle>
           <CardDescription>
             Create your own predefined templates for your notes.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex items-center justify-evenly col-start-1 col-end-3 row-start-2 row-end-6 w-full">
           <ScrollArea
-            className="h-72 w-48 rounded-md border overflow-hidden"
+            className="col-start-1 col-end-2 h-80 w-48 rounded-md border overflow-hidden"
             type="scroll">
             <div className="p-4">
               <h4 className="mb-4 text-sm font-medium leading-none">
@@ -184,35 +183,43 @@ const userSettings = () => {
               ))}
             </div>
           </ScrollArea>
+          <div className="grid gap-1.5 row-start-3 m-4 col-start-2 col-end-3 min-w">
+            <Label className="font-extrabold" htmlFor="template">Define a new template</Label>
+            <Textarea
+              className="whitespace-pre-wrap min-h-80"
+              placeholder={`# Lorem Ipsum
+        
+        Ut dolorum, repudiandae aut excepturi, neque consectetur quidem veritatis saepe fugit animi magni alias odit ipsa asperiores aliquam.
+        
+        ##  Dolorum quia
+        
+        - Unus
+        - duo
+        - tribus
+        - quattuor
+        `}
+              id="template"
+              value={templateContent}
+              onChange={handleTemplateContentChange}
+            />
+            <Button
+              variant={templateContent === "" ? "secondary" : "default"}
+              disabled={templateContent === "" ? true : false}
+              onClick={handleSaveTemplateClick}>
+              Save template
+            </Button>
+          </div>
         </CardContent>
         <CardFooter></CardFooter>
       </Card>
-      <div className="grid gap-1.5 col-start-3 row-start-3 m-4">
-        <Label htmlFor="template">Define a new template</Label>
-        <Textarea
-          className="whitespace-pre-wrap min-h-80"
-          placeholder={`# Lorem Ipsum
 
-Ut dolorum, repudiandae aut excepturi, neque consectetur quidem veritatis saepe fugit animi magni alias odit ipsa asperiores aliquam.
-
-##  Dolorum quia
-
-- Unus
-- duo
-- tribus
-- quattuor
-`}
-          id="template"
-          value={templateContent}
-          onChange={handleTemplateContentChange}
-        />
-        <Button
-          variant={templateContent === "" ? "secondary" : "default"}
-          disabled={templateContent === "" ? true : false}
-          onClick={handleSaveTemplateClick}>
-          Save template
-        </Button>
-      </div>
+      <Button className="mr-2 w-[9rem]" onClick={routeHome}>
+        <Home size={15} />
+        <span className="ml-2">Home</span>
+      </Button>
+      <Button className="mr-2 w-[9rem] mt-4" variant={"destructive"} disabled={true}>
+        <span className="ml-2">Delete account</span>
+      </Button>
     </main>
   );
 };
