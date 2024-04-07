@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Home } from "lucide-react";
+import { ArrowDownFromLine, Home } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -64,6 +64,36 @@ const noteSettings = () => {
       console.log(error);
     }
     routeHome();
+  };
+
+  const handleDownloadHtmlPress = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    if (note.isDirectory) {
+      try {
+        // Directory download logic (if applicable)
+      } catch (error) {
+        console.error("Failed to download directory", error);
+      }
+    } else {
+      try {
+        const content = note.htmlContent; // Assuming this is HTML content as a string
+        const blob: Blob = new Blob([content], {
+          type: "text/html;charset=utf-8",
+        });
+        const url: string = URL.createObjectURL(blob);
+        const anchor: HTMLAnchorElement = document.createElement("a");
+        anchor.href = url;
+        anchor.download = `${note.title}.html`;
+
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error("Failed to download note", error);
+      }
+    }
   };
 
   if (status === "loading") {
@@ -136,7 +166,7 @@ const noteSettings = () => {
         <CardContent></CardContent>
         <CardFooter></CardFooter>
       </Card>
-      <div className="flex col-start-2 row-start-4">
+      <div className="flex col-start-2 row-start-4 w-auto">
         <Button className="mr-2 w-[9rem]" onClick={routeHome}>
           <Home size={15} />
           <span className="ml-2">Home</span>
@@ -147,6 +177,10 @@ const noteSettings = () => {
             <span className="ml-2">Edit note</span>
           </Button>
         )}
+        <Button className="ml-2 w-[12rem]" onClick={handleDownloadHtmlPress}>
+          <ArrowDownFromLine size={15} />
+          <span className="ml-2">Download HTML</span>
+        </Button>
       </div>
       <Button
         className="mr-2 w-[9rem] row-start-5 col-start-2"
