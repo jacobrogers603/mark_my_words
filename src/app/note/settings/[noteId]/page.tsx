@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Home } from "lucide-react";
+import { Home, List } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { FaEdit } from "react-icons/fa";
+import { ScrollArea } from "@radix-ui/react-scroll-area";
+import UserItem from "@/components/userItem";
+import { FiPlusCircle } from "react-icons/fi";
+import { Switch } from "@radix-ui/react-switch";
+import { Label } from "@radix-ui/react-label";
+import { Input } from "@/components/ui/input";
 
 const noteSettings = () => {
   const { data: session, status } = useSession({
@@ -38,8 +44,13 @@ const noteSettings = () => {
   const { noteId } = useParams();
   const { data: note } = useNote(noteId as string);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
+  const [allowedUsers, setAllowedUsers] = useState<string[]>([]);
+  const [writeAccessUsers, setWriteAccessUsers] = useState<string[]>([]);
+  const [userEmail, setUserEmail] = useState("");
 
   const closeDialog = () => setIsDialogOpen(false);
+  const closeAddUserDialog = () => setIsAddUserDialogOpen(false);
 
   const deleteButtonPressed = () => {
     setIsDialogOpen(true);
@@ -64,6 +75,34 @@ const noteSettings = () => {
       console.log(error);
     }
     routeHome();
+  };
+
+  const handleAddUserPress = () => {
+    setIsAddUserDialogOpen(true);
+  };
+
+  const addUser = async() => {
+    try {
+      await axios.post("/api/addToAccessList", {
+        noteId: noteId,
+        allowedEmail: userEmail,
+        writeMode: false,
+      });
+      setIsAddUserDialogOpen(false);
+      setUserEmail("");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const checkWriteAccess = (email: string) => {
+    return writeAccessUsers.includes(email);
+  };
+
+  const handleUserEmailChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setUserEmail(event.target.value);
   };
 
   if (status === "loading") {
@@ -116,7 +155,39 @@ const noteSettings = () => {
           </DialogContent>
         </Dialog>
       )}
-
+      {/* Add user dialog */}
+      {isAddUserDialogOpen && (
+        <Dialog open={isAddUserDialogOpen}>
+          <DialogContent className="w-auto grid place-items-center text-center grid-rows-3 max-w-[18rem]">
+            <DialogHeader className="text-center row-start-1">
+              <DialogTitle className="text-center">
+                Grant a User Access
+              </DialogTitle>
+              <DialogDescription className="text-center">
+                {`Enter the email of the user you want to grant access to this ${
+                  note?.isDirectory ? "directory." : "note."
+                }.`}
+              </DialogDescription>
+            </DialogHeader>
+            <Input
+              className="row-start-2 w-[80%]"
+              id="email"
+              placeholder="Email"
+              value={userEmail}
+              onChange={handleUserEmailChange}
+              className="row-start-2 col-span-2 w-30"
+            />
+            <div className="flex row-start-3 justify-around">
+              <Button className="w-[50%]" onClick={closeAddUserDialog}>
+                Cancel
+              </Button>
+              <Button className="ml-2 w-[50%]" onClick={addUser}>
+                Add User
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
       <h1 className="mt-14 col-start-2 font-medium text-3xl text-black">
         {note?.isDirectory ? "Directory" : "Note"} Settings:{" "}
         <span className="text-gray-600 italic">{note?.title}</span>
@@ -132,8 +203,21 @@ const noteSettings = () => {
                 : "note."
             }`}</span>
           </CardDescription>
+          <Button onClick={handleAddUserPress} className="w-[50%]">
+            Add User
+          </Button>
         </CardHeader>
-        <CardContent></CardContent>
+        <CardContent>
+          <ScrollArea
+            className="col-start-1 col-end-2 h-80 w-48 rounded-md border overflow-hidden"
+            type="scroll">
+            <div className="p-4">
+              {allowedUsers.map((user) => (
+                <UserItem email={user} writeAccess={checkWriteAccess(user)} />
+              ))}
+            </div>
+          </ScrollArea>
+        </CardContent>
         <CardFooter></CardFooter>
       </Card>
       <div className="flex col-start-2 row-start-4">

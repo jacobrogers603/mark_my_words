@@ -102,6 +102,8 @@ export const POST = async (req: Request) => {
               isDirectory,
               userId: userId || "",
               parentId: user?.currentPath[user?.currentPath.length - 1],
+              readAccessList: [user.email],
+              writeAccessList: [user.email],
             },
           });
 

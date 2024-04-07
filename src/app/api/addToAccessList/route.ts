@@ -7,8 +7,13 @@ export const POST = async (req: Request) => {
   try {
     const { noteId, allowedEmail, writeMode } = await req.json();
 
-    if (!noteId || !allowedEmail || !writeMode) {
-      return NextResponse.json({ error: "Invalid input, missing information" });
+    if (!noteId || !allowedEmail || writeMode === undefined) {
+      return NextResponse.json({
+        error: "Invalid input, missing information:",
+        noteId,
+        allowedEmail,
+        writeMode,
+      });
     }
 
     const session = await getServerSession(authOptions);
@@ -26,17 +31,23 @@ export const POST = async (req: Request) => {
           return NextResponse.json({ error: "User not found" });
         }
 
+        const note = await prismadb.note.findUnique({
+          where: { id: noteId },
+          select: { readAccessList: true, writeAccessList: true },
+        });
+
+        if (!note) {
+          console.log("note not found");
+          return NextResponse.json({ error: "Note not found" });
+        }
+
         const updatedNote = await prismadb.note.update({
-          where: {
-            id: noteId,
-          },
+          where: { id: noteId },
           data: {
-            readAccessList: {
-                push: allowedEmail
-            },
-            writeAccessList: {
-                push: writeMode ? allowedEmail : null
-            }
+            readAccessList: [...note.readAccessList, allowedEmail], // Append to array
+            writeAccessList: writeMode
+              ? [...note.writeAccessList, allowedEmail]
+              : note.writeAccessList,
           },
         });
 
