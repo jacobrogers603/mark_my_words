@@ -184,6 +184,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
           </Popover>
         </div>
         <ArrowUpToLine className="ml-2 h-full w-full hover:cursor-pointer" />
+        <ArrowDownFromLine className="ml-2 h-full w-full hover:cursor-pointer" />
       </div>
       {currentPath && currentPath.length > 1 ? (
         <div

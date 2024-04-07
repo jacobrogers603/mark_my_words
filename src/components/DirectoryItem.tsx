@@ -7,6 +7,8 @@ import { FaEdit } from "react-icons/fa";
 import { IoSettingsSharp } from "react-icons/io5";
 import { NotebookText, FolderClosed, ArrowDownFromLine } from "lucide-react";
 
+
+
 type DirectoryItemProps = {
   note: JsonObject;
   updateCurrentPath: (directoryId?: string) => Promise<void>;
