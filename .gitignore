@@ -37,3 +37,5 @@ next-env.d.ts
 
 # Protect the secrets, add them to the production server manually when you host!
 /.env
+.env
+env

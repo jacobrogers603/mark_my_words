@@ -32,7 +32,7 @@ import { Home, X } from "lucide-react";
 import TemplateItem from "@/components/TemplateItem";
 import { set } from "react-hook-form";
 
-const userSettings = () => {
+const UserSettings = () => {
   const router = useRouter();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -224,4 +224,4 @@ const userSettings = () => {
   );
 };
 
-export default userSettings;
+export default UserSettings;

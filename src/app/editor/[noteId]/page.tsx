@@ -116,7 +116,7 @@ export default function Editor() {
     toast({
       description: `Your note: ${currentTitle} has been saved!`,
     });
-  }, []);
+  }, [mutate, noteId, toast]);
 
   const closeDialog = () => setIsDialogOpen(false);
   const closeUnsavedDialog = () => setIsUnsavedDialogOpen(false);

@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { FaEdit } from "react-icons/fa";
 
-const noteSettings = () => {
+const NoteSettings = () => {
   const { data: session, status } = useSession({
     required: true,
     onUnauthenticated() {
@@ -160,4 +160,4 @@ const noteSettings = () => {
   );
 };
 
-export default noteSettings;
+export default NoteSettings;

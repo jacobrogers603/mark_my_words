@@ -11,7 +11,7 @@ import { NotebookText, Home } from "lucide-react";
 import { FaEdit } from "react-icons/fa";
 import { IoSettingsSharp } from "react-icons/io5";
 
-const note = () => {
+const Note = () => {
   const { data: session, status } = useSession({
     required: true,
     onUnauthenticated() {
@@ -103,5 +103,5 @@ const note = () => {
   );
 };
 
-export default note;
+export default Note;
 
