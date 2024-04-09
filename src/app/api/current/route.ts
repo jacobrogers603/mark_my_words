@@ -23,10 +23,5 @@ export async function GET(req: Request) {
   }
 
   // Return the currentUser in JSON format
-  return new Response(JSON.stringify(currentUser), {
-    status: 200, // OK status
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  return NextResponse.json(currentUser);
 }
