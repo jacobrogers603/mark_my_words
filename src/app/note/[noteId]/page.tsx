@@ -75,12 +75,12 @@ const Note = () => {
   return (
     <main className="w-full h-full min-h-screen grid grid-cols-10 bg-blue-100 content-start">
       <NavBar />
-      <div className="mt-[5.25rem] mb-2 flex col-start-2 justify-self-start">
-        <Button className="mr-2 w-[9rem]" onClick={routeHome}>
+      <div className="mt-[5.25rem] mb-2 grid grid-cols-2 grid-rows-2  md:flex flex-row col-start-2 col-end-10 justify-self-start">
+        <Button className="mr-2 w-[9rem] mb-4 md:mb-0" onClick={routeHome}>
           <Home size={15}/>
           <span className="ml-2">Home</span>
         </Button>
-        <Button className="mr-2 w-[9rem]" onClick={routeEdit}>
+        <Button className="mr-2 w-[9rem] mb-4 md:mb-0" onClick={routeEdit}>
           <FaEdit />
           <span className="ml-2">Edit note</span>
         </Button>

@@ -19,12 +19,13 @@ import useNote from "@/hooks/useNote";
 import useSWR from "swr";
 import fetcher from "@/lib/fetcher";
 import { Button } from "@/components/ui/button";
-import { Home } from "lucide-react";
+import { Home, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import NavBar from "@/components/NavBar";
 import { IoSettingsSharp } from "react-icons/io5";
 import { Separator } from "@radix-ui/react-separator";
+import SideDrawer from "@/components/SideDrawer";
 
 export default function Editor() {
   const { data: session, status } = useSession({
@@ -47,6 +48,8 @@ export default function Editor() {
   const [isSaved, setIsSaved] = useState(true);
   const [homePressed, setHomePressed] = useState(false);
   const [settingsPressed, setSettingsPressed] = useState(false);
+  const [lgMode, setLgMode] = useState(false);
+  const [isTemplatesDialogOpen, setIsTemplatesDialogOpen] = useState(false);
 
   useEffect(() => {
     if (noteId !== "new" && note) {
@@ -56,7 +59,6 @@ export default function Editor() {
   }, [noteId, note]);
 
   const router = useRouter();
-
 
   const routeHome = () => {
     setHomePressed(true);
@@ -120,6 +122,7 @@ export default function Editor() {
 
   const closeDialog = () => setIsDialogOpen(false);
   const closeUnsavedDialog = () => setIsUnsavedDialogOpen(false);
+  const closeTemplatesDialog = () => setIsTemplatesDialogOpen(false);
 
   const handleTextareaChange = () => {
     setIsSaved(false);
@@ -137,11 +140,30 @@ export default function Editor() {
     setHomePressed(false);
     setSettingsPressed(false);
     setIsUnsavedDialogOpen(false);
+    setIsTemplatesDialogOpen(false);
   };
 
-  const appendTemplate = (templateContent: string) => { 
+  const appendTemplate = (templateContent: string) => {
     setNoteText((prev) => prev + "\n\n" + templateContent);
     setIsSaved(false);
+    setIsTemplatesDialogOpen(false);
+  };
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setLgMode(window.innerWidth >= 1024); // 1024px as the lg screen size breakpoint
+    };
+
+    // Check on mount and add listener for resize events
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+
+    // Cleanup listener
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
+
+  const openTemplatesDialog = () => {
+    setIsTemplatesDialogOpen(true);
   };
 
   if (status === "loading") {
@@ -155,13 +177,13 @@ export default function Editor() {
   }
 
   return (
-    <main className="w-full h-screen grid place-items-center bg-blue-100">
-      <NavBar editor={true} routeHome={routeHome}/>
-      <div className="absolute top-[40%] right-[40%] z-10">
+    <main className="w-full h-screen flex flex-col pt-[5.5rem] bg-blue-100">
+      <NavBar editor={true} routeHome={routeHome} />
+      <div className="">
         {/* No Title Dialog */}
         {isDialogOpen && (
           <Dialog open={isDialogOpen}>
-            <DialogContent className="w-auto grid place-items-center">
+            <DialogContent className="w-auto min-w-[18.75rem] grid place-items-center rounded-md">
               <DialogHeader>
                 <DialogTitle>Missing Information</DialogTitle>
                 <DialogDescription>
@@ -178,7 +200,7 @@ export default function Editor() {
         {/* unsaved dialog */}
         {isUnsavedDialogOpen && (
           <Dialog open={isUnsavedDialogOpen}>
-            <DialogContent className="w-auto grid place-items-center">
+            <DialogContent className="w-auto grid place-items-center rounded-md">
               <DialogHeader>
                 <DialogTitle>Unsaved Changes!</DialogTitle>
                 <DialogDescription>
@@ -196,88 +218,112 @@ export default function Editor() {
             </DialogContent>
           </Dialog>
         )}
+        {/* templates dialog */}
+        {isTemplatesDialogOpen && (
+          <Dialog open={isTemplatesDialogOpen}>
+            <DialogContent className="w-auto grid place-items-center rounded-md">
+              <DialogHeader>
+                <DialogTitle>Choose a Template</DialogTitle>
+                <DialogDescription>
+                  Select a template to append to your note.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex">
+                <div className="grid place-items-center w-fit mr-6">
+                  <ComboBox lgMode={lgMode} appendTemplate={appendTemplate} />
+                </div>
+                <Button className="mr-6" onClick={handleReturnPress}>
+                  Return
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
         {/* Note saved toast */}
-        <Toaster />
+        {lgMode ? <Toaster /> : null}
       </div>
-      <div className="relative border-solid border-black border-2 rounded-md w-[80%] h-[80%] bg-white">
-        <nav className="absolute top-0 right-0 left-0 h-16 flex border-b-2 border-b-black items-center justify-between pl-4 pr-4">
-          <div className="grid grid-cols-1 grid-rows-2 place-items-center">
-            <h1 className="font-bold text-lg">Note Editor</h1>
-            <p className="text-gray-500">Markdown Format</p>
+      <div className="relative border-solid border-black border-2 rounded-md w-[80%] flex-grow self-center mb-[2.5rem] bg-white">
+        <nav className="absolute top-0 right-0 left-0 h-16 flex border-b-2 border-b-black pl-4 pr-4 z-2 items-center justify-items-center">
+          <div className="flex flex-col text-start justify-self-start mr-6 w-fit whitespace-nowrap">
+            <h1 className="font-bold">Note Editor</h1>
+            <p className="text-gray-500 w-fit">Markdown Format</p>
           </div>
-          <div className="flex flex-col">
-            <label className="ml-2 text-gray-700">Title</label>
-            <input
-              type="text"
-              placeholder=""
-              value={title}
-              onChange={(e) => {
-                setTitle(e.target.value);
-                handleTextareaChange();
-              }}
-              ref={titleRef}
-              className="border-solid border-2 border-black rounded-lg"
+          {lgMode ? (
+            <Button className="w-fit mr-6" onClick={routeHome}>
+              <Home size={15} />
+              <span className="ml-2">Home</span>
+            </Button>
+          ) : null}
+          <div className="flex-grow"></div>
+          {lgMode ? (
+            <div className="flex flex-col mr-6">
+              <label htmlFor="title" className="font-bold">
+                Title
+              </label>
+              <input
+                type="text"
+                placeholder="Title"
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  handleTextareaChange();
+                }}
+                ref={titleRef}
+                className="border-solid border-2 border-gray-600 rounded-lg w-full"
+              />
+            </div>
+          ) : null}
+          {lgMode ? (
+            <div className="grid place-items-center w-fit mr-6">
+              <ComboBox lgMode={lgMode} appendTemplate={appendTemplate} />
+            </div>
+          ) : null}
+          {noteId !== "new" && lgMode ? (
+            <Button className="w-fit mr-6" onClick={routeSettings}>
+              <IoSettingsSharp />
+              <span className="ml-2">Settings</span>
+            </Button>
+          ) : null}
+          {lgMode ? (
+            <Button
+              onClick={saveNote}
+              variant={isSaved ? "secondary" : "default"}
+              disabled={isSaved}
+              className={`w-fit mr-6 ${
+                isSaved
+                  ? "border-solid border-gray-600 border-2 rounded-md"
+                  : ""
+              }`}>
+              {isSaved ? "Saved" : "Save"}
+            </Button>
+          ) : null}
+          <div className="w-fit mr-4">
+            <SideDrawer
+              lgMode={lgMode}
+              appendTemplate={appendTemplate}
+              isSaved={isSaved}
+              routeHome={routeHome}
+              routeSettings={routeSettings}
+              saveNote={saveNote}
+              noteId={noteId.toString()}
+              title={title}
+              setTitle={setTitle}
+              handleTextareaChange={handleTextareaChange}
+              titleRef={titleRef}
+              openTemplatesDialog={openTemplatesDialog}
             />
           </div>
-          <div className="col-start-4">
-            <ComboBox appendTemplate={appendTemplate}/>
-          </div>
-
-          <Button className="mr-2 w-[9rem]" onClick={routeHome}>
-            <Home size={15} />
-            <span className="ml-2">Home</span>
-          </Button>
-          <Button className="w-[9rem]" onClick={routeSettings}>
-            <IoSettingsSharp />
-            <span className="ml-2">Note settings</span>
-          </Button>
-          <Button
-            onClick={saveNote}
-            variant={isSaved ? "secondary" : "default"}
-            disabled={isSaved}>
-            {isSaved ? "Saved" : "Save"}
-          </Button>
         </nav>
-        <div className="grid grid-cols-5 grid-rows-1 w-full absolute top-16 bottom-0 right-0 left-0 place-items-center">
-          <div className="grid place-items-center col-start-1 col-end-5 w-full h-full">
-            <textarea
-              className="focus:outline-none focus:shadow-none h-[90%] w-[90%] resize-none border-gray-500 border-[1px] rounded-lg"
-              placeholder=" Start writing..."
-              ref={textAreaRef}
-              value={noteText}
-              onChange={(e) => {
-                setNoteText(e.target.value);
-                handleTextareaChange();
-              }}></textarea>
-          </div>
-          {/* formatting bar */}
-          <div className="p-4 flex flex-col col-start-5 h-full border-l-2 border-l-black text-center">
-            <h2 className="font-extrabold">Markdown Cheat Sheet</h2>
-            <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
-            <ul>
-              <li><span className="font-bold italic"># Text</span> Heading</li>
-              <Separator className="h-[2px] bg-gray-800 my-2"   orientation="horizontal" />
-              <li><span className="font-bold italic">## Text</span> Sub Heading (max 6)</li>
-              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
-              <li><span className="font-bold italic">*Text*</span> Italic</li>
-              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
-              <li><span className="font-bold italic">**Text**</span> Bold</li>
-              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
-              <li><span className="font-bold italic">~~Text~~</span> Strikethrough</li>
-              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
-              <li><span className="font-bold italic">- List Item</span> Bulleted List</li>
-              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
-              <li><span className="font-bold italic">1. List Item</span> Numeric List</li>
-              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
-              <li><span className="font-bold italic">`Code`</span> Code Block</li>
-              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
-              <li><span className="font-bold italic">---</span> Horizontal Line</li>
-              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
-              <li><span className="font-bold italic">[Link Text](URL)</span> Link</li>
-              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
-              <li><span className="font-bold italic">![Alt Text](Image Path)</span> Image</li>
-            </ul>
-          </div>
+        <div className="w-full h-full pt-16">
+          <textarea
+            className="focus:outline-none focus:shadow-none h-full w-full resize-none p-2 rounded-b-md"
+            placeholder=" Start writing..."
+            ref={textAreaRef}
+            value={noteText}
+            onChange={(e) => {
+              setNoteText(e.target.value);
+              handleTextareaChange();
+            }}></textarea>
         </div>
       </div>
     </main>

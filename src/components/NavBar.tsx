@@ -10,6 +10,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { IoSettingsSharp } from "react-icons/io5";
+import { PencilRuler } from "lucide-react";
 
 interface NavBarProps {
   editor?: boolean;
@@ -23,8 +24,13 @@ const NavBar: React.FC<NavBarProps> = ({ editor, routeHome }) => {
     router.push("/user-settings");
   };
 
+  const routeHomeNoEditor = () => {
+    router.push("/");
+  };
+
   return (
     <nav className="w-full h-14 absolute top-0 bg-amber-400 border-solid border-black border-b-2 grid grid-cols-8 place-items-center">
+      {editor ? <PencilRuler onClick={routeHome} size={30} className="col-start-1 hover:cursor-pointer"/> : <PencilRuler onClick={routeHomeNoEditor} size={30} className="col-start-1 hover:cursor-pointer"/>}
       <div className="col-start-8 z-20">
         {editor ? (
           <GiRamProfile className=" bg-blue-400 rounded-full p-1 border-solid border-black border-2" size={40} onClick={routeHome}/>
