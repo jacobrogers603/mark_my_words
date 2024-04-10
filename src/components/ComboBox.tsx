@@ -12,9 +12,10 @@ import { Template } from "@prisma/client";
 
 interface ComboBoxProps {
   appendTemplate: (templateContent: string) => void;
+  lgMode: boolean;
 }
 
-const ComboBox: React.FC<ComboBoxProps> = ({ appendTemplate }) => {
+const ComboBox: React.FC<ComboBoxProps> = ({ appendTemplate, lgMode }) => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -40,13 +41,17 @@ const ComboBox: React.FC<ComboBoxProps> = ({ appendTemplate }) => {
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
-        <Command>
+      <PopoverContent
+        className={`w-[10rem] my-8 overflow-y-auto h-fit ${
+          lgMode ? "max-h-[10rem]" : "max-h-screen"
+        } z-50`}>
+        <Command className="">
           {templates.length === 0 ? (
             <CommandItem>No templates found.</CommandItem>
           ) : (
             templates.map((template) => (
               <CommandItem
+                className="overflow-x-auto"
                 key={template.id}
                 onSelect={() => {
                   setValue(template.title);

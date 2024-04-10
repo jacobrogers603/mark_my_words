@@ -19,6 +19,7 @@ type SideDrawerProps = {
   setTitle: (title: string) => void;
   handleTextareaChange: () => void;
   titleRef: React.RefObject<HTMLInputElement>;
+  openTemplatesDialog: () => void;
 };
 
 const SideDrawer = ({
@@ -33,6 +34,7 @@ const SideDrawer = ({
   setTitle,
   handleTextareaChange,
   titleRef,
+  openTemplatesDialog,
 }: SideDrawerProps) => {
   return (
     <Drawer direction="right">
@@ -49,7 +51,9 @@ const SideDrawer = ({
           ) : null}
           {!lgMode ? (
             <div className="flex flex-col">
-              <label htmlFor="title" className="font-bold">Title</label>
+              <label htmlFor="title" className="font-bold">
+                Title
+              </label>
               <input
                 type="text"
                 placeholder="Title"
@@ -64,9 +68,16 @@ const SideDrawer = ({
             </div>
           ) : null}
           {noteId !== "new" && !lgMode ? (
-            <Button className="w-fit justify-self-start" onClick={routeSettings}>
+            <Button
+              className="w-fit justify-self-start"
+              onClick={routeSettings}>
               <IoSettingsSharp />
               <span className="ml-2">Note settings</span>
+            </Button>
+          ) : null}
+          {!lgMode ? (
+            <Button onClick={openTemplatesDialog} className="w-fit justify-self-end">
+              Templates...
             </Button>
           ) : null}
           {!lgMode ? (
@@ -74,14 +85,13 @@ const SideDrawer = ({
               onClick={saveNote}
               variant={isSaved ? "secondary" : "default"}
               disabled={isSaved}
-              className="w-fit justify-self-end">
+              className={`w-fit col-span-2 ${
+                isSaved
+                  ? "border-solid border-gray-600 border-2 rounded-md"
+                  : ""
+              }`}>
               {isSaved ? "Saved" : "Save"}
             </Button>
-          ) : null}          
-          {!lgMode ? (
-            <div className="grid place-items-center w-full col-span-2">
-              <ComboBox appendTemplate={appendTemplate} />
-            </div>
           ) : null}
         </div>
 

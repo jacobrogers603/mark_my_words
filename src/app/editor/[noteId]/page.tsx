@@ -49,6 +49,7 @@ export default function Editor() {
   const [homePressed, setHomePressed] = useState(false);
   const [settingsPressed, setSettingsPressed] = useState(false);
   const [lgMode, setLgMode] = useState(false);
+  const [isTemplatesDialogOpen, setIsTemplatesDialogOpen] = useState(false);
 
   useEffect(() => {
     if (noteId !== "new" && note) {
@@ -121,6 +122,7 @@ export default function Editor() {
 
   const closeDialog = () => setIsDialogOpen(false);
   const closeUnsavedDialog = () => setIsUnsavedDialogOpen(false);
+  const closeTemplatesDialog = () => setIsTemplatesDialogOpen(false);
 
   const handleTextareaChange = () => {
     setIsSaved(false);
@@ -138,11 +140,13 @@ export default function Editor() {
     setHomePressed(false);
     setSettingsPressed(false);
     setIsUnsavedDialogOpen(false);
+    setIsTemplatesDialogOpen(false);
   };
 
   const appendTemplate = (templateContent: string) => {
     setNoteText((prev) => prev + "\n\n" + templateContent);
     setIsSaved(false);
+    setIsTemplatesDialogOpen(false);
   };
 
   useEffect(() => {
@@ -158,6 +162,10 @@ export default function Editor() {
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
+  const openTemplatesDialog = () => {
+    setIsTemplatesDialogOpen(true);
+  };
+
   if (status === "loading") {
     return (
       <main className="w-full h-screen grid place-items-center">
@@ -171,7 +179,7 @@ export default function Editor() {
   return (
     <main className="w-full h-screen flex flex-col pt-[5.5rem] bg-blue-100">
       <NavBar editor={true} routeHome={routeHome} />
-      <div className="absolute top-[40%] right-[40%] z-10">
+      <div className="">
         {/* No Title Dialog */}
         {isDialogOpen && (
           <Dialog open={isDialogOpen}>
@@ -210,18 +218,35 @@ export default function Editor() {
             </DialogContent>
           </Dialog>
         )}
+        {/* templates dialog */}
+        {isTemplatesDialogOpen && (
+          <Dialog open={isTemplatesDialogOpen}>
+            <DialogContent className="w-auto grid place-items-center rounded-md">
+              <DialogHeader>
+                <DialogTitle>Choose a Template</DialogTitle>
+                <DialogDescription>
+                  Select a template to append to your note.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex">
+                <div className="grid place-items-center w-fit mr-6">
+                  <ComboBox lgMode={lgMode} appendTemplate={appendTemplate} />
+                </div>
+                <Button className="mr-6" onClick={handleReturnPress}>
+                  Return
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
         {/* Note saved toast */}
-        <Toaster />
+        {lgMode ? <Toaster /> : null}
       </div>
       <div className="relative border-solid border-black border-2 rounded-md w-[80%] flex-grow self-center mb-[2.5rem] bg-white">
         <nav className="absolute top-0 right-0 left-0 h-16 flex border-b-2 border-b-black pl-4 pr-4 z-2 items-center justify-items-center">
           <div className="flex flex-col text-start justify-self-start mr-6 w-fit whitespace-nowrap">
-            <h1 className="font-bold">
-              Note Editor
-            </h1>
-            <p className="text-gray-500 w-fit">
-              Markdown Format
-            </p>
+            <h1 className="font-bold">Note Editor</h1>
+            <p className="text-gray-500 w-fit">Markdown Format</p>
           </div>
           {lgMode ? (
             <Button className="w-fit mr-6" onClick={routeHome}>
@@ -250,7 +275,7 @@ export default function Editor() {
           ) : null}
           {lgMode ? (
             <div className="grid place-items-center w-fit mr-6">
-              <ComboBox appendTemplate={appendTemplate} />
+              <ComboBox lgMode={lgMode} appendTemplate={appendTemplate} />
             </div>
           ) : null}
           {noteId !== "new" && lgMode ? (
@@ -264,7 +289,11 @@ export default function Editor() {
               onClick={saveNote}
               variant={isSaved ? "secondary" : "default"}
               disabled={isSaved}
-              className="w-fit mr-6">
+              className={`w-fit mr-6 ${
+                isSaved
+                  ? "border-solid border-gray-600 border-2 rounded-md"
+                  : ""
+              }`}>
               {isSaved ? "Saved" : "Save"}
             </Button>
           ) : null}
@@ -281,6 +310,7 @@ export default function Editor() {
               setTitle={setTitle}
               handleTextareaChange={handleTextareaChange}
               titleRef={titleRef}
+              openTemplatesDialog={openTemplatesDialog}
             />
           </div>
         </nav>

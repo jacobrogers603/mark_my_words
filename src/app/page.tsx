@@ -73,7 +73,7 @@ export default function Home() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between w-full mt-16 bg-white">
+    <main className="flex h-full flex-col items-center justify-between w-full pt-[5.5rem] bg-white">
       <NavBar />
       <DirectoryItems
         currentDirNotes={currentDirNotes}
