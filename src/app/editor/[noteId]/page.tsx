@@ -13,13 +13,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { set } from "react-hook-form";
 import axios from "axios";
 import useNote from "@/hooks/useNote";
 import useSWR from "swr";
 import fetcher from "@/lib/fetcher";
 import { Button } from "@/components/ui/button";
-import { Home } from "lucide-react";
+import { Home, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import NavBar from "@/components/NavBar";
@@ -47,6 +56,8 @@ export default function Editor() {
   const [isSaved, setIsSaved] = useState(true);
   const [homePressed, setHomePressed] = useState(false);
   const [settingsPressed, setSettingsPressed] = useState(false);
+  const [lgMode, setLgMode] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   useEffect(() => {
     if (noteId !== "new" && note) {
@@ -56,7 +67,6 @@ export default function Editor() {
   }, [noteId, note]);
 
   const router = useRouter();
-
 
   const routeHome = () => {
     setHomePressed(true);
@@ -120,6 +130,7 @@ export default function Editor() {
 
   const closeDialog = () => setIsDialogOpen(false);
   const closeUnsavedDialog = () => setIsUnsavedDialogOpen(false);
+  const closeSheet = () => setIsSheetOpen(false);
 
   const handleTextareaChange = () => {
     setIsSaved(false);
@@ -139,10 +150,25 @@ export default function Editor() {
     setIsUnsavedDialogOpen(false);
   };
 
-  const appendTemplate = (templateContent: string) => { 
+  const appendTemplate = (templateContent: string) => {
     setNoteText((prev) => prev + "\n\n" + templateContent);
     setIsSaved(false);
   };
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setLgMode(window.innerWidth >= 1024); // 1024px as the lg screen size breakpoint
+    };
+
+    // Check on mount and add listener for resize events
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+
+    // Cleanup listener
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
+
+  const openSheet = () => setIsSheetOpen(true);
 
   if (status === "loading") {
     return (
@@ -156,7 +182,28 @@ export default function Editor() {
 
   return (
     <main className="w-full h-screen grid place-items-center bg-blue-100">
-      <NavBar editor={true} routeHome={routeHome}/>
+      {/* side sheet */}
+      <Sheet open={isSheetOpen}>
+        <SheetContent className="flex flex-col">
+          <Button className="w-[9rem]" onClick={routeHome}>
+            <Home size={15} />
+            <span className="ml-2">Home</span>
+          </Button>
+          <Button
+            onClick={saveNote}
+            variant={isSaved ? "secondary" : "default"}
+            disabled={isSaved}
+            className="col-start-2 row-start-2 w-fit justify-self-end">
+            {isSaved ? "Saved" : "Save"}
+          </Button>
+          <Button className="w-[9rem]" onClick={routeSettings}>
+            <IoSettingsSharp />
+            <span className="ml-2">Note settings</span>
+          </Button>
+        </SheetContent>
+      </Sheet>
+
+      <NavBar editor={true} routeHome={routeHome} />
       <div className="absolute top-[40%] right-[40%] z-10">
         {/* No Title Dialog */}
         {isDialogOpen && (
@@ -200,86 +247,152 @@ export default function Editor() {
         <Toaster />
       </div>
       <div className="relative border-solid border-black border-2 rounded-md w-[80%] h-[80%] bg-white">
-        <nav className="absolute top-0 right-0 left-0 h-16 flex border-b-2 border-b-black items-center justify-between pl-4 pr-4">
-          <div className="grid grid-cols-1 grid-rows-2 place-items-center">
-            <h1 className="font-bold text-lg">Note Editor</h1>
-            <p className="text-gray-500">Markdown Format</p>
+        <nav className="absolute top-0 right-0 left-0 h-32 lg:h-16 grid grid-cols-2 grid-rows-2 border-b-2 border-b-black pl-4 pr-4 z-2 place-items-center">
+          <div className="flex flex-col text-center self-start justify-self-start">
+            <h1 className="font-bold text-lg text-start md:text-center">
+              Note Editor
+            </h1>
+            <p className="text-gray-500 text-start md:text-center">
+              Markdown Format
+            </p>
           </div>
-          <div className="flex flex-col">
-            <label className="ml-2 text-gray-700">Title</label>
-            <input
-              type="text"
-              placeholder=""
-              value={title}
-              onChange={(e) => {
-                setTitle(e.target.value);
-                handleTextareaChange();
-              }}
-              ref={titleRef}
-              className="border-solid border-2 border-black rounded-lg"
-            />
+          <input
+            type="text"
+            placeholder="Title"
+            value={title}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              handleTextareaChange();
+            }}
+            ref={titleRef}
+            className="border-solid border-2 border-black rounded-lg w-full p-2 col-start-2 row-start-1"
+          />
+          {lgMode ? (
+            <Button className="mr-2 w-[9rem]" onClick={routeHome}>
+              <Home size={15} />
+              <span className="ml-2">Home</span>
+            </Button>
+          ) : null}
+          {noteId !== "new" && lgMode ? (
+            <Button className="w-[9rem]" onClick={routeSettings}>
+              <IoSettingsSharp />
+              <span className="ml-2">Note settings</span>
+            </Button>
+          ) : null}
+          {!lgMode ? (
+            <Button
+              className="row-start-2 col-start-1 w-fit bg-gray-400 justify-self-start"
+              onClick={openSheet}>
+              ...
+            </Button>
+          ) : null}
+          <div className="col-start-1 col-end-3 ml-4">
+            <ComboBox appendTemplate={appendTemplate} />
           </div>
-          <div className="col-start-4">
-            <ComboBox appendTemplate={appendTemplate}/>
-          </div>
-
-          <Button className="mr-2 w-[9rem]" onClick={routeHome}>
-            <Home size={15} />
-            <span className="ml-2">Home</span>
-          </Button>
-          <Button className="w-[9rem]" onClick={routeSettings}>
-            <IoSettingsSharp />
-            <span className="ml-2">Note settings</span>
-          </Button>
-          <Button
-            onClick={saveNote}
-            variant={isSaved ? "secondary" : "default"}
-            disabled={isSaved}>
-            {isSaved ? "Saved" : "Save"}
-          </Button>
         </nav>
-        <div className="grid grid-cols-5 grid-rows-1 w-full absolute top-16 bottom-0 right-0 left-0 place-items-center">
-          <div className="grid place-items-center col-start-1 col-end-5 w-full h-full">
-            <textarea
-              className="focus:outline-none focus:shadow-none h-[90%] w-[90%] resize-none border-gray-500 border-[1px] rounded-lg"
-              placeholder=" Start writing..."
-              ref={textAreaRef}
-              value={noteText}
-              onChange={(e) => {
-                setNoteText(e.target.value);
-                handleTextareaChange();
-              }}></textarea>
-          </div>
-          {/* formatting bar */}
-          <div className="p-4 flex flex-col col-start-5 h-full border-l-2 border-l-black text-center">
-            <h2 className="font-extrabold">Markdown Cheat Sheet</h2>
-            <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
-            <ul>
-              <li><span className="font-bold italic"># Text</span> Heading</li>
-              <Separator className="h-[2px] bg-gray-800 my-2"   orientation="horizontal" />
-              <li><span className="font-bold italic">## Text</span> Sub Heading (max 6)</li>
-              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
-              <li><span className="font-bold italic">*Text*</span> Italic</li>
-              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
-              <li><span className="font-bold italic">**Text**</span> Bold</li>
-              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
-              <li><span className="font-bold italic">~~Text~~</span> Strikethrough</li>
-              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
-              <li><span className="font-bold italic">- List Item</span> Bulleted List</li>
-              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
-              <li><span className="font-bold italic">1. List Item</span> Numeric List</li>
-              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
-              <li><span className="font-bold italic">`Code`</span> Code Block</li>
-              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
-              <li><span className="font-bold italic">---</span> Horizontal Line</li>
-              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
-              <li><span className="font-bold italic">[Link Text](URL)</span> Link</li>
-              <Separator className="h-[2px] bg-gray-800 my-2" orientation="horizontal" />
-              <li><span className="font-bold italic">![Alt Text](Image Path)</span> Image</li>
-            </ul>
-          </div>
+        <div className="w-full h-full pt-32 lg:pt-16">
+          <textarea
+            className="focus:outline-none focus:shadow-none h-full w-full resize-none p-2 rounded-b-md"
+            placeholder=" Start writing..."
+            ref={textAreaRef}
+            value={noteText}
+            onChange={(e) => {
+              setNoteText(e.target.value);
+              handleTextareaChange();
+            }}></textarea>
         </div>
       </div>
     </main>
   );
+}
+
+{
+  /* <div className="p-4 flex flex-col col-start-5 h-full border-l-2 border-l-black text-center">
+            <h2 className="font-extrabold">Markdown Cheat Sheet</h2>
+            <Separator
+              className="h-[2px] bg-gray-800 my-2"
+              orientation="horizontal"
+            />
+            <ul>
+              <li>
+                <span className="font-bold italic"># Text</span> Heading
+              </li>
+              <Separator
+                className="h-[2px] bg-gray-800 my-2"
+                orientation="horizontal"
+              />
+              <li>
+                <span className="font-bold italic">## Text</span> Sub Heading
+                (max 6)
+              </li>
+              <Separator
+                className="h-[2px] bg-gray-800 my-2"
+                orientation="horizontal"
+              />
+              <li>
+                <span className="font-bold italic">*Text*</span> Italic
+              </li>
+              <Separator
+                className="h-[2px] bg-gray-800 my-2"
+                orientation="horizontal"
+              />
+              <li>
+                <span className="font-bold italic">**Text**</span> Bold
+              </li>
+              <Separator
+                className="h-[2px] bg-gray-800 my-2"
+                orientation="horizontal"
+              />
+              <li>
+                <span className="font-bold italic">~~Text~~</span> Strikethrough
+              </li>
+              <Separator
+                className="h-[2px] bg-gray-800 my-2"
+                orientation="horizontal"
+              />
+              <li>
+                <span className="font-bold italic">- List Item</span> Bulleted
+                List
+              </li>
+              <Separator
+                className="h-[2px] bg-gray-800 my-2"
+                orientation="horizontal"
+              />
+              <li>
+                <span className="font-bold italic">1. List Item</span> Numeric
+                List
+              </li>
+              <Separator
+                className="h-[2px] bg-gray-800 my-2"
+                orientation="horizontal"
+              />
+              <li>
+                <span className="font-bold italic">`Code`</span> Code Block
+              </li>
+              <Separator
+                className="h-[2px] bg-gray-800 my-2"
+                orientation="horizontal"
+              />
+              <li>
+                <span className="font-bold italic">---</span> Horizontal Line
+              </li>
+              <Separator
+                className="h-[2px] bg-gray-800 my-2"
+                orientation="horizontal"
+              />
+              <li>
+                <span className="font-bold italic">[Link Text](URL)</span> Link
+              </li>
+              <Separator
+                className="h-[2px] bg-gray-800 my-2"
+                orientation="horizontal"
+              />
+              <li>
+                <span className="font-bold italic">
+                  ![Alt Text](Image Path)
+                </span>{" "}
+                Image
+              </li>
+            </ul>
+          </div> */
 }

@@ -5,7 +5,7 @@ import { FaFolderClosed } from "react-icons/fa6";
 import { PiNoteFill } from "react-icons/pi";
 import { FaEdit } from "react-icons/fa";
 import { IoSettingsSharp } from "react-icons/io5";
-import { NotebookText, FolderClosed  } from 'lucide-react';
+import { NotebookText, FolderClosed } from "lucide-react";
 
 type DirectoryItemProps = {
   note: JsonObject;
@@ -28,7 +28,7 @@ const DirectoryItem = ({ note, updateCurrentPath }: DirectoryItemProps) => {
     event.stopPropagation();
     if (!note.isDirectory) {
       router.push(`/editor/${note.id}`);
-    }else{
+    } else {
       handleItemClick();
     }
   };
@@ -41,17 +41,27 @@ const DirectoryItem = ({ note, updateCurrentPath }: DirectoryItemProps) => {
   return (
     <div
       onClick={handleItemClick}
-      className={`grid grid-cols-8 place-items-center w-full h-10 border-solid rounded-md border-black border-2 text-black font-normal cursor-pointer mb-2 ${note.isDirectory ? "bg-amber-400 hover:bg-amber-500" : "bg-blue-100 hover:bg-blue-200"} `}
-    >
-      <div className="">{note.isDirectory ? <FolderClosed  /> : <NotebookText />}</div>
-      <div className="col-start-2 col-end-5">{note?.title?.toString() ?? "No title"}</div>
+      className={`grid grid-cols-8 place-items-center w-full h-10 border-solid rounded-md border-black border-2 text-black font-normal cursor-pointer mb-2 ${
+        note.isDirectory
+          ? "bg-amber-400 hover:bg-amber-500"
+          : "bg-blue-100 hover:bg-blue-200"
+      } `}>
+      <div className="">
+        {note.isDirectory ? <FolderClosed /> : <NotebookText />}
+      </div>
+      <div className="col-start-2 col-end-5 overflow-auto whitespace-nowrap w-full">
+        {note?.title?.toString() ?? "No title"}
+      </div>
       <div
         className="grid place-items-center w-full h-full z-100 col-start-7"
-        onClick={handleEditClick}
-      >
-        <div className="">{!note.isDirectory ? <FaEdit size={20} /> : null}</div>
+        onClick={handleEditClick}>
+        <div className="">
+          {!note.isDirectory ? <FaEdit size={20} /> : null}
+        </div>
       </div>
-      <div className="grid place-items-center w-full h-full z-100 col-start-8" onClick={handleSettingsClick}>
+      <div
+        className="grid place-items-center w-full h-full z-100 col-start-8"
+        onClick={handleSettingsClick}>
         <IoSettingsSharp />
       </div>
     </div>

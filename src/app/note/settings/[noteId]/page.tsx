@@ -78,24 +78,22 @@ const NoteSettings = () => {
 
   return (
     <main
-      className={`grid w-full h-screen place-items-center grid-cols-3 grid-rows-5 ${
+      className={`flex flex-col justify-start items-center w-full h-screen ${
         note?.isDirectory ? "bg-amber-100" : "bg-blue-100"
       }`}>
       <NavBar />
       {/* Delete confirmation dialog */}
       {isDialogOpen && (
         <Dialog open={isDialogOpen}>
-          <DialogContent className="w-auto grid place-items-center text-center max-w-[18rem]">
-            <DialogHeader className="text-center">
+          <DialogContent className="w-auto grid place-items-center text-center max-w-[18rem] rounded-md">
+            <DialogHeader className="text-center max-w-full">
               <DialogTitle className="text-center">{`Delete ${
                 note?.isDirectory ? "directory" : "note"
               }?`}</DialogTitle>
               <DialogDescription className="text-center">
                 {`A deleted ${
                   note?.isDirectory ? "directory" : "note"
-                } cannot be recovered. Are you sure you want to delete: ${
-                  note?.title
-                }? ${
+                } cannot be recovered. Are you sure you want to delete it? ${
                   note?.isDirectory
                     ? "This will also delete its notes and subdirectories."
                     : ""
@@ -117,12 +115,20 @@ const NoteSettings = () => {
         </Dialog>
       )}
 
-      <h1 className="mt-14 col-start-2 font-medium text-3xl text-black">
-        {note?.isDirectory ? "Directory" : "Note"} Settings:{" "}
-        <span className="text-gray-600 italic">{note?.title}</span>
-      </h1>
+      <div className="flex flex-col mx-8 max-w-[80%] md:max-w-[60%]">
+        <h1 className="mt-16 mb-4 font-medium text-xl md:text-3xl text-black text-center">
+          {note?.isDirectory ? "Directory" : "Note"}&nbsp;Settings:
+        </h1>
+
+        <div className="mb-4 overflow-x-auto">
+          <span className="text-gray-600 italic text-xl md:text-3xl whitespace-nowrap text-start">
+            {note?.title}
+          </span>
+        </div>
+      </div>
+
       {/* Access controls */}
-      <Card className="w-auto max-w-[25rem] h-auto grid place-items-center row-start-2 col-start-2 row-end-4">
+      <Card className="w-auto max-w-[25rem] h-auto grid place-items-center row-start-2 col-start-2 row-end-4 mx-8">
         <CardHeader className="text-center">
           <CardTitle>Access Controls</CardTitle>
           <CardDescription>
@@ -136,6 +142,7 @@ const NoteSettings = () => {
         <CardContent></CardContent>
         <CardFooter></CardFooter>
       </Card>
+      <div className="flex-grow"></div>
       <div className="flex col-start-2 row-start-4">
         <Button className="mr-2 w-[9rem]" onClick={routeHome}>
           <Home size={15} />
@@ -149,7 +156,7 @@ const NoteSettings = () => {
         )}
       </div>
       <Button
-        className="mr-2 w-[9rem] row-start-5 col-start-2"
+        className="mb-8 mt-8 w-[9rem]"
         variant={"destructive"}
         onClick={deleteButtonPressed}>
         <span className="ml-2">
