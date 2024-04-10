@@ -13,15 +13,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { set } from "react-hook-form";
 import axios from "axios";
 import useNote from "@/hooks/useNote";
@@ -34,6 +25,7 @@ import { Toaster } from "@/components/ui/toaster";
 import NavBar from "@/components/NavBar";
 import { IoSettingsSharp } from "react-icons/io5";
 import { Separator } from "@radix-ui/react-separator";
+import SideDrawer from "@/components/SideDrawer";
 
 export default function Editor() {
   const { data: session, status } = useSession({
@@ -182,27 +174,6 @@ export default function Editor() {
 
   return (
     <main className="w-full h-screen grid place-items-center bg-blue-100">
-      {/* side sheet */}
-      <Sheet open={isSheetOpen}>
-        <SheetContent className="flex flex-col">
-          <Button className="w-[9rem]" onClick={routeHome}>
-            <Home size={15} />
-            <span className="ml-2">Home</span>
-          </Button>
-          <Button
-            onClick={saveNote}
-            variant={isSaved ? "secondary" : "default"}
-            disabled={isSaved}
-            className="col-start-2 row-start-2 w-fit justify-self-end">
-            {isSaved ? "Saved" : "Save"}
-          </Button>
-          <Button className="w-[9rem]" onClick={routeSettings}>
-            <IoSettingsSharp />
-            <span className="ml-2">Note settings</span>
-          </Button>
-        </SheetContent>
-      </Sheet>
-
       <NavBar editor={true} routeHome={routeHome} />
       <div className="absolute top-[40%] right-[40%] z-10">
         {/* No Title Dialog */}
@@ -247,7 +218,7 @@ export default function Editor() {
         <Toaster />
       </div>
       <div className="relative border-solid border-black border-2 rounded-md w-[80%] h-[80%] bg-white">
-        <nav className="absolute top-0 right-0 left-0 h-32 lg:h-16 grid grid-cols-2 grid-rows-2 border-b-2 border-b-black pl-4 pr-4 z-2 place-items-center">
+        <nav className="absolute top-0 right-0 left-0 h-16 flex border-b-2 border-b-black pl-4 pr-4 z-2 items-center justify-items-center">
           <div className="flex flex-col text-center self-start justify-self-start">
             <h1 className="font-bold text-lg text-start md:text-center">
               Note Editor
@@ -256,41 +227,24 @@ export default function Editor() {
               Markdown Format
             </p>
           </div>
-          <input
-            type="text"
-            placeholder="Title"
-            value={title}
-            onChange={(e) => {
-              setTitle(e.target.value);
-              handleTextareaChange();
-            }}
-            ref={titleRef}
-            className="border-solid border-2 border-black rounded-lg w-full p-2 col-start-2 row-start-1"
-          />
-          {lgMode ? (
-            <Button className="mr-2 w-[9rem]" onClick={routeHome}>
-              <Home size={15} />
-              <span className="ml-2">Home</span>
-            </Button>
-          ) : null}
-          {noteId !== "new" && lgMode ? (
-            <Button className="w-[9rem]" onClick={routeSettings}>
-              <IoSettingsSharp />
-              <span className="ml-2">Note settings</span>
-            </Button>
-          ) : null}
-          {!lgMode ? (
-            <Button
-              className="row-start-2 col-start-1 w-fit bg-gray-400 justify-self-start"
-              onClick={openSheet}>
-              ...
-            </Button>
-          ) : null}
-          <div className="col-start-1 col-end-3 ml-4">
-            <ComboBox appendTemplate={appendTemplate} />
+          {!lgMode ? <div className="flex-grow"></div> : null}
+          <div className="">
+            <SideDrawer
+              lgMode={lgMode}
+              appendTemplate={appendTemplate}
+              isSaved={isSaved}
+              routeHome={routeHome}
+              routeSettings={routeSettings}
+              saveNote={saveNote}
+              noteId={noteId.toString()}
+              title={title}
+              setTitle={setTitle}
+              handleTextareaChange={handleTextareaChange}
+              titleRef={titleRef}
+            />
           </div>
         </nav>
-        <div className="w-full h-full pt-32 lg:pt-16">
+        <div className="w-full h-full pt-16">
           <textarea
             className="focus:outline-none focus:shadow-none h-full w-full resize-none p-2 rounded-b-md"
             placeholder=" Start writing..."
@@ -304,95 +258,4 @@ export default function Editor() {
       </div>
     </main>
   );
-}
-
-{
-  /* <div className="p-4 flex flex-col col-start-5 h-full border-l-2 border-l-black text-center">
-            <h2 className="font-extrabold">Markdown Cheat Sheet</h2>
-            <Separator
-              className="h-[2px] bg-gray-800 my-2"
-              orientation="horizontal"
-            />
-            <ul>
-              <li>
-                <span className="font-bold italic"># Text</span> Heading
-              </li>
-              <Separator
-                className="h-[2px] bg-gray-800 my-2"
-                orientation="horizontal"
-              />
-              <li>
-                <span className="font-bold italic">## Text</span> Sub Heading
-                (max 6)
-              </li>
-              <Separator
-                className="h-[2px] bg-gray-800 my-2"
-                orientation="horizontal"
-              />
-              <li>
-                <span className="font-bold italic">*Text*</span> Italic
-              </li>
-              <Separator
-                className="h-[2px] bg-gray-800 my-2"
-                orientation="horizontal"
-              />
-              <li>
-                <span className="font-bold italic">**Text**</span> Bold
-              </li>
-              <Separator
-                className="h-[2px] bg-gray-800 my-2"
-                orientation="horizontal"
-              />
-              <li>
-                <span className="font-bold italic">~~Text~~</span> Strikethrough
-              </li>
-              <Separator
-                className="h-[2px] bg-gray-800 my-2"
-                orientation="horizontal"
-              />
-              <li>
-                <span className="font-bold italic">- List Item</span> Bulleted
-                List
-              </li>
-              <Separator
-                className="h-[2px] bg-gray-800 my-2"
-                orientation="horizontal"
-              />
-              <li>
-                <span className="font-bold italic">1. List Item</span> Numeric
-                List
-              </li>
-              <Separator
-                className="h-[2px] bg-gray-800 my-2"
-                orientation="horizontal"
-              />
-              <li>
-                <span className="font-bold italic">`Code`</span> Code Block
-              </li>
-              <Separator
-                className="h-[2px] bg-gray-800 my-2"
-                orientation="horizontal"
-              />
-              <li>
-                <span className="font-bold italic">---</span> Horizontal Line
-              </li>
-              <Separator
-                className="h-[2px] bg-gray-800 my-2"
-                orientation="horizontal"
-              />
-              <li>
-                <span className="font-bold italic">[Link Text](URL)</span> Link
-              </li>
-              <Separator
-                className="h-[2px] bg-gray-800 my-2"
-                orientation="horizontal"
-              />
-              <li>
-                <span className="font-bold italic">
-                  ![Alt Text](Image Path)
-                </span>{" "}
-                Image
-              </li>
-            </ul>
-          </div> */
 }
