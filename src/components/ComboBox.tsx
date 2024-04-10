@@ -35,8 +35,8 @@ const ComboBox: React.FC<ComboBoxProps> = ({ appendTemplate }) => {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between">
-          {value || "Select a template"}
+          className="w-fit justify-between">
+          {value || "Template"}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>

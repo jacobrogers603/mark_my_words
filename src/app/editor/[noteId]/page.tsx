@@ -49,7 +49,6 @@ export default function Editor() {
   const [homePressed, setHomePressed] = useState(false);
   const [settingsPressed, setSettingsPressed] = useState(false);
   const [lgMode, setLgMode] = useState(false);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   useEffect(() => {
     if (noteId !== "new" && note) {
@@ -122,7 +121,6 @@ export default function Editor() {
 
   const closeDialog = () => setIsDialogOpen(false);
   const closeUnsavedDialog = () => setIsUnsavedDialogOpen(false);
-  const closeSheet = () => setIsSheetOpen(false);
 
   const handleTextareaChange = () => {
     setIsSaved(false);
@@ -160,8 +158,6 @@ export default function Editor() {
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
-  const openSheet = () => setIsSheetOpen(true);
-
   if (status === "loading") {
     return (
       <main className="w-full h-screen grid place-items-center">
@@ -173,13 +169,13 @@ export default function Editor() {
   }
 
   return (
-    <main className="w-full h-screen grid place-items-center bg-blue-100">
+    <main className="w-full h-screen flex flex-col pt-[5.5rem] bg-blue-100">
       <NavBar editor={true} routeHome={routeHome} />
       <div className="absolute top-[40%] right-[40%] z-10">
         {/* No Title Dialog */}
         {isDialogOpen && (
           <Dialog open={isDialogOpen}>
-            <DialogContent className="w-auto grid place-items-center">
+            <DialogContent className="w-auto min-w-[18.75rem] grid place-items-center rounded-md">
               <DialogHeader>
                 <DialogTitle>Missing Information</DialogTitle>
                 <DialogDescription>
@@ -196,7 +192,7 @@ export default function Editor() {
         {/* unsaved dialog */}
         {isUnsavedDialogOpen && (
           <Dialog open={isUnsavedDialogOpen}>
-            <DialogContent className="w-auto grid place-items-center">
+            <DialogContent className="w-auto grid place-items-center rounded-md">
               <DialogHeader>
                 <DialogTitle>Unsaved Changes!</DialogTitle>
                 <DialogDescription>
@@ -217,18 +213,62 @@ export default function Editor() {
         {/* Note saved toast */}
         <Toaster />
       </div>
-      <div className="relative border-solid border-black border-2 rounded-md w-[80%] h-[80%] bg-white">
+      <div className="relative border-solid border-black border-2 rounded-md w-[80%] flex-grow self-center mb-[2.5rem] bg-white">
         <nav className="absolute top-0 right-0 left-0 h-16 flex border-b-2 border-b-black pl-4 pr-4 z-2 items-center justify-items-center">
-          <div className="flex flex-col text-center self-start justify-self-start">
-            <h1 className="font-bold text-lg text-start md:text-center">
+          <div className="flex flex-col text-start justify-self-start mr-6 w-fit whitespace-nowrap">
+            <h1 className="font-bold">
               Note Editor
             </h1>
-            <p className="text-gray-500 text-start md:text-center">
+            <p className="text-gray-500 w-fit">
               Markdown Format
             </p>
           </div>
-          {!lgMode ? <div className="flex-grow"></div> : null}
-          <div className="">
+          {lgMode ? (
+            <Button className="w-fit mr-6" onClick={routeHome}>
+              <Home size={15} />
+              <span className="ml-2">Home</span>
+            </Button>
+          ) : null}
+          <div className="flex-grow"></div>
+          {lgMode ? (
+            <div className="flex flex-col mr-6">
+              <label htmlFor="title" className="font-bold">
+                Title
+              </label>
+              <input
+                type="text"
+                placeholder="Title"
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  handleTextareaChange();
+                }}
+                ref={titleRef}
+                className="border-solid border-2 border-gray-600 rounded-lg w-full"
+              />
+            </div>
+          ) : null}
+          {lgMode ? (
+            <div className="grid place-items-center w-fit mr-6">
+              <ComboBox appendTemplate={appendTemplate} />
+            </div>
+          ) : null}
+          {noteId !== "new" && lgMode ? (
+            <Button className="w-fit mr-6" onClick={routeSettings}>
+              <IoSettingsSharp />
+              <span className="ml-2">Settings</span>
+            </Button>
+          ) : null}
+          {lgMode ? (
+            <Button
+              onClick={saveNote}
+              variant={isSaved ? "secondary" : "default"}
+              disabled={isSaved}
+              className="w-fit mr-6">
+              {isSaved ? "Saved" : "Save"}
+            </Button>
+          ) : null}
+          <div className="w-fit mr-4">
             <SideDrawer
               lgMode={lgMode}
               appendTemplate={appendTemplate}

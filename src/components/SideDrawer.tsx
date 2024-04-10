@@ -39,8 +39,8 @@ const SideDrawer = ({
       <DrawerTrigger>
         <MenuIcon />
       </DrawerTrigger>
-      <DrawerContent className="overflow-y-auto">
-        <div className="grid grid-cols-2 grid-rows-3 gap-4 place-items-center">
+      <DrawerContent className="overflow-y-auto overflow-x-hidden">
+        <div className="grid grid-cols-2 grid-rows-3 gap-4 place-items-center p-2">
           {!lgMode ? (
             <Button className="w-fit justify-self-start" onClick={routeHome}>
               <Home size={15} />
