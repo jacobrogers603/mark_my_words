@@ -8,7 +8,6 @@ import { IoSettingsSharp } from "react-icons/io5";
 import { NotebookText, FolderClosed, ArrowDownFromLine } from "lucide-react";
 
 
-
 type DirectoryItemProps = {
   note: JsonObject;
   updateCurrentPath: (directoryId?: string) => Promise<void>;
@@ -90,7 +89,7 @@ const DirectoryItem = ({ note, updateCurrentPath }: DirectoryItemProps) => {
       <div className="">
         {note.isDirectory ? <FolderClosed /> : <NotebookText />}
       </div>
-      <div className="col-start-2 col-end-5">
+      <div className="col-start-2 col-end-5 overflow-auto whitespace-nowrap w-full">
         {note?.title?.toString() ?? "No title"}
       </div>
       <div
@@ -105,7 +104,6 @@ const DirectoryItem = ({ note, updateCurrentPath }: DirectoryItemProps) => {
         onClick={handleDownloadClick}>
         <ArrowDownFromLine />
       </div>
-
       <div
         className="grid place-items-center w-full h-full z-100 col-start-8"
         onClick={handleSettingsClick}>
