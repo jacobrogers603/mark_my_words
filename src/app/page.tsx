@@ -75,15 +75,12 @@ export default function Home() {
   return (
     <main className="flex h-full flex-col items-center justify-between w-full pt-[5.5rem] bg-white">
       <NavBar />
-      <div className="col-start-1 col-end-1 md:col-end-3 bg-gradient-to-r from-orange-800 to-white w-full h-screen"></div>
-      <div className="col-start-3 col-end-9 flex flex-col h-full items-center justify-between w-full bg-white pt-[5.5rem]">
-        <DirectoryItems
-          currentDirNotes={currentDirNotes}
-          currentPath={currentPath}
-          updateCurrentPath={updateCurrentPath}
-        />
-      </div>
-      <div className="col-start-10 md:col-start-9 col-end-11 bg-gradient-to-l from-orange-800 to-white w-full h-screen"></div>
+      <DirectoryItems
+        currentDirNotes={currentDirNotes}
+        currentPath={currentPath}
+        updateCurrentPath={updateCurrentPath}
+      />
     </main>
   );
 }
+
