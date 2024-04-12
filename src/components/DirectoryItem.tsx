@@ -5,7 +5,8 @@ import { FaFolderClosed } from "react-icons/fa6";
 import { PiNoteFill } from "react-icons/pi";
 import { FaEdit } from "react-icons/fa";
 import { IoSettingsSharp } from "react-icons/io5";
-import { NotebookText, FolderClosed } from "lucide-react";
+import { NotebookText, FolderClosed, ArrowDownFromLine } from "lucide-react";
+
 
 type DirectoryItemProps = {
   note: JsonObject;
@@ -38,6 +39,45 @@ const DirectoryItem = ({ note, updateCurrentPath }: DirectoryItemProps) => {
     router.push(`/note/settings/${note.id}`);
   };
 
+  const handleDownloadClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation();
+    if (note.isDirectory) {
+      try {
+        
+      } catch (error) {
+        console.log("Failed to download directory", error);
+        return;
+      }
+    } else {
+      try {
+        // Ensuring content is converted to a string in all cases
+        const contentAsString: string =
+          typeof note.content === "object"
+            ? JSON.stringify(note.content)
+            : String(note.content);
+
+        // Proceed with Blob creation and downloading logic
+        const blob: Blob = new Blob([contentAsString], {
+          type: "text/markdown;charset=utf-8",
+        });
+        const url: string = URL.createObjectURL(blob);
+        const anchor: HTMLAnchorElement = document.createElement("a");
+        anchor.href = url;
+        anchor.download = `${note.title}.md`;
+
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        console.log("Failed to download note", error);
+        return;
+      }
+    }
+  };
+  
+
   return (
     <div
       onClick={handleItemClick}
@@ -53,11 +93,16 @@ const DirectoryItem = ({ note, updateCurrentPath }: DirectoryItemProps) => {
         {note?.title?.toString() ?? "No title"}
       </div>
       <div
-        className="grid place-items-center w-full h-full z-100 col-start-7"
+        className="grid place-items-center w-full h-full z-100 col-start-6"
         onClick={handleEditClick}>
         <div className="">
           {!note.isDirectory ? <FaEdit size={20} /> : null}
         </div>
+      </div>
+      <div
+        className="grid place-items-center w-full h-full z-100 col-start-7"
+        onClick={handleDownloadClick}>
+        <ArrowDownFromLine />
       </div>
       <div
         className="grid place-items-center w-full h-full z-100 col-start-8"

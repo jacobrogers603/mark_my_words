@@ -25,6 +25,7 @@ import { NotebookText, FolderClosed } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { ArrowDownFromLine, ArrowUpToLine } from "lucide-react";
 
 interface DirectoryItemsProps {
   currentDirNotes: JsonObject[] | null;
@@ -149,7 +150,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
     <main className="w-[80%] md:w-[65%] lg:w-[50%]">
       <AutoScrollH2 path={path} />
       <div className="w-full h-8 grid grid-cols-8 mb-8">
-        <div className="pl-8">
+        <div className="pl-8 flex items-center justify-start">
           <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
             <PopoverTrigger>
               <FiPlusCircle size={30} />
@@ -198,6 +199,8 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
             </PopoverContent>
           </Popover>
         </div>
+        <ArrowUpToLine className="ml-2 h-full w-full hover:cursor-pointer" />
+        <ArrowDownFromLine className="ml-2 h-full w-full hover:cursor-pointer" />
       </div>
       {currentPath && currentPath.length > 1 ? (
         <div
