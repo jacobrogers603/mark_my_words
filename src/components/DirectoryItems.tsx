@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import DirectoryItem from "./DirectoryItem";
 import { JsonObject } from "@prisma/client/runtime/library";
 import axios from "axios";
@@ -114,7 +114,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
     setDirectoryTitle("");
     setPopoverOpen(false);
   }, [directoryTitle]);
-  
+
   const handleDirectoryTitleChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -127,11 +127,27 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
   const dirNotes = notes.filter((note) => note.isDirectory == true);
   const nonDirNotes = notes.filter((note) => note.isDirectory == false);
 
+  interface AutoScrollH2Props {
+    path: string;
+  }
+
+  const endRef = useRef<HTMLHeadingElement>(null);
+
+  const AutoScrollH2: React.FC<AutoScrollH2Props> = ({ path }) => {
+    const endRef = useRef<HTMLHeadingElement>(null);
+
+    useEffect(() => {
+      if (endRef.current) {
+        endRef.current.scrollLeft = endRef.current.scrollWidth;
+      }
+    }, [path]);
+
+    return <h2 ref={endRef} className="font-bold m-8 p-2 border-solid border-gray-600 text-gray-600 border-2 rounded-md overflow-auto whitespace-nowrap">{path}</h2>;
+  };
+
   return (
-    <main className="w-[50%]">
-      <h2 className="font-bold m-8 p-2 border-solid border-gray-600 text-gray-600 border-2 rounded-md">
-        {path}
-      </h2>
+    <main className="w-[80%] md:w-[65%] lg:w-[50%]">
+      <AutoScrollH2 path={path} />
       <div className="w-full h-8 grid grid-cols-8 mb-8">
         <div className="pl-8">
           <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
@@ -139,9 +155,9 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
               <FiPlusCircle size={30} />
             </PopoverTrigger>
             <PopoverContent>
-              <div className="flex space-x-4">
+              <div className="flex flex-col md:flex-row lg:flex-row md:space-x-4 lg:space-x-4">
                 <div onClick={createNote}>
-                  <Button>
+                  <Button className="mb-4 md:mb-0 lg:mb-0 ">
                     <NotebookText className="mr-2 h-4 w-4" /> Create a new note
                   </Button>
                 </div>
@@ -152,7 +168,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
                       directory
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="grid grid-rows-3 grid-cols-2 place-items-center w-auto">
+                  <DialogContent className="grid grid-rows-3 grid-cols-2 place-items-center w-[21rem] rounded-md">
                     <DialogHeader className="row-start-1 col-span-2">
                       <DialogTitle className="grid grid-cols-6 place-items-center">
                         <FolderClosed className="" />
@@ -166,7 +182,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
                       placeholder="Title"
                       value={directoryTitle}
                       onChange={handleDirectoryTitleChange}
-                      className="row-start-2 col-span-2 w-30"
+                      className="row-start-2 col-span-2 w-[80%]"
                     />
                     <DialogClose asChild>
                       <Button
