@@ -44,3 +44,4 @@ A space to write the note; buttons in the taskbar that will insert formats for m
 todo:
 
 - add right clicking to notes: https://ui.shadcn.com/docs/components/context-menu
+- fix server request inefficiencies: we don't want to fetch the content of the notes on the home page
