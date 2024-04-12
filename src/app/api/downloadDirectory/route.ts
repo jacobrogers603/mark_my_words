@@ -1,91 +1,78 @@
-import JSZip, { forEach } from "jszip";
-import * as fs from "fs";
-import prismadb from "@/lib/prismadb";
-import { NextResponse } from "next/server";
+import JSZip from "jszip";
 import { getServerSession } from "next-auth";
 import authOptions from "../../../../auth";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import prismadb from "@/lib/prismadb";
 import { Note } from "@prisma/client";
+import { Readable } from "stream"; // Node.js stream module for handling streams
 
-export const GET = async (req: Request) => {
-  try {
-    const { id } = await req.json();
-    const session = await getServerSession(authOptions);
+async function addFilesToZip(note: Note, zip: JSZip, isRoot: boolean = true): Promise<void> {
+  const target = isRoot ? zip : zip.folder(note.title);
+  if (!target) return;
 
-    if (session) {
-      try {
-        const user = await prismadb.user.findUnique({
-          where: {
-            email: session?.user?.email || "",
-          },
-        });
+  const children = await prismadb.note.findMany({
+      where: { parentId: note.id }
+  });
 
-        if (!user) {
-          console.log("user not found");
-          return NextResponse.json({ error: "User not found" });
-        }
-
-        // Create a new instance of JSZip
-        const zip = new JSZip();
-
-        // Get the base directory
-        const note = await prismadb.note.findUnique({
-          where: {
-            id: id,
-          },
-        });
-
-        if (!note) {
-          return NextResponse.json({ error: "Note not found" });
-        }
-
-        if (!note.isDirectory) {
-          return NextResponse.json({ error: "Note is not a directory" });
-        }
-
-        const zipDirectory = async (directory: Note) => {
-          const folder = zip.folder(directory.title);
-
-          if (!folder) {
-            return NextResponse.json({ error: "Failed to create folder" });
-          }
-
-          for (var i = 0; i < directory.childrenIds.length; i++) {
-            const child = await prismadb.note.findUnique({
-              where: {
-                id: directory.childrenIds[i],
-              },
-            });
-
-            if (!child) {
-              return NextResponse.json({ error: "Child note not found" });
-            }
-
-            if (!child.isDirectory) {
-              const content = child.content;
-              if (!content) {
-                return NextResponse.json({ error: "Content not found" });
-              }
-
-              folder.file(child.title, content);
-            } else if (child.isDirectory) {
-              await zipDirectory(child);
-            }
-          }
-        };
-
-        await zipDirectory(note);
-
-        
-      } catch (error) {
-        return NextResponse.json(error);
+  for (const child of children) {
+      if (child.isDirectory) {
+          await addFilesToZip(child, target, false);
+      } else {
+          target.file(`${child.title}.md`, child.content || '');
       }
-    } else {
-      // Handle the case where there is no session
-      console.log("no session");
-      return new Response(null, { status: 401 }); // 401 Unauthorized
-    }
-  } catch (error) {
-    console.log(error);
-    return NextResponse.json(error);
   }
-};
+}
+
+// Route handler for POST method
+export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return new NextResponse(null, { status: 401 });
+  }
+
+  const { id } = await req.json();
+  const note = await prismadb.note.findUnique({
+    where: { id },
+  });
+
+  if (!note || !note.isDirectory) {
+    return new NextResponse(null, {
+      status: 404,
+      statusText: "Note not found or not a directory",
+    });
+  }
+
+  const zip = new JSZip();
+  await addFilesToZip(note, zip);
+
+  // Generate the ZIP stream and convert it to ReadableStream<Uint8Array> for NextResponse
+  const nodeStream = await zip.generateNodeStream({
+    type: "nodebuffer",
+    streamFiles: true,
+  });
+  const readableStream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      const nodeReadable = new Readable().wrap(nodeStream);
+      nodeReadable.on("data", (chunk) => {
+        controller.enqueue(
+          new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength)
+        );
+      });
+      nodeReadable.on("end", () => {
+        controller.close();
+      });
+      nodeReadable.on("error", (err) => {
+        controller.error(err);
+      });
+    },
+  });
+
+  const response = new NextResponse(readableStream);
+  response.headers.set("Content-Type", "application/zip");
+  response.headers.set(
+    "Content-Disposition",
+    `attachment; filename="${encodeURIComponent(note.title)}.zip"`
+  );
+  return response;
+}

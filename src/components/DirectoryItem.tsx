@@ -6,7 +6,8 @@ import { PiNoteFill } from "react-icons/pi";
 import { FaEdit } from "react-icons/fa";
 import { IoSettingsSharp } from "react-icons/io5";
 import { NotebookText, FolderClosed, ArrowDownFromLine } from "lucide-react";
-
+import axios, { AxiosResponse } from "axios";
+export const dynamic = "force-dynamic";
 
 type DirectoryItemProps = {
   note: JsonObject;
@@ -39,14 +40,35 @@ const DirectoryItem = ({ note, updateCurrentPath }: DirectoryItemProps) => {
     router.push(`/note/settings/${note.id}`);
   };
 
-  const handleDownloadClick = (event: React.MouseEvent<HTMLDivElement>) => {
+  const handleDownloadClick = async (
+    event: React.MouseEvent<HTMLDivElement>
+  ) => {
     event.stopPropagation();
     if (note.isDirectory) {
       try {
-        
+        const response: AxiosResponse<Blob> = await axios.post<Blob>(
+          "/api/downloadDirectory",
+          {
+            id: note.id,
+          },
+          {
+            responseType: "blob",
+          }
+        );
+
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute('download', `${note.title}.zip`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
       } catch (error) {
-        console.log("Failed to download directory", error);
-        return;
+        console.error(
+          "Failed to download directory:",
+          (error as any).response?.data || error
+        );
       }
     } else {
       try {
@@ -76,7 +98,6 @@ const DirectoryItem = ({ note, updateCurrentPath }: DirectoryItemProps) => {
       }
     }
   };
-  
 
   return (
     <div

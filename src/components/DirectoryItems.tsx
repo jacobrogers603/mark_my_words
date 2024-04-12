@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import DirectoryItem from "./DirectoryItem";
 import { JsonObject } from "@prisma/client/runtime/library";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import { FaFolderClosed } from "react-icons/fa6";
 import { FiPlusCircle } from "react-icons/fi";
 import {
@@ -143,7 +143,44 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
       }
     }, [path]);
 
-    return <h2 ref={endRef} className="font-bold m-8 p-2 border-solid border-gray-600 text-gray-600 border-2 rounded-md overflow-auto whitespace-nowrap">{path}</h2>;
+    return (
+      <h2
+        ref={endRef}
+        className="font-bold m-8 p-2 border-solid border-gray-600 text-gray-600 border-2 rounded-md overflow-auto whitespace-nowrap">
+        {path}
+      </h2>
+    );
+  };
+
+  const handleDownloadClick = async () => {
+    if (!currentPath) {
+      console.error("No current path found.");
+      return;
+    }
+
+    const parentNoteId = currentPath[currentPath.length - 1];
+    try {
+      const response: AxiosResponse<Blob> = await axios.post<Blob>(
+        "/api/downloadDirectory",
+        {
+          id: parentNoteId,
+        },
+        {
+          responseType: "blob",
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `${pathTitles[pathTitles.length - 1]}.zip`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to download directory.", error);
+    }
   };
 
   return (
@@ -200,7 +237,10 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
           </Popover>
         </div>
         <ArrowUpToLine className="ml-2 h-full w-full hover:cursor-pointer" />
-        <ArrowDownFromLine className="ml-2 h-full w-full hover:cursor-pointer" />
+        <ArrowDownFromLine
+          className="ml-2 h-full w-full hover:cursor-pointer"
+          onClick={handleDownloadClick}
+        />
       </div>
       {currentPath && currentPath.length > 1 ? (
         <div
