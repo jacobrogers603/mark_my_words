@@ -190,7 +190,10 @@ const NoteSettings = () => {
         <CardFooter></CardFooter>
       </Card>
       <div className="flex-grow"></div>
-      <div className="flex col-start-2 row-start-4">
+      <div
+        className={`${
+          note?.isDirectory ? "flex" : "grid grid-cols-2 grid-rows-2 w-auto place-items-center"
+        } col-start-2 row-start-4`}>
         <Button className="mr-2 w-[9rem]" onClick={routeHome}>
           <Home size={15} />
           <span className="ml-2">Home</span>
@@ -205,15 +208,27 @@ const NoteSettings = () => {
           <ArrowDownFromLine size={15} />
           <span className="ml-2">Download HTML</span>
         </Button>
+        {note?.isDirectory ? null : (
+          <Button
+            className="mb-8 mt-8 w-[9rem]"
+            variant={"destructive"}
+            onClick={deleteButtonPressed}>
+            <span className="ml-2">
+              Delete {note?.isDirectory ? "directory" : "note"}
+            </span>
+          </Button>
+        )}
       </div>
-      <Button
-        className="mb-8 mt-8 w-[9rem]"
-        variant={"destructive"}
-        onClick={deleteButtonPressed}>
-        <span className="ml-2">
-          Delete {note?.isDirectory ? "directory" : "note"}
-        </span>
-      </Button>
+      {note?.isDirectory ? (
+        <Button
+          className="mb-8 mt-8 w-[9rem]"
+          variant={"destructive"}
+          onClick={deleteButtonPressed}>
+          <span className="ml-2">
+            Delete {note?.isDirectory ? "directory" : "note"}
+          </span>
+        </Button>
+      ) : null}
     </main>
   );
 };
