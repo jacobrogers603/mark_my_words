@@ -11,7 +11,7 @@ import {
 import { Template } from "@prisma/client";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { Separator } from "@radix-ui/react-separator";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import { useSession } from "next-auth/react";
 import { redirect, useRouter } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,7 +28,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Home, X } from "lucide-react";
+import { ArrowDownFromLine, Home, X } from "lucide-react";
 import TemplateItem from "@/components/TemplateItem";
 import { set } from "react-hook-form";
 
@@ -119,6 +119,41 @@ const UserSettings = () => {
     router.push("/");
   };
 
+  const handleDownloadHtmlPress = async () => {
+    try {
+      const rootNote = await axios.get(`/api/getNote/root`);
+      if(!rootNote){
+        console.error("No root note found");
+        return;
+      }
+
+      const rootId = rootNote.data.id;
+      const rootTitle = rootNote.data.title;
+
+      const response: AxiosResponse<Blob> = await axios.post<Blob>(
+        "/api/downloadDirectory",
+        {
+          id: rootId,
+          htmlMode: true,
+        },
+        {
+          responseType: "blob",
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `${rootTitle}.zip`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to download directory", error);
+    }
+  };
+
   if (status === "loading") {
     return (
       <main className="w-full h-screen grid place-items-center">
@@ -169,7 +204,9 @@ const UserSettings = () => {
         </CardHeader>
         <CardContent className="flex flex-col md:flex-row items-center justify-evenly col-start-1 col-end-3 row-start-2 row-end-6 w-full">
           <div className="col-start-1 col-end-2 h-[24.75rem]">
-            <h4 className="font-extrabold mb-[0.3rem] text-center">Current Templates</h4>
+            <h4 className="font-extrabold mb-[0.3rem] text-center">
+              Current Templates
+            </h4>
             <ScrollArea
               className="w-48 rounded-md border overflow-auto h-[20rem]"
               type="scroll">
@@ -216,10 +253,16 @@ const UserSettings = () => {
         <CardFooter></CardFooter>
       </Card>
 
-      <Button className="mr-2 w-[9rem]" onClick={routeHome}>
-        <Home size={15} />
-        <span className="ml-2">Home</span>
-      </Button>
+      <div className="flex">
+        <Button className="mr-2 w-[9rem]" onClick={routeHome}>
+          <Home size={15} />
+          <span className="ml-2">Home</span>
+        </Button>
+        <Button className="ml-2 w-[12rem]" onClick={handleDownloadHtmlPress}>
+          <ArrowDownFromLine size={15} />
+          <span className="ml-2">Download HTML</span>
+        </Button>
+      </div>
       <Button
         className="mr-2 w-[9rem] mt-4 mb-8"
         variant={"destructive"}

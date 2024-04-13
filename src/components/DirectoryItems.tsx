@@ -164,6 +164,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
         "/api/downloadDirectory",
         {
           id: parentNoteId,
+          htmlMode: false,
         },
         {
           responseType: "blob",
@@ -182,6 +183,8 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
       console.error("Failed to download directory.", error);
     }
   };
+
+  const handleUploadClick = async () => {};
 
   return (
     <main className="w-[80%] md:w-[65%] lg:w-[50%]">
@@ -237,8 +240,10 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
           </Popover>
         </div>
         <div className="flex-grow"></div>
-        <ArrowUpToLine className="ml-4 h-full w-fit hover:cursor-pointer" 
-        size={30}  />
+        <ArrowUpToLine 
+          onClick={handleUploadClick}
+          className="ml-4 h-full w-fit hover:cursor-pointer" 
+          size={30}  />
         <ArrowDownFromLine
           className="ml-4 h-full w-fit hover:cursor-pointer"
           onClick={handleDownloadClick}
