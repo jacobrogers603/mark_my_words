@@ -1,7 +1,7 @@
 "use client";
 import NavBar from "@/components/NavBar";
 import useNote from "@/hooks/useNote";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import { useSession } from "next-auth/react";
 import { redirect, useParams, useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -66,11 +66,28 @@ const NoteSettings = () => {
     routeHome();
   };
 
-  const handleDownloadHtmlPress = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
+  const handleDownloadHtmlPress = async () => {
     if (note.isDirectory) {
       try {
-        // Directory download logic (if applicable)
+        const response: AxiosResponse<Blob> = await axios.post<Blob>(
+          "/api/downloadDirectory",
+          {
+            id: note.id,
+            htmlMode: true,
+          },
+          {
+            responseType: "blob",
+          }
+        );
+
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `${note.title}.zip`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
       } catch (error) {
         console.error("Failed to download directory", error);
       }

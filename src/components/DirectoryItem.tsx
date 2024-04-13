@@ -50,6 +50,7 @@ const DirectoryItem = ({ note, updateCurrentPath }: DirectoryItemProps) => {
           "/api/downloadDirectory",
           {
             id: note.id,
+            htmlMode: false,
           },
           {
             responseType: "blob",

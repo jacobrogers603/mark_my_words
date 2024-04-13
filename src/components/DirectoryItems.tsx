@@ -164,6 +164,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
         "/api/downloadDirectory",
         {
           id: parentNoteId,
+          htmlMode: false,
         },
         {
           responseType: "blob",

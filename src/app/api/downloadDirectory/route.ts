@@ -7,20 +7,28 @@ import prismadb from "@/lib/prismadb";
 import { Note } from "@prisma/client";
 import { Readable } from "stream"; // Node.js stream module for handling streams
 
-async function addFilesToZip(note: Note, zip: JSZip, isRoot: boolean = true): Promise<void> {
+async function addFilesToZip(
+  note: Note,
+  htmlMode: boolean,
+  zip: JSZip,
+  isRoot: boolean = true
+): Promise<void> {
   const target = isRoot ? zip : zip.folder(note.title);
   if (!target) return;
 
   const children = await prismadb.note.findMany({
-      where: { parentId: note.id }
+    where: { parentId: note.id },
   });
 
   for (const child of children) {
-      if (child.isDirectory) {
-          await addFilesToZip(child, target, false);
-      } else {
-          target.file(`${child.title}.md`, child.content || '');
-      }
+    if (child.isDirectory) {
+      await addFilesToZip(child, htmlMode, target, false);
+    } else {
+      target.file(
+        `${child.title}.${htmlMode ? "html" : "md"}`,
+        `${htmlMode ? child.htmlContent : child.content} || ''`
+      );
+    }
   }
 }
 
@@ -31,7 +39,7 @@ export async function POST(req: NextRequest) {
     return new NextResponse(null, { status: 401 });
   }
 
-  const { id } = await req.json();
+  const { id, htmlMode } = await req.json();
   const note = await prismadb.note.findUnique({
     where: { id },
   });
@@ -44,7 +52,7 @@ export async function POST(req: NextRequest) {
   }
 
   const zip = new JSZip();
-  await addFilesToZip(note, zip);
+  await addFilesToZip(note, htmlMode, zip);
 
   // Generate the ZIP stream and convert it to ReadableStream<Uint8Array> for NextResponse
   const nodeStream = await zip.generateNodeStream({
