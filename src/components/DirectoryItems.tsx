@@ -186,7 +186,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
   return (
     <main className="w-[80%] md:w-[65%] lg:w-[50%]">
       <AutoScrollH2 path={path} />
-      <div className="w-full h-8 grid grid-cols-8 mb-8">
+      <div className="w-full h-8 flex mb-8">
         <div className="pl-8 flex items-center justify-start">
           <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
             <PopoverTrigger>
@@ -236,10 +236,13 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
             </PopoverContent>
           </Popover>
         </div>
-        <ArrowUpToLine className="ml-2 h-full w-full hover:cursor-pointer" />
+        <div className="flex-grow"></div>
+        <ArrowUpToLine className="ml-4 h-full w-fit hover:cursor-pointer" 
+        size={30}  />
         <ArrowDownFromLine
-          className="ml-2 h-full w-full hover:cursor-pointer"
+          className="ml-4 h-full w-fit hover:cursor-pointer"
           onClick={handleDownloadClick}
+          size={30}
         />
       </div>
       {currentPath && currentPath.length > 1 ? (
