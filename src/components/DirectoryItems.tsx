@@ -183,6 +183,8 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
     }
   };
 
+  const handleUploadClick = async () => {};
+
   return (
     <main className="w-[80%] md:w-[65%] lg:w-[50%]">
       <AutoScrollH2 path={path} />
@@ -236,7 +238,10 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
             </PopoverContent>
           </Popover>
         </div>
-        <ArrowUpToLine className="ml-2 h-full w-full hover:cursor-pointer" />
+        <ArrowUpToLine
+          className="ml-2 h-full w-full hover:cursor-pointer"
+          onClick={handleUploadClick}
+        />
         <ArrowDownFromLine
           className="ml-2 h-full w-full hover:cursor-pointer"
           onClick={handleDownloadClick}
