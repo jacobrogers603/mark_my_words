@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import authOptions from "../../../../auth";
 import { getServerSession } from "next-auth";
 import prismadb from "@/lib/prismadb";
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
@@ -23,10 +24,5 @@ export async function GET(req: Request) {
   }
 
   // Return the currentUser in JSON format
-  return new Response(JSON.stringify(currentUser), {
-    status: 200, // OK status
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  return NextResponse.json(currentUser);
 }

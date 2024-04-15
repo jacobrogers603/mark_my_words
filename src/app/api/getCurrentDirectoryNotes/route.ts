@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import authOptions from "../../../../auth";
 import prismadb from '@/lib/prismadb';
 import { NextResponse } from "next/server";
+export const dynamic = 'force-dynamic';
 
 // Return the notes from a directory.
 export async function GET(req: Request) {

@@ -2,8 +2,9 @@ import prismadb from "@/lib/prismadb";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import authOptions from "../../../../auth";
+export const dynamic = 'force-dynamic';
 
-export const DELETE = async (req: Request) => {
+export async function DELETE(req: Request) {
   try {
     const { templateId } = await req.json();
 

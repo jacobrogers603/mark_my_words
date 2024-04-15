@@ -8,7 +8,7 @@ import remarkGfm from 'remark-gfm';
 import remarkRehype from 'remark-rehype';
 import rehypeStringify from 'rehype-stringify';
 import { visit } from 'unist-util-visit';
-
+export const dynamic = 'force-dynamic';
 
 export const POST = async (req: Request) => {
   

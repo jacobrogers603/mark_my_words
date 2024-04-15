@@ -1,7 +1,13 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import DirectoryItem from "./DirectoryItem";
 import { JsonObject } from "@prisma/client/runtime/library";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import { FaFolderClosed } from "react-icons/fa6";
 import { FiPlusCircle } from "react-icons/fi";
 import {
@@ -25,6 +31,7 @@ import { NotebookText, FolderClosed } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { ArrowDownFromLine, ArrowUpToLine } from "lucide-react";
 
 interface DirectoryItemsProps {
   currentDirNotes: JsonObject[] | null;
@@ -42,16 +49,16 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
   const [pathTitles, setPathTitles] = useState<string[]>([]);
   const [popoverOpen, setPopoverOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchNotes = async () => {
-      try {
-        const response = await axios.get("/api/getCurrentDirectoryNotes");
-        setNotes(response.data);
-      } catch (error) {
-        console.log("Failed to fetch notes", error);
-      }
-    };
+  const fetchNotes = async () => {
+    try {
+      const response = await axios.get("/api/getCurrentDirectoryNotes");
+      setNotes(response.data);
+    } catch (error) {
+      console.error("Failed to fetch notes", error);
+    }
+  };
 
+  useEffect(() => {
     fetchNotes();
   }, [currentPath]);
 
@@ -114,7 +121,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
     setDirectoryTitle("");
     setPopoverOpen(false);
   }, [directoryTitle]);
-  
+
   const handleDirectoryTitleChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -127,21 +134,117 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
   const dirNotes = notes.filter((note) => note.isDirectory == true);
   const nonDirNotes = notes.filter((note) => note.isDirectory == false);
 
-  return (
-    <main className="w-[50%]">
-      <h2 className="font-bold m-8 p-2 border-solid border-gray-600 text-gray-600 border-2 rounded-md">
+  interface AutoScrollH2Props {
+    path: string;
+  }
+
+  const endRef = useRef<HTMLHeadingElement>(null);
+
+  const AutoScrollH2: React.FC<AutoScrollH2Props> = ({ path }) => {
+    const endRef = useRef<HTMLHeadingElement>(null);
+
+    useEffect(() => {
+      if (endRef.current) {
+        endRef.current.scrollLeft = endRef.current.scrollWidth;
+      }
+    }, [path]);
+
+    return (
+      <h2
+        ref={endRef}
+        className="font-bold m-8 p-2 border-solid border-gray-600 text-gray-600 border-2 rounded-md overflow-auto whitespace-nowrap">
         {path}
       </h2>
-      <div className="w-full h-8 grid grid-cols-8 mb-8">
-        <div className="pl-8">
+    );
+  };
+
+  const handleDownloadClick = async () => {
+    if (!currentPath) {
+      console.error("No current path found.");
+      return;
+    }
+
+    const parentNoteId = currentPath[currentPath.length - 1];
+    try {
+      const response: AxiosResponse<Blob> = await axios.post<Blob>(
+        "/api/downloadDirectory",
+        {
+          id: parentNoteId,
+          htmlMode: false,
+        },
+        {
+          responseType: "blob",
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `${pathTitles[pathTitles.length - 1]}.zip`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to download directory.", error);
+    }
+  };
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUploadClick = async () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const fileList = event.target.files;
+
+      if (
+        fileList[0].name.endsWith(".md") &&
+        (fileList[0].type === "text/markdown" || fileList[0].type === "")
+      ) {
+        await createNoteFromUpload(fileList[0]);
+      }
+    }
+  };
+
+  const createNoteFromUpload = async (file: File) => {
+    try {
+      const content = await file.text();
+      const title = file.name.slice(0, -3);
+      await axios.post("/api/saveNote", {
+        title: title,
+        content: content,
+        isDirectory: false,
+      });
+      fetchNotes(); // Refresh the notes list after upload
+    } catch (error) {
+      console.error("Failed to upload note:", error);
+    }
+  };
+
+  return (
+    <main className="w-[80%] md:w-[65%] lg:w-[50%]">
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        multiple={false}
+        accept=".md" // Accept only Markdown files
+        className="hidden"
+      />
+      <AutoScrollH2 path={path} />
+      <div className="w-full h-8 flex mb-8">
+        <div className="pl-8 flex items-center justify-start">
           <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
             <PopoverTrigger>
               <FiPlusCircle size={30} />
             </PopoverTrigger>
             <PopoverContent>
-              <div className="flex space-x-4">
+              <div className="flex flex-col md:flex-row lg:flex-row md:space-x-4 lg:space-x-4">
                 <div onClick={createNote}>
-                  <Button>
+                  <Button className="mb-4 md:mb-0 lg:mb-0 ">
                     <NotebookText className="mr-2 h-4 w-4" /> Create a new note
                   </Button>
                 </div>
@@ -152,7 +255,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
                       directory
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="grid grid-rows-3 grid-cols-2 place-items-center w-auto">
+                  <DialogContent className="grid grid-rows-3 grid-cols-2 place-items-center w-[21rem] rounded-md">
                     <DialogHeader className="row-start-1 col-span-2">
                       <DialogTitle className="grid grid-cols-6 place-items-center">
                         <FolderClosed className="" />
@@ -166,7 +269,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
                       placeholder="Title"
                       value={directoryTitle}
                       onChange={handleDirectoryTitleChange}
-                      className="row-start-2 col-span-2 w-30"
+                      className="row-start-2 col-span-2 w-[80%]"
                     />
                     <DialogClose asChild>
                       <Button
@@ -182,6 +285,17 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
             </PopoverContent>
           </Popover>
         </div>
+        <div className="flex-grow"></div>
+        <ArrowUpToLine
+          onClick={handleUploadClick}
+          className="ml-4 h-full w-fit hover:cursor-pointer"
+          size={30}
+        />
+        <ArrowDownFromLine
+          className="ml-4 h-full w-fit hover:cursor-pointer"
+          onClick={handleDownloadClick}
+          size={30}
+        />
       </div>
       {currentPath && currentPath.length > 1 ? (
         <div

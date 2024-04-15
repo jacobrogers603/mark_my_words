@@ -1,7 +1,7 @@
 "use client";
 import NavBar from "@/components/NavBar";
 import useNote from "@/hooks/useNote";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import { useSession } from "next-auth/react";
 import { redirect, useParams, useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Home, List } from "lucide-react";
+import { ArrowDownFromLine, Home } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -31,7 +31,7 @@ import { Switch } from "@radix-ui/react-switch";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "@/components/ui/input";
 
-const noteSettings = () => {
+const NoteSettings = () => {
   const { data: session, status } = useSession({
     required: true,
     onUnauthenticated() {
@@ -105,6 +105,53 @@ const noteSettings = () => {
     setUserEmail(event.target.value);
   };
 
+  const handleDownloadHtmlPress = async () => {
+    if (note.isDirectory) {
+      try {
+        const response: AxiosResponse<Blob> = await axios.post<Blob>(
+          "/api/downloadDirectory",
+          {
+            id: note.id,
+            htmlMode: true,
+          },
+          {
+            responseType: "blob",
+          }
+        );
+
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `${note.title}.zip`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error("Failed to download directory", error);
+      }
+    } else {
+      try {
+        const content = note.htmlContent; // Assuming this is HTML content as a string
+        const blob: Blob = new Blob([content], {
+          type: "text/html;charset=utf-8",
+        });
+        const url: string = URL.createObjectURL(blob);
+        const anchor: HTMLAnchorElement = document.createElement("a");
+        anchor.href = url;
+        anchor.download = `${note.title}.html`;
+
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error("Failed to download note", error);
+      }
+    }
+  };
+
   if (status === "loading") {
     return (
       <main className="w-full h-screen grid place-items-center">
@@ -117,24 +164,22 @@ const noteSettings = () => {
 
   return (
     <main
-      className={`grid w-full h-screen place-items-center grid-cols-3 grid-rows-5 ${
+      className={`flex flex-col justify-start items-center w-full h-screen ${
         note?.isDirectory ? "bg-amber-100" : "bg-blue-100"
       }`}>
       <NavBar />
       {/* Delete confirmation dialog */}
       {isDialogOpen && (
         <Dialog open={isDialogOpen}>
-          <DialogContent className="w-auto grid place-items-center text-center max-w-[18rem]">
-            <DialogHeader className="text-center">
+          <DialogContent className="w-auto grid place-items-center text-center max-w-[18rem] rounded-md">
+            <DialogHeader className="text-center max-w-full">
               <DialogTitle className="text-center">{`Delete ${
                 note?.isDirectory ? "directory" : "note"
               }?`}</DialogTitle>
               <DialogDescription className="text-center">
                 {`A deleted ${
                   note?.isDirectory ? "directory" : "note"
-                } cannot be recovered. Are you sure you want to delete: ${
-                  note?.title
-                }? ${
+                } cannot be recovered. Are you sure you want to delete it? ${
                   note?.isDirectory
                     ? "This will also delete its notes and subdirectories."
                     : ""
@@ -155,6 +200,7 @@ const noteSettings = () => {
           </DialogContent>
         </Dialog>
       )}
+
       {/* Add user dialog */}
       {isAddUserDialogOpen && (
         <Dialog open={isAddUserDialogOpen}>
@@ -188,12 +234,21 @@ const noteSettings = () => {
           </DialogContent>
         </Dialog>
       )}
-      <h1 className="mt-14 col-start-2 font-medium text-3xl text-black">
-        {note?.isDirectory ? "Directory" : "Note"} Settings:{" "}
-        <span className="text-gray-600 italic">{note?.title}</span>
-      </h1>
+      
+      <div className="flex flex-col mx-8 max-w-[80%] md:max-w-[60%]">
+        <h1 className="mt-16 mb-4 font-medium text-xl md:text-3xl text-black text-center">
+          {note?.isDirectory ? "Directory" : "Note"}&nbsp;Settings:
+        </h1>
+
+        <div className="mb-4 overflow-x-auto">
+          <span className="text-gray-600 italic text-xl md:text-3xl whitespace-nowrap text-start">
+            {note?.title}
+          </span>
+        </div>
+      </div>
+        
       {/* Access controls */}
-      <Card className="w-auto max-w-[25rem] h-auto grid place-items-center row-start-2 col-start-2 row-end-4">
+      <Card className="w-auto max-w-[25rem] h-auto grid place-items-center row-start-2 col-start-2 row-end-4 mx-8">
         <CardHeader className="text-center">
           <CardTitle>Access Controls</CardTitle>
           <CardDescription>
@@ -220,7 +275,11 @@ const noteSettings = () => {
         </CardContent>
         <CardFooter></CardFooter>
       </Card>
-      <div className="flex col-start-2 row-start-4">
+      <div className="flex-grow"></div>
+      <div
+        className={`${
+          note?.isDirectory ? "flex" : "grid grid-cols-2 grid-rows-2 w-auto place-items-center"
+        } col-start-2 row-start-4`}>
         <Button className="mr-2 w-[9rem]" onClick={routeHome}>
           <Home size={15} />
           <span className="ml-2">Home</span>
@@ -231,17 +290,33 @@ const noteSettings = () => {
             <span className="ml-2">Edit note</span>
           </Button>
         )}
+        <Button className="ml-2 w-[12rem]" onClick={handleDownloadHtmlPress}>
+          <ArrowDownFromLine size={15} />
+          <span className="ml-2">Download HTML</span>
+        </Button>
+        {note?.isDirectory ? null : (
+          <Button
+            className="mb-8 mt-8 w-[9rem]"
+            variant={"destructive"}
+            onClick={deleteButtonPressed}>
+            <span className="ml-2">
+              Delete {note?.isDirectory ? "directory" : "note"}
+            </span>
+          </Button>
+        )}
       </div>
-      <Button
-        className="mr-2 w-[9rem] row-start-5 col-start-2"
-        variant={"destructive"}
-        onClick={deleteButtonPressed}>
-        <span className="ml-2">
-          Delete {note?.isDirectory ? "directory" : "note"}
-        </span>
-      </Button>
+      {note?.isDirectory ? (
+        <Button
+          className="mb-8 mt-8 w-[9rem]"
+          variant={"destructive"}
+          onClick={deleteButtonPressed}>
+          <span className="ml-2">
+            Delete {note?.isDirectory ? "directory" : "note"}
+          </span>
+        </Button>
+      ) : null}
     </main>
   );
 };
 
-export default noteSettings;
+export default NoteSettings;
