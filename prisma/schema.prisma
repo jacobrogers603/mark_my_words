@@ -18,16 +18,18 @@ model User {
 }
 
 model Note {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  title       String
-  content     String?
-  htmlContent String?
-  isDirectory Boolean
-  userId      String   @db.ObjectId
-  childrenIds String[] @db.ObjectId
-  parentId    String?  @db.ObjectId
-  photoUrls   String[]
-  videoUrls   String[]
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  title           String
+  content         String?
+  htmlContent     String?
+  isDirectory     Boolean
+  userId          String   @db.ObjectId
+  childrenIds     String[] @db.ObjectId
+  parentId        String?  @db.ObjectId
+  readAccessList  String[]
+  writeAccessList String[]
+  photoUrls       String[]
+  videoUrls       String[]
 }
 
 model Template {
