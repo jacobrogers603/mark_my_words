@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import DirectoryItem from "./DirectoryItem";
 import { JsonObject } from "@prisma/client/runtime/library";
 import axios, { AxiosResponse } from "axios";
@@ -43,16 +49,16 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
   const [pathTitles, setPathTitles] = useState<string[]>([]);
   const [popoverOpen, setPopoverOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchNotes = async () => {
-      try {
-        const response = await axios.get("/api/getCurrentDirectoryNotes");
-        setNotes(response.data);
-      } catch (error) {
-        console.log("Failed to fetch notes", error);
-      }
-    };
+  const fetchNotes = async () => {
+    try {
+      const response = await axios.get("/api/getCurrentDirectoryNotes");
+      setNotes(response.data);
+    } catch (error) {
+      console.error("Failed to fetch notes", error);
+    }
+  };
 
+  useEffect(() => {
     fetchNotes();
   }, [currentPath]);
 
@@ -184,10 +190,50 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
     }
   };
 
-  const handleUploadClick = async () => {};
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUploadClick = async () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const fileList = event.target.files;
+
+      if (
+        fileList[0].name.endsWith(".md") &&
+        (fileList[0].type === "text/markdown" || fileList[0].type === "")
+      ) {
+        await createNoteFromUpload(fileList[0]);
+      }
+    }
+  };
+
+  const createNoteFromUpload = async (file: File) => {
+    try {
+      const content = await file.text();
+      const title = file.name.slice(0, -3);
+      await axios.post("/api/saveNote", {
+        title: title,
+        content: content,
+        isDirectory: false,
+      });
+      fetchNotes(); // Refresh the notes list after upload
+    } catch (error) {
+      console.error("Failed to upload note:", error);
+    }
+  };
 
   return (
     <main className="w-[80%] md:w-[65%] lg:w-[50%]">
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        multiple={false}
+        accept=".md" // Accept only Markdown files
+        className="hidden"
+      />
       <AutoScrollH2 path={path} />
       <div className="w-full h-8 flex mb-8">
         <div className="pl-8 flex items-center justify-start">
@@ -240,10 +286,11 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
           </Popover>
         </div>
         <div className="flex-grow"></div>
-        <ArrowUpToLine 
+        <ArrowUpToLine
           onClick={handleUploadClick}
-          className="ml-4 h-full w-fit hover:cursor-pointer" 
-          size={30}  />
+          className="ml-4 h-full w-fit hover:cursor-pointer"
+          size={30}
+        />
         <ArrowDownFromLine
           className="ml-4 h-full w-fit hover:cursor-pointer"
           onClick={handleDownloadClick}
