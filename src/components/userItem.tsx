@@ -1,6 +1,6 @@
 import { Template } from "@prisma/client";
 import { Separator } from "@radix-ui/react-separator";
-import { Toggle } from "@radix-ui/react-toggle";
+import { Toggle } from "@/components/ui/toggle";
 import axios from "axios";
 import { X, PencilLine } from "lucide-react";
 import React from "react";
