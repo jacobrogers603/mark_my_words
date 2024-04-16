@@ -45,3 +45,10 @@ todo:
 
 - add right clicking to notes: https://ui.shadcn.com/docs/components/context-menu
 - fix server request inefficiencies: we don't want to fetch the content of the notes on the home page
+
+#### access controls plan
+
+- make a public dir for every user that is non-deletable: will be the dir that anyone can lookup and see, even without logging in
+- provide a share link to individual notes to give to other users whom you have granted access to, they will be able to view the note/id url for that note when logged in or access the note/editor/id url and make changes to it depending on write access
+- search function to look up users, user/id url, will display the files in that user's public dir
+- shared directory? Seems advanced, hold off for now

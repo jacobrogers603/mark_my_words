@@ -4,7 +4,7 @@ import useNote from "@/hooks/useNote";
 import axios, { AxiosResponse } from "axios";
 import { useSession } from "next-auth/react";
 import { redirect, useParams, useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -30,6 +30,7 @@ import { FiPlusCircle } from "react-icons/fi";
 import { Switch } from "@radix-ui/react-switch";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "@/components/ui/input";
+import { set } from "react-hook-form";
 
 const NoteSettings = () => {
   const { data: session, status } = useSession({
@@ -48,6 +49,7 @@ const NoteSettings = () => {
   const [allowedUsers, setAllowedUsers] = useState<string[]>([]);
   const [writeAccessUsers, setWriteAccessUsers] = useState<string[]>([]);
   const [userEmail, setUserEmail] = useState("");
+  const [writeAccess, setWriteAccess] = useState(false);
 
   const closeDialog = () => setIsDialogOpen(false);
   const closeAddUserDialog = () => setIsAddUserDialogOpen(false);
@@ -81,28 +83,36 @@ const NoteSettings = () => {
     setIsAddUserDialogOpen(true);
   };
 
-  const addUser = async() => {
+  const addUser = async () => {
     try {
       await axios.post("/api/addToAccessList", {
         noteId: noteId,
         allowedEmail: userEmail,
-        writeMode: false,
+        writeMode: writeAccess,
       });
       setIsAddUserDialogOpen(false);
       setUserEmail("");
+      setWriteAccess(false);
+      fetchAllowedUsers();
     } catch (error) {
       console.log(error);
     }
   };
 
   const checkWriteAccess = (email: string) => {
-    return writeAccessUsers.includes(email);
+    return writeAccessUsers?.includes(email);
   };
 
   const handleUserEmailChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     setUserEmail(event.target.value);
+  };
+
+  const handleWriteAccessChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setWriteAccess(event.target.checked);
   };
 
   const handleDownloadHtmlPress = async () => {
@@ -152,6 +162,62 @@ const NoteSettings = () => {
     }
   };
 
+  const fetchAllowedUsers = async () => {
+    console.log("fetching access lists");
+    try {
+      const responseBundle = await axios.get(`/api/getAccessLists/${noteId}`);
+      setAllowedUsers(responseBundle.data.readAccessList);
+      setWriteAccessUsers(responseBundle.data.writeAccessList);
+    } catch (error) {
+      console.log("Failed to fetch access lists:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (noteId) {
+      fetchAllowedUsers();
+    }
+  }, [noteId]);
+
+  const toggleWriteMode = async (email: string, writeAccess: boolean) => {
+    if (writeAccess) {
+      try {
+        await axios.delete(`/api/removeWriteAccess`, {
+          data: {
+            noteId: noteId,
+            allowedEmail: email,
+          },
+        });
+      } catch (error) {
+        console.log("Failed to remove write access:", error);
+      }
+    } else {
+      try {
+        await axios.post(`/api/giveWriteAccess`, {
+          noteId: noteId,
+          allowedEmail: email,
+        });
+      } catch (error) {
+        console.log("Failed to give write access:", error);
+      }
+    }
+    fetchAllowedUsers();
+  };
+
+  const removeUsersAccess = async (email: string) => {
+    try {
+      await axios.delete(`/api/removeFromAccessList`, {
+        data: {
+          noteId: noteId,
+          targetEmail: email,
+        },
+      });
+      fetchAllowedUsers();
+    } catch (error) {
+      console.log("Failed to remove user's access:", error);
+    }
+  };
+
   if (status === "loading") {
     return (
       <main className="w-full h-screen grid place-items-center">
@@ -164,7 +230,7 @@ const NoteSettings = () => {
 
   return (
     <main
-      className={`flex flex-col justify-start items-center w-full h-screen ${
+      className={`flex flex-col justify-start items-center w-full min-h-screen ${
         note?.isDirectory ? "bg-amber-100" : "bg-blue-100"
       }`}>
       <NavBar />
@@ -204,7 +270,7 @@ const NoteSettings = () => {
       {/* Add user dialog */}
       {isAddUserDialogOpen && (
         <Dialog open={isAddUserDialogOpen}>
-          <DialogContent className="w-auto grid place-items-center text-center grid-rows-3 max-w-[18rem]">
+          <DialogContent className="w-auto grid place-items-center text-center grid-rows-4 max-w-[18rem] rounded-md">
             <DialogHeader className="text-center row-start-1">
               <DialogTitle className="text-center">
                 Grant a User Access
@@ -216,14 +282,25 @@ const NoteSettings = () => {
               </DialogDescription>
             </DialogHeader>
             <Input
-              className="row-start-2 w-[80%]"
+              className="row-start-2 w-auto"
               id="email"
               placeholder="Email"
               value={userEmail}
               onChange={handleUserEmailChange}
-              className="row-start-2 col-span-2 w-30"
             />
-            <div className="flex row-start-3 justify-around">
+            <div className="flex justify-start items-center">
+              <label className="text-gray-600 mr-4" htmlFor="writeAccess">
+                Write Access:
+              </label>
+              <Input
+                type="checkbox"
+                id="writeAccess"
+                name="writeAccess"
+                checked={writeAccess}
+                onChange={handleWriteAccessChange}
+              />
+            </div>
+            <div className="flex row-start-4 justify-around">
               <Button className="w-[50%]" onClick={closeAddUserDialog}>
                 Cancel
               </Button>
@@ -234,7 +311,7 @@ const NoteSettings = () => {
           </DialogContent>
         </Dialog>
       )}
-      
+
       <div className="flex flex-col mx-8 max-w-[80%] md:max-w-[60%]">
         <h1 className="mt-16 mb-4 font-medium text-xl md:text-3xl text-black text-center">
           {note?.isDirectory ? "Directory" : "Note"}&nbsp;Settings:
@@ -246,39 +323,51 @@ const NoteSettings = () => {
           </span>
         </div>
       </div>
-        
+
       {/* Access controls */}
-      <Card className="w-auto max-w-[25rem] h-auto grid place-items-center row-start-2 col-start-2 row-end-4 mx-8">
-        <CardHeader className="text-center">
-          <CardTitle>Access Controls</CardTitle>
-          <CardDescription>
-            <span>{`Control which users have access to this ${
-              note?.isDirectory
-                ? "directory, and thus its notes and subdirectories as well (unless manually overridden on a case by case basis)."
-                : "note."
-            }`}</span>
-          </CardDescription>
-          <Button onClick={handleAddUserPress} className="w-[50%]">
-            Add User
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <ScrollArea
-            className="col-start-1 col-end-2 h-80 w-48 rounded-md border overflow-hidden"
-            type="scroll">
-            <div className="p-4">
-              {allowedUsers.map((user) => (
-                <UserItem email={user} writeAccess={checkWriteAccess(user)} />
-              ))}
-            </div>
-          </ScrollArea>
-        </CardContent>
-        <CardFooter></CardFooter>
-      </Card>
+      {note?.isDirectory ? null : (
+        <Card className="w-auto max-w-[25rem] flex-grow flex flex-col justify-start items-center mx-8">
+          <CardHeader className="text-center self-start">
+            <CardTitle>Access Controls</CardTitle>
+            <CardDescription>
+              <span>{`Control which users have access to this ${
+                note?.isDirectory
+                  ? "directory, and thus its notes and subdirectories as well (unless manually overridden on a case by case basis)."
+                  : "note."
+              }`}</span>
+            </CardDescription>
+            <FiPlusCircle
+              size={30}
+              onClick={handleAddUserPress}
+              className="cursor-pointer">
+              Add User
+            </FiPlusCircle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea
+              className="h-fit min-h-8 max-h-24 w-48 rounded-md border overflow-y-auto p-2"
+              type="scroll">
+              {allowedUsers
+                .map((user, index) => (
+                  <UserItem
+                    key={index}
+                    email={user}
+                    writeAccess={checkWriteAccess(user)}
+                    toggleWriteMode={toggleWriteMode}
+                    removeUsersAccess={removeUsersAccess}
+                  />
+                ))
+                .filter((_, index) => index !== 0)}
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      )}
       <div className="flex-grow"></div>
       <div
         className={`${
-          note?.isDirectory ? "flex" : "grid grid-cols-2 grid-rows-2 w-auto place-items-center"
+          note?.isDirectory
+            ? "flex"
+            : "grid grid-cols-2 grid-rows-2 w-auto place-items-center"
         } col-start-2 row-start-4`}>
         <Button className="mr-2 w-[9rem]" onClick={routeHome}>
           <Home size={15} />
