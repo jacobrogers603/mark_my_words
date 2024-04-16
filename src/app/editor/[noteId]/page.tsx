@@ -44,6 +44,12 @@ export default function Editor() {
   useEffect(() => {
     const checkAccess = async () => {
       try {
+        if (noteId === "new") {
+          setHasWriteAccess(true);
+          setIsCreator(true);
+          return;
+        }
+
         const { data } = await axios.get(`/api/getAccessLists/${noteId}`);
         const hasAccess = data.writeAccessList.includes(session?.user?.email);
         setHasWriteAccess(hasAccess);
