@@ -228,7 +228,11 @@ const NoteSettings = () => {
   };
 
   const linkButtonClicked = () => {
-    navigator.clipboard.writeText(window.location.href);
+    const currentLink = window.location.href;
+    const noteLink = currentLink.replace("/settings", "");
+
+    navigator.clipboard.writeText(noteLink);
+    
     toast({
       description: "Share link copied to clipboard",
     });
