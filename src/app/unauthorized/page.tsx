@@ -3,7 +3,7 @@ import { PencilRuler } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
 
-const unauthorized = () => {
+const Unauthorized = () => {
   const router = useRouter();
 
   const routeHome = () => {
@@ -26,4 +26,4 @@ const unauthorized = () => {
   );
 };
 
-export default unauthorized;
+export default Unauthorized;
