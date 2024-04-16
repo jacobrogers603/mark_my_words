@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowDownFromLine, Home } from "lucide-react";
+import { ArrowDownFromLine, Home, Link } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -31,6 +31,14 @@ import { Switch } from "@radix-ui/react-switch";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "@/components/ui/input";
 import { set } from "react-hook-form";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useToast } from "@/components/ui/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 
 const NoteSettings = () => {
   const { data: session, status } = useSession({
@@ -50,6 +58,7 @@ const NoteSettings = () => {
   const [writeAccessUsers, setWriteAccessUsers] = useState<string[]>([]);
   const [userEmail, setUserEmail] = useState("");
   const [writeAccess, setWriteAccess] = useState(false);
+  const { toast } = useToast();
 
   const closeDialog = () => setIsDialogOpen(false);
   const closeAddUserDialog = () => setIsAddUserDialogOpen(false);
@@ -218,6 +227,13 @@ const NoteSettings = () => {
     }
   };
 
+  const linkButtonClicked = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast({
+      description: "Share link copied to clipboard",
+    });
+  };
+
   if (status === "loading") {
     return (
       <main className="w-full h-screen grid place-items-center">
@@ -229,161 +245,190 @@ const NoteSettings = () => {
   }
 
   return (
-    <main
-      className={`flex flex-col justify-start items-center w-full min-h-screen ${
-        note?.isDirectory ? "bg-amber-100" : "bg-blue-100"
-      }`}>
-      <NavBar />
-      {/* Delete confirmation dialog */}
-      {isDialogOpen && (
-        <Dialog open={isDialogOpen}>
-          <DialogContent className="w-auto grid place-items-center text-center max-w-[18rem] rounded-md">
-            <DialogHeader className="text-center max-w-full">
-              <DialogTitle className="text-center">{`Delete ${
-                note?.isDirectory ? "directory" : "note"
-              }?`}</DialogTitle>
-              <DialogDescription className="text-center">
-                {`A deleted ${
+    <>
+      <Toaster />
+      <main
+        className={`flex flex-col justify-start items-center w-full min-h-screen ${
+          note?.isDirectory ? "bg-amber-100" : "bg-blue-100"
+        }`}>
+        <NavBar />
+        {/* Delete confirmation dialog */}
+        {isDialogOpen && (
+          <Dialog open={isDialogOpen}>
+            <DialogContent className="w-auto grid place-items-center text-center max-w-[18rem] rounded-md">
+              <DialogHeader className="text-center max-w-full">
+                <DialogTitle className="text-center">{`Delete ${
                   note?.isDirectory ? "directory" : "note"
-                } cannot be recovered. Are you sure you want to delete it? ${
-                  note?.isDirectory
-                    ? "This will also delete its notes and subdirectories."
-                    : ""
-                }`}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex">
-              <Button className="w-[50%]" onClick={closeDialog}>
-                Return
-              </Button>
-              <Button
-                className="ml-2 w-[50%]"
-                variant="destructive"
-                onClick={handleDelete}>
-                Delete
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {/* Add user dialog */}
-      {isAddUserDialogOpen && (
-        <Dialog open={isAddUserDialogOpen}>
-          <DialogContent className="w-auto grid place-items-center text-center grid-rows-4 max-w-[18rem] rounded-md">
-            <DialogHeader className="text-center row-start-1">
-              <DialogTitle className="text-center">
-                Grant a User Access
-              </DialogTitle>
-              <DialogDescription className="text-center">
-                {`Enter the email of the user you want to grant access to this ${
-                  note?.isDirectory ? "directory." : "note."
-                }.`}
-              </DialogDescription>
-            </DialogHeader>
-            <Input
-              className="row-start-2 w-auto"
-              id="email"
-              placeholder="Email"
-              value={userEmail}
-              onChange={handleUserEmailChange}
-            />
-            <div className="flex justify-start items-center">
-              <label className="text-gray-600 mr-4" htmlFor="writeAccess">
-                Write Access:
-              </label>
-              <Input
-                type="checkbox"
-                id="writeAccess"
-                name="writeAccess"
-                checked={writeAccess}
-                onChange={handleWriteAccessChange}
-              />
-            </div>
-            <div className="flex row-start-4 justify-around">
-              <Button className="w-[50%]" onClick={closeAddUserDialog}>
-                Cancel
-              </Button>
-              <Button className="ml-2 w-[50%]" onClick={addUser}>
-                Add User
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
-
-      <div className="flex flex-col mx-8 max-w-[80%] md:max-w-[60%]">
-        <h1 className="mt-16 mb-4 font-medium text-xl md:text-3xl text-black text-center">
-          {note?.isDirectory ? "Directory" : "Note"}&nbsp;Settings:
-        </h1>
-
-        <div className="mb-4 overflow-x-auto">
-          <span className="text-gray-600 italic text-xl md:text-3xl whitespace-nowrap text-start">
-            {note?.title}
-          </span>
-        </div>
-      </div>
-
-      {/* Access controls */}
-      {note?.isDirectory ? null : (
-        <Card className="w-auto max-w-[25rem] flex-grow flex flex-col justify-start items-center mx-8">
-          <CardHeader className="text-center self-start">
-            <CardTitle>Access Controls</CardTitle>
-            <CardDescription>
-              <span>{`Control which users have access to this ${
-                note?.isDirectory
-                  ? "directory, and thus its notes and subdirectories as well (unless manually overridden on a case by case basis)."
-                  : "note."
-              }`}</span>
-            </CardDescription>
-            <FiPlusCircle
-              size={30}
-              onClick={handleAddUserPress}
-              className="cursor-pointer">
-              Add User
-            </FiPlusCircle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea
-              className="h-fit min-h-8 max-h-24 w-48 rounded-md border overflow-y-auto p-2"
-              type="scroll">
-              {allowedUsers
-                .map((user, index) => (
-                  <UserItem
-                    key={index}
-                    email={user}
-                    writeAccess={checkWriteAccess(user)}
-                    toggleWriteMode={toggleWriteMode}
-                    removeUsersAccess={removeUsersAccess}
-                  />
-                ))
-                .filter((_, index) => index !== 0)}
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      )}
-      <div className="flex-grow"></div>
-      <div
-        className={`${
-          note?.isDirectory
-            ? "flex"
-            : "grid grid-cols-2 grid-rows-2 w-auto place-items-center"
-        } col-start-2 row-start-4`}>
-        <Button className="mr-2 w-[9rem]" onClick={routeHome}>
-          <Home size={15} />
-          <span className="ml-2">Home</span>
-        </Button>
-        {note?.isDirectory ? null : (
-          <Button className="w-[9rem]" onClick={routeEditor}>
-            <FaEdit size={15} />
-            <span className="ml-2">Edit note</span>
-          </Button>
+                }?`}</DialogTitle>
+                <DialogDescription className="text-center">
+                  {`A deleted ${
+                    note?.isDirectory ? "directory" : "note"
+                  } cannot be recovered. Are you sure you want to delete it? ${
+                    note?.isDirectory
+                      ? "This will also delete its notes and subdirectories."
+                      : ""
+                  }`}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex">
+                <Button className="w-[50%]" onClick={closeDialog}>
+                  Return
+                </Button>
+                <Button
+                  className="ml-2 w-[50%]"
+                  variant="destructive"
+                  onClick={handleDelete}>
+                  Delete
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         )}
-        <Button className="ml-2 w-[12rem]" onClick={handleDownloadHtmlPress}>
-          <ArrowDownFromLine size={15} />
-          <span className="ml-2">Download HTML</span>
-        </Button>
+
+        {/* Add user dialog */}
+        {isAddUserDialogOpen && (
+          <Dialog open={isAddUserDialogOpen}>
+            <DialogContent className="w-auto grid place-items-center text-center grid-rows-4 max-w-[18rem] rounded-md">
+              <DialogHeader className="text-center row-start-1">
+                <DialogTitle className="text-center">
+                  Grant a User Access
+                </DialogTitle>
+                <DialogDescription className="text-center">
+                  {`Enter the email of the user you want to grant access to this ${
+                    note?.isDirectory ? "directory." : "note."
+                  }.`}
+                </DialogDescription>
+              </DialogHeader>
+              <Input
+                className="row-start-2 w-auto"
+                id="email"
+                placeholder="Email"
+                value={userEmail}
+                onChange={handleUserEmailChange}
+              />
+              <div className="flex justify-start items-center">
+                <label className="text-gray-600 mr-4" htmlFor="writeAccess">
+                  Write Access:
+                </label>
+                <Input
+                  type="checkbox"
+                  id="writeAccess"
+                  name="writeAccess"
+                  checked={writeAccess}
+                  onChange={handleWriteAccessChange}
+                />
+              </div>
+              <div className="flex row-start-4 justify-around">
+                <Button className="w-[50%]" onClick={closeAddUserDialog}>
+                  Cancel
+                </Button>
+                <Button className="ml-2 w-[50%]" onClick={addUser}>
+                  Add User
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+
+        <div className="flex flex-col mx-8 max-w-[80%] md:max-w-[60%]">
+          <h1 className="mt-16 mb-4 font-medium text-xl md:text-3xl text-black text-center">
+            {note?.isDirectory ? "Directory" : "Note"}&nbsp;Settings:
+          </h1>
+
+          <div className="mb-4 overflow-x-auto">
+            <span className="text-gray-600 italic text-xl md:text-3xl whitespace-nowrap text-start">
+              {note?.title}
+            </span>
+          </div>
+        </div>
+
+        {/* Access controls */}
         {note?.isDirectory ? null : (
+          <Card className="w-auto max-w-[25rem] flex-grow flex flex-col justify-start items-center mx-8">
+            <CardHeader className="text-center self-start">
+              <CardTitle>Access Controls</CardTitle>
+              <CardDescription>
+                <span>{`Control which users have access to this ${
+                  note?.isDirectory
+                    ? "directory, and thus its notes and subdirectories as well (unless manually overridden on a case by case basis)."
+                    : "note."
+                }`}</span>
+              </CardDescription>
+              <div className="flex">
+                <FiPlusCircle
+                  size={30}
+                  onClick={handleAddUserPress}
+                  className="cursor-pointer">
+                  Add User
+                </FiPlusCircle>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Link
+                        className="ml-4"
+                        onClick={linkButtonClicked}
+                        size={25}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Copy share link</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea
+                className="h-fit min-h-8 max-h-24 w-48 rounded-md border overflow-y-auto p-2"
+                type="scroll">
+                {allowedUsers
+                  .map((user, index) => (
+                    <UserItem
+                      key={index}
+                      email={user}
+                      writeAccess={checkWriteAccess(user)}
+                      toggleWriteMode={toggleWriteMode}
+                      removeUsersAccess={removeUsersAccess}
+                    />
+                  ))
+                  .filter((_, index) => index !== 0)}
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        )}
+        <div className="flex-grow"></div>
+        <div
+          className={`${
+            note?.isDirectory
+              ? "flex"
+              : "grid grid-cols-2 grid-rows-2 w-auto place-items-center"
+          } col-start-2 row-start-4`}>
+          <Button className="mr-2 w-[9rem]" onClick={routeHome}>
+            <Home size={15} />
+            <span className="ml-2">Home</span>
+          </Button>
+          {note?.isDirectory ? null : (
+            <Button className="w-[9rem]" onClick={routeEditor}>
+              <FaEdit size={15} />
+              <span className="ml-2">Edit note</span>
+            </Button>
+          )}
+          <Button className="ml-2 w-[12rem]" onClick={handleDownloadHtmlPress}>
+            <ArrowDownFromLine size={15} />
+            <span className="ml-2">Download HTML</span>
+          </Button>
+          {note?.isDirectory ? null : (
+            <Button
+              className="mb-8 mt-8 w-[9rem]"
+              variant={"destructive"}
+              onClick={deleteButtonPressed}>
+              <span className="ml-2">
+                Delete {note?.isDirectory ? "directory" : "note"}
+              </span>
+            </Button>
+          )}
+        </div>
+        {note?.isDirectory ? (
           <Button
             className="mb-8 mt-8 w-[9rem]"
             variant={"destructive"}
@@ -392,19 +437,9 @@ const NoteSettings = () => {
               Delete {note?.isDirectory ? "directory" : "note"}
             </span>
           </Button>
-        )}
-      </div>
-      {note?.isDirectory ? (
-        <Button
-          className="mb-8 mt-8 w-[9rem]"
-          variant={"destructive"}
-          onClick={deleteButtonPressed}>
-          <span className="ml-2">
-            Delete {note?.isDirectory ? "directory" : "note"}
-          </span>
-        </Button>
-      ) : null}
-    </main>
+        ) : null}
+      </main>
+    </>
   );
 };
 
