@@ -19,7 +19,7 @@ import useNote from "@/hooks/useNote";
 import useSWR from "swr";
 import fetcher from "@/lib/fetcher";
 import { Button } from "@/components/ui/button";
-import { Home, X } from "lucide-react";
+import { Home, PencilRuler, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import NavBar from "@/components/NavBar";
@@ -37,6 +37,38 @@ export default function Editor() {
   });
 
   const { noteId } = useParams();
+  const router = useRouter();
+  const [hasWriteAccess, setHasWriteAccess] = useState(false);
+  const [isCreator, setIsCreator] = useState(false);
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const { data } = await axios.get(`/api/getAccessLists/${noteId}`);
+        const hasAccess = data.writeAccessList.includes(session?.user?.email);
+        setHasWriteAccess(hasAccess);
+        if (!hasAccess) {
+          router.push("/unauthorized");
+        }
+
+        const { data: noteUserId } = await axios.get(
+          `/api/getNoteUserId/${noteId}`
+        );
+        const currentUser = await axios.get("/api/current");
+
+        const noteCreator = noteUserId === currentUser.data?.id;
+
+        setIsCreator(noteCreator);
+      } catch (error) {
+        console.error("Failed to fetch access list", error);
+      }
+    };
+
+    if (noteId && session) {
+      checkAccess();
+    }
+  }, [noteId, session]);
+
   const { data: note, mutate } = useSWR(`/api/getNote/${noteId}`, fetcher);
   const [noteText, setNoteText] = useState("");
   const [title, setTitle] = useState("");
@@ -57,8 +89,6 @@ export default function Editor() {
       setNoteText(note.content);
     }
   }, [noteId, note]);
-
-  const router = useRouter();
 
   const routeHome = () => {
     setHomePressed(true);
@@ -166,9 +196,16 @@ export default function Editor() {
     setIsTemplatesDialogOpen(true);
   };
 
-  if (status === "loading") {
+  if (status === "loading" || !hasWriteAccess) {
     return (
-      <main className="w-full h-screen grid place-items-center">
+      <main className="w-full h-screen grid place-items-center pt-14">
+        <nav className="w-full h-14 absolute top-0 bg-amber-400 border-solid border-black border-b-2 grid grid-cols-8 place-items-center">
+          <PencilRuler
+            onClick={routeHome}
+            size={30}
+            className="col-start-1 hover:cursor-pointer"
+          />
+        </nav>
         <div className="flex justify-center items-center w-auto h-10 p-4 border-solid rounded-md border-black border-2 text-black font-semibold bg-amber-400">
           Loading...
         </div>
@@ -279,7 +316,12 @@ export default function Editor() {
             </div>
           ) : null}
           {noteId !== "new" && lgMode ? (
-            <Button className="w-fit mr-6" onClick={routeSettings}>
+            <Button
+              disabled={!isCreator}
+              className={`w-fit mr-6 ${
+                isCreator ? "cursor-pointer" : "cursor-not-allowed"
+              }`}
+              onClick={routeSettings}>
               <IoSettingsSharp />
               <span className="ml-2">Settings</span>
             </Button>
@@ -311,6 +353,7 @@ export default function Editor() {
               handleTextareaChange={handleTextareaChange}
               titleRef={titleRef}
               openTemplatesDialog={openTemplatesDialog}
+              isCreator={isCreator}
             />
           </div>
         </nav>

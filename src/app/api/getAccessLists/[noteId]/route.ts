@@ -1,11 +1,16 @@
 import prismadb from "@/lib/prismadb";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import authOptions from "../../../../auth";
+import authOptions from "../../../../../auth";
+export const dynamic = "force-dynamic";
 
-export const GET = async (req: Request) => {
+export async function GET(
+  req: Request,
+  { params }: { params: { noteId: string } }
+) {
   try {
-    const { noteId } = await req.json();
+    console.log("getAccessLists", params.noteId);
+    const noteId = params.noteId;
 
     if (!noteId) {
       return NextResponse.json({ error: "Invalid input, missing information" });
@@ -44,4 +49,4 @@ export const GET = async (req: Request) => {
     console.log(error);
     return NextResponse.json(error);
   }
-};
+}

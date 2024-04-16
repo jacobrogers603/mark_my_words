@@ -28,7 +28,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { ArrowDownFromLine, Home, X } from "lucide-react";
+import { ArrowDownFromLine, Home, PencilRuler, X } from "lucide-react";
 import TemplateItem from "@/components/TemplateItem";
 import { set } from "react-hook-form";
 
@@ -122,7 +122,7 @@ const UserSettings = () => {
   const handleDownloadHtmlPress = async () => {
     try {
       const rootNote = await axios.get(`/api/getNote/root`);
-      if(!rootNote){
+      if (!rootNote) {
         console.error("No root note found");
         return;
       }
@@ -156,7 +156,14 @@ const UserSettings = () => {
 
   if (status === "loading") {
     return (
-      <main className="w-full h-screen grid place-items-center">
+      <main className="w-full h-screen grid place-items-center pt-14">
+        <nav className="w-full h-14 absolute top-0 bg-amber-400 border-solid border-black border-b-2 grid grid-cols-8 place-items-center">
+          <PencilRuler
+            onClick={routeHome}
+            size={30}
+            className="col-start-1 hover:cursor-pointer"
+          />
+        </nav>
         <div className="flex justify-center items-center w-auto h-10 p-4 border-solid rounded-md border-black border-2 text-black font-semibold bg-amber-400">
           Loading...
         </div>

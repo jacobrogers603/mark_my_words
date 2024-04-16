@@ -41,6 +41,13 @@ export const POST = async (req: Request) => {
           return NextResponse.json({ error: "Note not found" });
         }
 
+        if (
+          note.readAccessList.includes(allowedEmail) ||
+          note.writeAccessList.includes(allowedEmail)
+        ) {
+          return NextResponse.json({ error: "User already has access" });
+        }
+
         const updatedNote = await prismadb.note.update({
           where: { id: noteId },
           data: {
