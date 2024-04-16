@@ -20,6 +20,7 @@ type SideDrawerProps = {
   handleTextareaChange: () => void;
   titleRef: React.RefObject<HTMLInputElement>;
   openTemplatesDialog: () => void;
+  isCreator: boolean;
 };
 
 const SideDrawer = ({
@@ -35,6 +36,7 @@ const SideDrawer = ({
   handleTextareaChange,
   titleRef,
   openTemplatesDialog,
+  isCreator,
 }: SideDrawerProps) => {
   return (
     <Drawer direction="right">
@@ -69,14 +71,19 @@ const SideDrawer = ({
           ) : null}
           {noteId !== "new" && !lgMode ? (
             <Button
-              className="w-fit justify-self-start"
-              onClick={routeSettings}>
+              className={`w-fit justify-self-start ${
+                isCreator ? "cursor-pointer" : "cursor-not-allowed"
+              }`}
+              onClick={routeSettings}
+              disabled={!isCreator}>
               <IoSettingsSharp />
               <span className="ml-2">Note settings</span>
             </Button>
           ) : null}
           {!lgMode ? (
-            <Button onClick={openTemplatesDialog} className="w-fit justify-self-end">
+            <Button
+              onClick={openTemplatesDialog}
+              className="w-fit justify-self-end">
               Templates...
             </Button>
           ) : null}

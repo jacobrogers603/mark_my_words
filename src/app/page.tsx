@@ -6,6 +6,7 @@ import axios from "axios";
 import DirectoryItems from "@/components/DirectoryItems";
 import NavBar from "@/components/NavBar";
 import { FiPlusCircle } from "react-icons/fi";
+import { PencilRuler } from "lucide-react";
 
 export default function Home() {
   const router = useRouter();
@@ -62,9 +63,20 @@ export default function Home() {
     }
   };
 
+  const routeHome = () => {
+    router.push("/");
+  };
+
   if (status === "loading") {
     return (
-      <main className="w-full h-screen grid place-items-center">
+      <main className="w-full h-screen grid place-items-center pt-14">
+        <nav className="w-full h-14 absolute top-0 bg-amber-400 border-solid border-black border-b-2 grid grid-cols-8 place-items-center">
+          <PencilRuler
+            onClick={routeHome}
+            size={30}
+            className="col-start-1 hover:cursor-pointer"
+          />
+        </nav>
         <div className="flex justify-center items-center w-auto h-10 p-4 border-solid rounded-md border-black border-2 text-black font-semibold bg-amber-400">
           Loading...
         </div>
@@ -83,4 +95,3 @@ export default function Home() {
     </main>
   );
 }
-

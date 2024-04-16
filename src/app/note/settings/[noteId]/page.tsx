@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowDownFromLine, Home, Link } from "lucide-react";
+import { ArrowDownFromLine, Home, Link, PencilRuler } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -51,6 +51,37 @@ const NoteSettings = () => {
 
   const router = useRouter();
   const { noteId } = useParams();
+
+  const [isCreator, setIsCreator] = useState(false);
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const { data: noteUserId } = await axios.get(
+          `/api/getNoteUserId/${noteId}`
+        );
+        const currentUser = await axios.get("/api/current");
+
+        const noteCreator = noteUserId === currentUser.data?.id;
+
+        setIsCreator(noteCreator);
+
+        if (!noteCreator) {
+          router.push("/unauthorized");
+        }
+      } catch (error) {
+        console.error(
+          "Failed to check if current user is creator of note",
+          error
+        );
+      }
+    };
+
+    if (noteId && session) {
+      checkAccess();
+    }
+  }, [noteId, session]);
+
   const { data: note } = useNote(noteId as string);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
@@ -232,15 +263,22 @@ const NoteSettings = () => {
     const noteLink = currentLink.replace("/settings", "");
 
     navigator.clipboard.writeText(noteLink);
-    
+
     toast({
       description: "Share link copied to clipboard",
     });
   };
 
-  if (status === "loading") {
+  if (status === "loading" || !isCreator) {
     return (
-      <main className="w-full h-screen grid place-items-center">
+      <main className="w-full h-screen grid place-items-center pt-14">
+        <nav className="w-full h-14 absolute top-0 bg-amber-400 border-solid border-black border-b-2 grid grid-cols-8 place-items-center">
+          <PencilRuler
+            onClick={routeHome}
+            size={30}
+            className="col-start-1 hover:cursor-pointer"
+          />
+        </nav>
         <div className="flex justify-center items-center w-auto h-10 p-4 border-solid rounded-md border-black border-2 text-black font-semibold bg-amber-400">
           Loading...
         </div>
