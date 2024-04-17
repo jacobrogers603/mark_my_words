@@ -82,7 +82,7 @@ const NavBar: React.FC<NavBarProps> = ({ editor, routeHome }) => {
     if (currentUser) {
       setPrettyUsername(prettyUpUsername());
     }
-  }, [currentUser]);
+  }, [currentUser, prettyUpUsername]);
 
   return (
     <nav className="w-full h-14 absolute top-0 bg-amber-400 border-solid border-black border-b-2 grid grid-cols-8 place-items-center">

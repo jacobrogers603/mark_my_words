@@ -80,7 +80,7 @@ const NoteSettings = () => {
     if (noteId && session) {
       checkAccess();
     }
-  }, [noteId, session]);
+  }, [noteId, session, router]);
 
   const { data: note } = useNote(noteId as string);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -217,7 +217,7 @@ const NoteSettings = () => {
     if (noteId) {
       fetchAllowedUsers();
     }
-  }, [noteId]);
+  }, [noteId, fetchAllowedUsers]);
 
   const toggleWriteMode = async (email: string, writeAccess: boolean) => {
     if (writeAccess) {

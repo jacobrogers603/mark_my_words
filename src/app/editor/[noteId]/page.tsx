@@ -73,7 +73,7 @@ export default function Editor() {
     if (noteId && session) {
       checkAccess();
     }
-  }, [noteId, session]);
+  }, [noteId, session, router]);
 
   const { data: note, mutate } = useSWR(`/api/getNote/${noteId}`, fetcher);
   const [noteText, setNoteText] = useState("");

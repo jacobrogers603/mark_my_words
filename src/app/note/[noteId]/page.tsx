@@ -58,7 +58,7 @@ const Note = () => {
     if (noteId && session) {
       checkAccess();
     }
-  }, [noteId, session]);
+  }, [noteId, session, router]);
 
   const routeHome = () => {
     router.push("/");
