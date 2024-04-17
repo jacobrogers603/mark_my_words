@@ -1,7 +1,8 @@
 import bcrypt from "bcrypt";
 import { NextResponse } from "next/server";
 import prismadb from "@/lib/prismadb";
-export const dynamic = 'force-dynamic';
+import { generateUsername } from "@/lib/animalsAndAdjectives";
+export const dynamic = "force-dynamic";
 
 export const POST = async (req: Request) => {
   try {
@@ -23,9 +24,15 @@ export const POST = async (req: Request) => {
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
+    const username = await generateUsername();
+    if (!username) {
+      return NextResponse.json({ error: "Username generation failed" });
+    }
+
     const user = await prismadb.user.create({
       data: {
         email,
+        username,
         hashedPassword,
       },
     });
@@ -49,7 +56,7 @@ export const POST = async (req: Request) => {
         },
         currentPath: {
           push: rootDir.id,
-        }
+        },
       },
     });
 
