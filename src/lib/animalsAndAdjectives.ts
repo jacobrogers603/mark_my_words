@@ -322,9 +322,9 @@ export const generateUsername = async () => {
   let isUnique = false;
 
   while (!isUnique) {
-    const adj1 = adjectives[Math.floor(Math.random() * adjectives.length)];
-    const adj2 = adjectives[Math.floor(Math.random() * adjectives.length)];
-    const animal = animals[Math.floor(Math.random() * animals.length)];
+    const adj1 = adjectives[Math.floor(Math.random() * adjectives.length)].toLowerCase();
+    const adj2 = adjectives[Math.floor(Math.random() * adjectives.length)].toLowerCase();
+    const animal = animals[Math.floor(Math.random() * animals.length)].toLowerCase();
     username = `${adj1}_${adj2}_${animal}`;
 
     const existingUsername = await prismadb.user.findUnique({
