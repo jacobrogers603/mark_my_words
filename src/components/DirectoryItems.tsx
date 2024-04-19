@@ -133,7 +133,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
 
   const [directoryTitle, setDirectoryTitle] = useState("");
   const createDirectory = useCallback(async () => {
-    try {      
+    try {
       if (isPublic) {
         if (!currentPath) {
           console.log("current path is null, cannot make new note.");
@@ -368,16 +368,18 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
             </Popover>
           </div>
         ) : null}
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-              <Link className="ml-4" onClick={linkButtonClicked} size={25} />
-            </TooltipTrigger>
-            <TooltipContent className="bg-gray-100 p-[1px] border-solid border-2 border-gray-400 rounded-md">
-              <p>Copy share link</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        {isPublic ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Link className="ml-4" onClick={linkButtonClicked} size={25} />
+              </TooltipTrigger>
+              <TooltipContent className="bg-gray-100 p-[1px] border-solid border-2 border-gray-400 rounded-md">
+                <p>Copy share link</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : null}
         <div className="flex-grow"></div>
         {status === "authenticated" ? (
           <ArrowUpToLine

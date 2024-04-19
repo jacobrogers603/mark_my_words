@@ -8,9 +8,6 @@ export async function GET(
   req: Request,
   { params }: { params: { noteId: string } }
 ) {
-  console.log("Request URL:", req.url); // Log the URL to see what's being requested
-  console.log("Params received:", params); // Log the parameters to see what's being passed
-
   const noteId = params.noteId;
 
   if (!noteId) {

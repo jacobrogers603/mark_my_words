@@ -1,54 +1,44 @@
 # Mark My Words
 
-An app that ~~will~~ **host** *notes* for the user; They will have a dashboard that contains their tree of notes; they can edit notes in an in-browser editor, or upload notes; notes may contain text or images; all notes should be written in markdown; when they publish a note it will be converted to HTML and published to their profile page; if a note (or dir) is marked as public, another user can search for that user's profile and see the note (or dir); editing privileges can be given to different users; if a note (or dir) is marked as private only the creator can see the note (or dir) or anyone else they list 
+This website provides an online profile for storing notes. They are meant to be written in markdown format. Once they are saved they can be viewed in rendered markdown, which is easy on the eye. The website is made like a file explorer, where you can make new files and folders, and sub folders and so on.
 
-## Tech stack
+## Current Major Features
 
-- Next Js 14
-- Prismadb
-- TailwindCSS
+### Templates
+
+A template is a skeleton for your notes you can make. This would be useful if there is a format you use often when making a note and you don't want to retype it every time. In user settings there is a templates area. There you can define new templates and when you are editing a note you can select from the drop down menu to apply the template to your note.
+
+### Down and Uploading
+
+All the notes on this site are able to be downloaded in either markdown or HTML format at any time. Notes written in markdown can also be uploaded. You can either download one file or entire directories as a zip file.
+
+### Sharing Notes & Controlling Access
+
+You can go to the settings page for a note and decide which other accounts can view, or edit, the note. A share link is available to be generated.
+
+### Public Directory
+
+A directory each user has where anything they put there will be publicly visible to all people with the link to their profile. A username is generated for them and a share link as well on their profile page page.
+
+## In Development Features
+
+### Sharable directories
+
+A place where you can see the list of directories you have shared with (an)other user(s). This would be a page similar to the main page of the application where you see a list of files, but there would only be a list of directories all of which would be shared to selected people.
+
+### Encryption
+
+All notes and templates will be made encrypted so no one but the you and whomever you assign access to can see or edit a note. Currently passwords are already hashed, and thus secure.
+
+### Images and Videos
+
+The ability to embed images and videos in your notes will soon be added with the normal format in markdown for doing that.
+
+## Technologies Being Used
+
+- React
+- Next-JS 14
+- Typescript
 - MongoDB
-- TypeScript
-- Next-auth
-- Vercel
+- NextAuth
 - Netlify
-
-## Ideas for pages
-
-### auth - working
-
-An authentication page that allows creation of an account or logging in.
-
-### note tree - working
-
-A tree of all the notes a user has. Each note (or dir) will have a row that has buttons that allow changing the settings for it ie access settings, editing option, delete option, ~~drag and move option~~; only one layer will be shown at a time; at the top of the page will be a button to go to the user's profile page
-
-### profile - todo
-
-Settings for the profile of the user including: profile avatar, email address, change password, delete account, make notes public or private by default, etc; configure note templates
-
-https://ui.shadcn.com/docs/components/hover-card use for profile
-
-### navbar - todo
-
-have search: will cover the user's own notes (possible options for keyword vs file name vs user); have a button to go to search profiles page
-
-### search results - todo
-
-display the search results for a search, whether it be a search for users, or a search for a note or dir, or a search for a keyword; maybe copy github a bit
-
-### note editor - todo
-
-A space to write the note; buttons in the taskbar that will insert formats for md; templates option dropdown; save/publish button; rewind button to see previous versions?; edit access button 
-
-todo:
-
-- add right clicking to notes: https://ui.shadcn.com/docs/components/context-menu
-- fix server request inefficiencies: we don't want to fetch the content of the notes on the home page
-
-#### access controls plan
-
-- make a public dir for every user that is non-deletable: will be the dir that anyone can lookup and see, even without logging in
-- provide a share link to individual notes to give to other users whom you have granted access to, they will be able to view the note/id url for that note when logged in or access the note/editor/id url and make changes to it depending on write access
-- search function to look up users, user/id url, will display the files in that user's public dir
-- shared directory? Seems advanced, hold off for now
