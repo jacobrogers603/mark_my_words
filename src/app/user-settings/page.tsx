@@ -30,6 +30,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { ArrowDownFromLine, Home, PencilRuler, X } from "lucide-react";
 import TemplateItem from "@/components/TemplateItem";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+
 import { set } from "react-hook-form";
 
 const UserSettings = () => {
@@ -54,13 +61,14 @@ const UserSettings = () => {
   };
 
   const saveTemplate = async () => {
-    console.log("saving template");
     await axios.post("/api/saveTemplate", {
       title: templateTitle,
       content: templateContent,
     });
     setIsDialogOpen(false);
     updateTemplates();
+    setTemplateTitle("");
+    setTemplateContent("");
   };
 
   const handleTemplateTitleChange = (
@@ -154,6 +162,44 @@ const UserSettings = () => {
     }
   };
 
+  const handleImageUpload = async (
+    file: File,
+    userId: string
+  ): Promise<string> => {
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        fileType: file.type,
+        fileName: file.name,
+        userId,
+      }),
+    });
+
+    const { signedRequest, url } = (await res.json()) as {
+      signedRequest: string;
+      url: string;
+    };
+
+    // Upload the file to the S3 bucket using the pre-signed URL
+    const result = await fetch(signedRequest, {
+      method: "PUT",
+      headers: {
+        "Content-Type": file.type,
+      },
+      body: file,
+    });
+
+    if (result.ok) {
+      console.log("Uploaded successfully:", url);
+      return url; // This URL can be used in markdown
+    } else {
+      throw new Error("Failed to upload image.");
+    }
+  };
+
   if (status === "loading") {
     return (
       <main className="w-full h-screen grid place-items-center pt-14">
@@ -202,64 +248,82 @@ const UserSettings = () => {
           </DialogContent>
         </Dialog>
       )}
-      <Card className="w-[80%] md:w-auto h-auto mt-16 flex flex-col md:grid place-items-center grid-cols-2 grid-rows-5 border-solid border-gray-500 rounded-md border-2 mb-6 max-w-[330px] md:max-w-full md:min-w-[470px]">
-        <CardHeader className="text-center col-span-2 md:self-start">
-          <CardTitle className="font-extrabold">Templates</CardTitle>
-          <CardDescription>
-            Create your own predefined templates for your notes
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col md:flex-row items-center justify-evenly col-start-1 col-end-3 row-start-2 row-end-6 w-full">
-          <div className="col-start-1 col-end-2 h-[24.75rem]">
-            <h4 className="font-extrabold mb-[0.3rem] text-center">
-              Current Templates
-            </h4>
-            <ScrollArea
-              className="w-48 rounded-md border overflow-auto h-[20rem]"
-              type="scroll">
-              <div className="p-4">
-                {templates.map((template) => (
-                  <TemplateItem
-                    key={template.id}
-                    template={template}
-                    onDelete={deleteTemplate}
-                  />
-                ))}
-              </div>
-            </ScrollArea>
-          </div>
-          <div className="grid gap-1.5 row-start-3 m-4 col-start-2 col-end-3 min-w h-[24.75rem]">
-            <Label className="font-extrabold text-center" htmlFor="template">
-              Define a new template
-            </Label>
-            <Textarea
-              className="whitespace-pre-wrap min-h-[20rem] resize-none h-[20rem]"
-              placeholder={`# Lorem Ipsum
-        
-        Ut dolorum, repudiandae aut excepturi, neque consectetur quidem veritatis saepe fugit animi magni alias odit ipsa asperiores aliquam.
-        
-        ##  Dolorum quia
-        
-        - Unus
-        - duo
-        - tribus
-        - quattuor
-        `}
-              id="template"
-              value={templateContent}
-              onChange={handleTemplateContentChange}
-            />
-            <Button
-              variant={templateContent === "" ? "secondary" : "default"}
-              disabled={templateContent === "" ? true : false}
-              onClick={handleSaveTemplateClick}>
-              Save template
-            </Button>
-          </div>
-        </CardContent>
-        <CardFooter></CardFooter>
-      </Card>
 
+      <Accordion
+        className="mt-16 w-full md:w-[60%] p-4"
+        type="single"
+        collapsible>
+        <AccordionItem value="item-1">
+          <AccordionTrigger>Templates</AccordionTrigger>
+          <AccordionContent className="flex flex-col w-full items-center text-center p-2">
+            {/* templates card */}
+            <h2 className="font-extrabold text-xl mb-2">Templates</h2>
+            <p className="text-gray-600 mb-4">
+              Create your own predefined templates for your notes
+            </p>
+            <div className="flex flex-col md:flex-row w-full items-start justify-center">
+              <div className="flex flex-col w-full md:w-[40%]  md:mr-[6.67%]">
+                <h4 className="font-extrabold mb-[0.5rem]">Current Templates</h4>
+                <ScrollArea
+                  className="w-full rounded-md border overflow-auto h-fit min-h-[4rem] max-h-[10rem]"
+                  type="scroll">
+                  <div className="p-4">
+                    {templates.map((template) => (
+                      <TemplateItem
+                        key={template.id}
+                        template={template}
+                        onDelete={deleteTemplate}
+                      />
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+
+              <div className="flex flex-col w-full md:w-[40%] h-fit mt-6 md:mt-0">
+                <Label
+                  className="font-extrabold text-center"
+                  htmlFor="template">
+                  Define a new template
+                </Label>
+                <Textarea
+                  className="whitespace-pre-wrap resize-y max-h-[15rem] h-[10rem] mt-2"
+                  placeholder={`# Lorem Ipsum
+        
+Ut dolorum, repudiandae ![nomen](connecto).
+        
+##  Dolorum quia
+        
+- Unus
+- duo
+- tribus
+- quattuor
+`}
+                  id="template"
+                  value={templateContent}
+                  onChange={handleTemplateContentChange}
+                />
+                <Button
+                  variant={templateContent === "" ? "secondary" : "default"}
+                  disabled={templateContent === "" ? true : false}
+                  onClick={handleSaveTemplateClick}
+                  className="mt-2">
+                  Save template
+                </Button>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="item-2">
+          <AccordionTrigger>Media Management</AccordionTrigger>
+          <AccordionContent>
+            {/* media management */}
+            media...
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+
+      {/* bottom buttons */}
+      <div className="flex-grow"></div>
       <div className="flex">
         <Button className="mr-2 w-[9rem]" onClick={routeHome}>
           <Home size={15} />

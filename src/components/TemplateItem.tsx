@@ -17,8 +17,8 @@ const TemplateItem: React.FC<TemplateItemProps> = ({ template, onDelete }) => {
 
   return (
     <>
-      <div className="flex relative w-full">
-        <div className="text-sm overflow-auto w-[70%] mr-4">{template.title}</div>
+      <div className="flex relative w-full align-start justify-items-start">
+        <p className="text-sm overflow-auto w-full text-start mr-4">{template.title}</p>
         <div className="w-[10%] cursor-pointer">
           <X onClick={handleXClick} size={20} className="absolute right-2" />
         </div>
