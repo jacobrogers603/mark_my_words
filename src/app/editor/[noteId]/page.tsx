@@ -44,7 +44,7 @@ export default function Editor() {
   useEffect(() => {
     const checkAccess = async () => {
       try {
-        if (noteId === "new") {
+        if (noteId === "new" || noteId.includes("newPublic")) {
           setHasWriteAccess(true);
           setIsCreator(true);
           return;
@@ -90,7 +90,7 @@ export default function Editor() {
   const [isTemplatesDialogOpen, setIsTemplatesDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (noteId !== "new" && note) {
+    if (noteId !== "new" && !noteId.includes("newPublic") && note) {
       setTitle(note.title);
       setNoteText(note.content);
     }
@@ -103,7 +103,7 @@ export default function Editor() {
       return;
     }
 
-    router.push("/");
+    router.back();
   };
 
   const routeSettings = () => {
@@ -133,6 +133,21 @@ export default function Editor() {
           title: currentTitle,
           content: currentText,
           isDirectory: false,
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    } else if (noteId.includes("newPublic")) {
+      try {
+        let prefix = "newPublic";
+        let parentId = noteId.slice(prefix.length);
+
+        const newlySavedNote = await axios.post("/api/saveNote", {
+          title: currentTitle,
+          content: currentText,
+          isDirectory: false,
+          isPublic: true,
+          parentId: parentId,
         });
       } catch (error) {
         console.log(error);
@@ -220,161 +235,163 @@ export default function Editor() {
   }
 
   return (
-    <main className="w-full h-screen flex flex-col pt-[5.5rem] bg-blue-100">
-      <NavBar editor={true} routeHome={routeHome} />
-      <div className="">
-        {/* No Title Dialog */}
-        {isDialogOpen && (
-          <Dialog open={isDialogOpen}>
-            <DialogContent className="w-auto min-w-[18.75rem] grid place-items-center rounded-md">
-              <DialogHeader>
-                <DialogTitle>Missing Information</DialogTitle>
-                <DialogDescription>
-                  Your note needs a title before you can save it.
-                </DialogDescription>
-              </DialogHeader>
-              {/* Close button or similar action */}
-              <Button className="w-[50%]" onClick={closeDialog}>
-                Close
-              </Button>
-            </DialogContent>
-          </Dialog>
-        )}
-        {/* unsaved dialog */}
-        {isUnsavedDialogOpen && (
-          <Dialog open={isUnsavedDialogOpen}>
-            <DialogContent className="w-auto grid place-items-center rounded-md">
-              <DialogHeader>
-                <DialogTitle>Unsaved Changes!</DialogTitle>
-                <DialogDescription>
-                  Warning, your note has unsaved changes.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex">
-                <Button className="mr-6" onClick={handleReturnPress}>
-                  Return
+    <>
+      <Toaster />
+      <main className="w-full h-screen flex flex-col pt-[5.5rem] bg-blue-100">
+        <NavBar editor={true} routeHome={routeHome} />
+        <div className="">
+          {/* No Title Dialog */}
+          {isDialogOpen && (
+            <Dialog open={isDialogOpen}>
+              <DialogContent className="w-auto min-w-[18.75rem] grid place-items-center rounded-md">
+                <DialogHeader>
+                  <DialogTitle>Missing Information</DialogTitle>
+                  <DialogDescription>
+                    Your note needs a title before you can save it.
+                  </DialogDescription>
+                </DialogHeader>
+                {/* Close button or similar action */}
+                <Button className="w-[50%]" onClick={closeDialog}>
+                  Close
                 </Button>
-                <Button onClick={handleCloseWithoutSavingPress}>
-                  Close w/o saving
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
-        {/* templates dialog */}
-        {isTemplatesDialogOpen && (
-          <Dialog open={isTemplatesDialogOpen}>
-            <DialogContent className="w-auto grid place-items-center rounded-md">
-              <DialogHeader>
-                <DialogTitle>Choose a Template</DialogTitle>
-                <DialogDescription>
-                  Select a template to append to your note.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex">
-                <div className="grid place-items-center w-fit mr-6">
-                  <ComboBox lgMode={lgMode} appendTemplate={appendTemplate} />
+              </DialogContent>
+            </Dialog>
+          )}
+          {/* unsaved dialog */}
+          {isUnsavedDialogOpen && (
+            <Dialog open={isUnsavedDialogOpen}>
+              <DialogContent className="w-auto grid place-items-center rounded-md">
+                <DialogHeader>
+                  <DialogTitle>Unsaved Changes!</DialogTitle>
+                  <DialogDescription>
+                    Warning, your note has unsaved changes.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex">
+                  <Button className="mr-6" onClick={handleReturnPress}>
+                    Return
+                  </Button>
+                  <Button onClick={handleCloseWithoutSavingPress}>
+                    Close w/o saving
+                  </Button>
                 </div>
-                <Button className="mr-6" onClick={handleReturnPress}>
-                  Return
-                </Button>
+              </DialogContent>
+            </Dialog>
+          )}
+          {/* templates dialog */}
+          {isTemplatesDialogOpen && (
+            <Dialog open={isTemplatesDialogOpen}>
+              <DialogContent className="w-auto grid place-items-center rounded-md">
+                <DialogHeader>
+                  <DialogTitle>Choose a Template</DialogTitle>
+                  <DialogDescription>
+                    Select a template to append to your note.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex">
+                  <div className="grid place-items-center w-fit mr-6">
+                    <ComboBox lgMode={lgMode} appendTemplate={appendTemplate} />
+                  </div>
+                  <Button className="mr-6" onClick={handleReturnPress}>
+                    Return
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+          {/* Note saved toast */}
+        </div>
+        <div className="relative border-solid border-black border-2 rounded-md w-[80%] flex-grow self-center mb-[2.5rem] bg-white">
+          <nav className="absolute top-0 right-0 left-0 h-16 flex border-b-2 border-b-black pl-4 pr-4 z-2 items-center justify-items-center">
+            <div className="flex flex-col text-start justify-self-start mr-6 w-fit whitespace-nowrap">
+              <h1 className="font-bold">Note Editor</h1>
+              <p className="text-gray-500 w-fit">Markdown Format</p>
+            </div>
+            {lgMode ? (
+              <Button className="w-fit mr-6" onClick={routeHome}>
+                <Home size={15} />
+                <span className="ml-2">Home</span>
+              </Button>
+            ) : null}
+            <div className="flex-grow"></div>
+            {lgMode ? (
+              <div className="flex flex-col mr-6">
+                <label htmlFor="title" className="font-bold">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  placeholder="Title"
+                  value={title}
+                  onChange={(e) => {
+                    setTitle(e.target.value);
+                    handleTextareaChange();
+                  }}
+                  ref={titleRef}
+                  className="border-solid border-2 border-gray-600 rounded-lg w-full"
+                />
               </div>
-            </DialogContent>
-          </Dialog>
-        )}
-        {/* Note saved toast */}
-        {lgMode ? <Toaster /> : null}
-      </div>
-      <div className="relative border-solid border-black border-2 rounded-md w-[80%] flex-grow self-center mb-[2.5rem] bg-white">
-        <nav className="absolute top-0 right-0 left-0 h-16 flex border-b-2 border-b-black pl-4 pr-4 z-2 items-center justify-items-center">
-          <div className="flex flex-col text-start justify-self-start mr-6 w-fit whitespace-nowrap">
-            <h1 className="font-bold">Note Editor</h1>
-            <p className="text-gray-500 w-fit">Markdown Format</p>
-          </div>
-          {lgMode ? (
-            <Button className="w-fit mr-6" onClick={routeHome}>
-              <Home size={15} />
-              <span className="ml-2">Home</span>
-            </Button>
-          ) : null}
-          <div className="flex-grow"></div>
-          {lgMode ? (
-            <div className="flex flex-col mr-6">
-              <label htmlFor="title" className="font-bold">
-                Title
-              </label>
-              <input
-                type="text"
-                placeholder="Title"
-                value={title}
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                  handleTextareaChange();
-                }}
-                ref={titleRef}
-                className="border-solid border-2 border-gray-600 rounded-lg w-full"
+            ) : null}
+            {lgMode ? (
+              <div className="grid place-items-center w-fit mr-6">
+                <ComboBox lgMode={lgMode} appendTemplate={appendTemplate} />
+              </div>
+            ) : null}
+            {noteId !== "new" && !noteId.includes("newPublic") && lgMode ? (
+              <Button
+                disabled={!isCreator}
+                className={`w-fit mr-6 ${
+                  isCreator ? "cursor-pointer" : "cursor-not-allowed"
+                }`}
+                onClick={routeSettings}>
+                <IoSettingsSharp />
+                <span className="ml-2">Settings</span>
+              </Button>
+            ) : null}
+            {lgMode ? (
+              <Button
+                onClick={saveNote}
+                variant={isSaved ? "secondary" : "default"}
+                disabled={isSaved}
+                className={`w-fit mr-6 ${
+                  isSaved
+                    ? "border-solid border-gray-600 border-2 rounded-md"
+                    : ""
+                }`}>
+                {isSaved ? "Saved" : "Save"}
+              </Button>
+            ) : null}
+            <div className="w-fit mr-4">
+              <SideDrawer
+                lgMode={lgMode}
+                appendTemplate={appendTemplate}
+                isSaved={isSaved}
+                routeHome={routeHome}
+                routeSettings={routeSettings}
+                saveNote={saveNote}
+                noteId={noteId.toString()}
+                title={title}
+                setTitle={setTitle}
+                handleTextareaChange={handleTextareaChange}
+                titleRef={titleRef}
+                openTemplatesDialog={openTemplatesDialog}
+                isCreator={isCreator}
               />
             </div>
-          ) : null}
-          {lgMode ? (
-            <div className="grid place-items-center w-fit mr-6">
-              <ComboBox lgMode={lgMode} appendTemplate={appendTemplate} />
-            </div>
-          ) : null}
-          {noteId !== "new" && lgMode ? (
-            <Button
-              disabled={!isCreator}
-              className={`w-fit mr-6 ${
-                isCreator ? "cursor-pointer" : "cursor-not-allowed"
-              }`}
-              onClick={routeSettings}>
-              <IoSettingsSharp />
-              <span className="ml-2">Settings</span>
-            </Button>
-          ) : null}
-          {lgMode ? (
-            <Button
-              onClick={saveNote}
-              variant={isSaved ? "secondary" : "default"}
-              disabled={isSaved}
-              className={`w-fit mr-6 ${
-                isSaved
-                  ? "border-solid border-gray-600 border-2 rounded-md"
-                  : ""
-              }`}>
-              {isSaved ? "Saved" : "Save"}
-            </Button>
-          ) : null}
-          <div className="w-fit mr-4">
-            <SideDrawer
-              lgMode={lgMode}
-              appendTemplate={appendTemplate}
-              isSaved={isSaved}
-              routeHome={routeHome}
-              routeSettings={routeSettings}
-              saveNote={saveNote}
-              noteId={noteId.toString()}
-              title={title}
-              setTitle={setTitle}
-              handleTextareaChange={handleTextareaChange}
-              titleRef={titleRef}
-              openTemplatesDialog={openTemplatesDialog}
-              isCreator={isCreator}
-            />
+          </nav>
+          <div className="w-full h-full pt-16">
+            <textarea
+              className="focus:outline-none focus:shadow-none h-full w-full resize-none p-2 rounded-b-md"
+              placeholder=" Start writing..."
+              ref={textAreaRef}
+              value={noteText}
+              onChange={(e) => {
+                setNoteText(e.target.value);
+                handleTextareaChange();
+              }}></textarea>
           </div>
-        </nav>
-        <div className="w-full h-full pt-16">
-          <textarea
-            className="focus:outline-none focus:shadow-none h-full w-full resize-none p-2 rounded-b-md"
-            placeholder=" Start writing..."
-            ref={textAreaRef}
-            value={noteText}
-            onChange={(e) => {
-              setNoteText(e.target.value);
-              handleTextareaChange();
-            }}></textarea>
         </div>
-      </div>
-    </main>
+      </main>
+    </>
   );
 }

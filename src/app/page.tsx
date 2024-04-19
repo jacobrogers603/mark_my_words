@@ -91,6 +91,8 @@ export default function Home() {
         currentDirNotes={currentDirNotes}
         currentPath={currentPath}
         updateCurrentPath={updateCurrentPath}
+        isPublic={false}
+        status={status}
       />
     </main>
   );

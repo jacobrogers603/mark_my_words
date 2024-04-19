@@ -1,45 +1,46 @@
 import { getServerSession } from "next-auth";
 import authOptions from "../../../../auth";
-import prismadb from '@/lib/prismadb';
+import prismadb from "@/lib/prismadb";
 import { NextResponse } from "next/server";
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 // Return the notes from a directory.
 export async function GET(req: Request) {
-    const session = await getServerSession(authOptions);
-    if (session) {
-        
-        try {
-            const user = await prismadb.user.findUnique({
-                where: {
-                    email: session?.user?.email || ''
-                }
-            })
+  const session = await getServerSession(authOptions);
+  if (session) {
+    try {
+      const user = await prismadb.user.findUnique({
+        where: {
+          email: session?.user?.email || "",
+        },
+      });
 
-            // Find the current directory.
-            const currentDirId = user?.currentPath[user?.currentPath.length - 1];
+      // Find the current directory.
+      const currentDirId = user?.currentPath[user?.currentPath.length - 1];
 
-            const currentDir = await prismadb.note.findUnique({
-                where: {
-                    id: currentDirId
-                }
-            }); 
+      const currentDir = await prismadb.note.findUnique({
+        where: {
+          id: currentDirId,
+        },
+      });
 
-            // Get all the children notes of that directory.
-            const currentDirNotes = await prismadb.note.findMany({
-                where: {
-                    id: {
-                        in: currentDir?.childrenIds
-                    }
-                }
-            });             
+      // Get all the children notes of that directory, excluding the public directory.
+      const currentDirNotes = await prismadb.note.findMany({
+        where: {
+          id: {
+            in: currentDir?.childrenIds,
+          },
+          title: {
+            not: user?.username,
+          },
+        },
+      });
 
-            return NextResponse.json(currentDirNotes)
-        }
-        catch (error) {
-            return NextResponse.json(error)
-        }
-    }else {
-        return new Response(null, { status: 401 });
+      return NextResponse.json(currentDirNotes);
+    } catch (error) {
+      return NextResponse.json(error);
     }
+  } else {
+    return new Response(null, { status: 401 });
+  }
 }

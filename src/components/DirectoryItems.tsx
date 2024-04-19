@@ -27,31 +27,51 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button";
-import { NotebookText, FolderClosed } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { NotebookText, FolderClosed, Link } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { ArrowDownFromLine, ArrowUpToLine } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@radix-ui/react-tooltip";
+import { useToast } from "./ui/use-toast";
+import { Toaster } from "./ui/toaster";
+import { GiRamProfile } from "react-icons/gi";
 
 interface DirectoryItemsProps {
   currentDirNotes: JsonObject[] | null;
   currentPath: string[] | null;
   updateCurrentPath: (directoryId?: string) => Promise<void>;
+  isPublic: boolean;
+  status: string;
 }
 
 export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
   currentDirNotes,
   currentPath,
   updateCurrentPath,
+  isPublic,
+  status,
 }) => {
   const router = useRouter();
   const [notes, setNotes] = useState<JsonObject[]>([]);
   const [pathTitles, setPathTitles] = useState<string[]>([]);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const { toast } = useToast();
 
   const fetchNotes = async () => {
     try {
-      const response = await axios.get("/api/getCurrentDirectoryNotes");
+      if (!currentPath || currentPath.length === 0) {
+        return;
+      }
+      const endpoint = isPublic
+        ? `/api/getPublicCurDirNotes/${currentPath[currentPath.length - 1]}`
+        : "/api/getCurrentDirectoryNotes";
+      const response = await axios.get(endpoint);
       setNotes(response.data);
     } catch (error) {
       console.error("Failed to fetch notes", error);
@@ -60,7 +80,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
 
   useEffect(() => {
     fetchNotes();
-  }, [currentPath]);
+  }, [currentPath, isPublic]); // useEffect just to trigger fetchNotes on dependency changes
 
   useEffect(() => {
     const fetchPathTitles = async () => {
@@ -100,20 +120,48 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
   };
 
   const createNote = () => {
-    router.push("/editor/new");
+    if (isPublic) {
+      if (!currentPath) {
+        console.log("current path is null, cannot make new note.");
+        return;
+      }
+      router.push(`/editor/newPublic${currentPath[currentPath.length - 1]}`);
+    } else {
+      router.push("/editor/new");
+    }
   };
 
   const [directoryTitle, setDirectoryTitle] = useState("");
   const createDirectory = useCallback(async () => {
-    try {
-      await axios.post("/api/saveNote", {
-        title: directoryTitle,
-        content: "",
-        isDirectory: true,
-      });
+    try {      
+      if (isPublic) {
+        if (!currentPath) {
+          console.log("current path is null, cannot make new note.");
+          return;
+        }
+        await axios.post("/api/saveNote", {
+          title: directoryTitle,
+          content: "",
+          isDirectory: true,
+          isPublic: true,
+          parentId: currentPath[currentPath.length - 1],
+        });
+      } else {
+        await axios.post("/api/saveNote", {
+          title: directoryTitle,
+          content: "",
+          isDirectory: true,
+        });
+      }
 
       // Fetch the updated list of notes in the current directory
-      const response = await axios.get("/api/getCurrentDirectoryNotes");
+      if (!currentPath || currentPath.length === 0) {
+        return;
+      }
+      const endpoint = isPublic
+        ? `/api/getPublicCurDirNotes/${currentPath[currentPath.length - 1]}`
+        : "/api/getCurrentDirectoryNotes";
+      const response = await axios.get(endpoint);
       setNotes(response.data);
     } catch (error) {
       console.log(error);
@@ -131,8 +179,8 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
   const path = formatPath(pathTitles);
 
   // Separate directories and notes
-  const dirNotes = notes.filter((note) => note.isDirectory == true);
-  const nonDirNotes = notes.filter((note) => note.isDirectory == false);
+  const dirNotes = notes?.filter((note) => note.isDirectory == true);
+  const nonDirNotes = notes?.filter((note) => note.isDirectory == false);
 
   interface AutoScrollH2Props {
     path: string;
@@ -152,7 +200,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
     return (
       <h2
         ref={endRef}
-        className="font-bold m-8 p-2 border-solid border-gray-600 text-gray-600 border-2 rounded-md overflow-auto whitespace-nowrap">
+        className="font-bold m-8 p-2 border-solid border-gray-600 text-gray-600 border-2 rounded-md overflow-auto whitespace-nowrap w-full">
         {path}
       </h2>
     );
@@ -213,19 +261,42 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
     try {
       const content = await file.text();
       const title = file.name.slice(0, -3);
-      await axios.post("/api/saveNote", {
-        title: title,
-        content: content,
-        isDirectory: false,
-      });
+      if (isPublic) {
+        if (!currentPath) {
+          console.log("current path is null, cannot make new note.");
+          return;
+        }
+        await axios.post("/api/saveNote", {
+          title: title,
+          content: "",
+          isDirectory: false,
+          isPublic: true,
+          parentId: currentPath[currentPath.length - 1],
+        });
+      } else {
+        await axios.post("/api/saveNote", {
+          title: title,
+          content: content,
+          isDirectory: false,
+        });
+      }
       fetchNotes(); // Refresh the notes list after upload
     } catch (error) {
       console.error("Failed to upload note:", error);
     }
   };
 
+  const linkButtonClicked = () => {
+    navigator.clipboard.writeText(window.location.href);
+
+    toast({
+      description: "Share link copied to clipboard",
+    });
+  };
+
   return (
     <main className="w-[80%] md:w-[65%] lg:w-[50%]">
+      <Toaster />
       <input
         type="file"
         ref={fileInputRef}
@@ -234,63 +305,87 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
         accept=".md" // Accept only Markdown files
         className="hidden"
       />
-      <AutoScrollH2 path={path} />
+      {/* Profile Photo Component to do */}
+      <div className="flex h-fit w-full items-center justify-center">
+        {isPublic ? (
+          <GiRamProfile
+            className=" bg-blue-400 rounded-full p-1 border-solid border-black border-2"
+            size={40}
+          />
+        ) : null}
+        <AutoScrollH2 path={path} />
+      </div>
       <div className="w-full h-8 flex mb-8">
-        <div className="pl-8 flex items-center justify-start">
-          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-            <PopoverTrigger>
-              <FiPlusCircle size={30} />
-            </PopoverTrigger>
-            <PopoverContent>
-              <div className="flex flex-col md:flex-row lg:flex-row md:space-x-4 lg:space-x-4">
-                <div onClick={createNote}>
-                  <Button className="mb-4 md:mb-0 lg:mb-0 ">
-                    <NotebookText className="mr-2 h-4 w-4" /> Create a new note
-                  </Button>
-                </div>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <FolderClosed className="mr-2 h-4 w-4" /> Create a new
-                      directory
+        {status === "authenticated" ? (
+          <div className="pl-8 flex items-center justify-start">
+            <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+              <PopoverTrigger>
+                <FiPlusCircle size={30} />
+              </PopoverTrigger>
+              <PopoverContent>
+                <div className="flex flex-col md:flex-row lg:flex-row md:space-x-4 lg:space-x-4">
+                  <div onClick={createNote}>
+                    <Button className="mb-4 md:mb-0 lg:mb-0 ">
+                      <NotebookText className="mr-2 h-4 w-4" /> Create a new
+                      note
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent className="grid grid-rows-3 grid-cols-2 place-items-center w-[21rem] rounded-md">
-                    <DialogHeader className="row-start-1 col-span-2">
-                      <DialogTitle className="grid grid-cols-6 place-items-center">
-                        <FolderClosed className="" />
-                        <span className="col-start-2 col-end-6">
-                          Create a new directory
-                        </span>
-                      </DialogTitle>
-                    </DialogHeader>
-                    <Input
-                      id="title"
-                      placeholder="Title"
-                      value={directoryTitle}
-                      onChange={handleDirectoryTitleChange}
-                      className="row-start-2 col-span-2 w-[80%]"
-                    />
-                    <DialogClose asChild>
-                      <Button
-                        className="mt-4 row-start-3 col-span-2"
-                        type="submit"
-                        onClick={createDirectory}>
-                        Create
+                  </div>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button>
+                        <FolderClosed className="mr-2 h-4 w-4" /> Create a new
+                        directory
                       </Button>
-                    </DialogClose>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
+                    </DialogTrigger>
+                    <DialogContent className="grid grid-rows-3 grid-cols-2 place-items-center w-[21rem] rounded-md">
+                      <DialogHeader className="row-start-1 col-span-2">
+                        <DialogTitle className="grid grid-cols-6 place-items-center">
+                          <FolderClosed className="" />
+                          <span className="col-start-2 col-end-6">
+                            Create a new directory
+                          </span>
+                        </DialogTitle>
+                      </DialogHeader>
+                      <Input
+                        id="title"
+                        placeholder="Title"
+                        value={directoryTitle}
+                        onChange={handleDirectoryTitleChange}
+                        className="row-start-2 col-span-2 w-[80%]"
+                      />
+                      <DialogClose asChild>
+                        <Button
+                          className="mt-4 row-start-3 col-span-2"
+                          type="submit"
+                          onClick={createDirectory}>
+                          Create
+                        </Button>
+                      </DialogClose>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        ) : null}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Link className="ml-4" onClick={linkButtonClicked} size={25} />
+            </TooltipTrigger>
+            <TooltipContent className="bg-gray-100 p-[1px] border-solid border-2 border-gray-400 rounded-md">
+              <p>Copy share link</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <div className="flex-grow"></div>
-        <ArrowUpToLine
-          onClick={handleUploadClick}
-          className="ml-4 h-full w-fit hover:cursor-pointer"
-          size={30}
-        />
+        {status === "authenticated" ? (
+          <ArrowUpToLine
+            onClick={handleUploadClick}
+            className="ml-4 h-full w-fit hover:cursor-pointer"
+            size={30}
+          />
+        ) : null}
         <ArrowDownFromLine
           className="ml-4 h-full w-fit hover:cursor-pointer"
           onClick={handleDownloadClick}
@@ -312,6 +407,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
           key={note.id?.toString()}
           note={note ?? null}
           updateCurrentPath={updateCurrentPath}
+          status={status}
         />
       ))}
 
@@ -321,6 +417,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
           key={note.id?.toString()}
           note={note ?? null}
           updateCurrentPath={updateCurrentPath}
+          status={status}
         />
       ))}
     </main>

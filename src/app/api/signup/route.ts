@@ -46,14 +46,35 @@ export const POST = async (req: Request) => {
       },
     });
 
+    const publicDir = await prismadb.note.create({
+      data: {
+        title: username,
+        content: "",
+        isDirectory: true,
+        userId: user.id || "",
+        parentId: rootDir.id,
+      },
+    });
+
+    const updatedRootDir = await prismadb.note.update({
+      where: {
+        id: rootDir.id,
+      },
+      data: {
+        childrenIds: {
+          push: publicDir.id,
+        },
+      },
+    });
+
     const updatedUser = await prismadb.user.update({
       where: {
         id: user.id,
       },
       data: {
         noteIDs: {
-          push: rootDir.id,
-        },
+          push: [rootDir.id, publicDir.id],
+        },  
         currentPath: {
           push: rootDir.id,
         },

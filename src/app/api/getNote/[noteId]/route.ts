@@ -8,11 +8,10 @@ export async function GET(
   req: Request,
   { params }: { params: { noteId: string } }
 ) {
+  const id = params.noteId;
   const session = await getServerSession(authOptions);
 
   if (session) {
-    const id = params.noteId;
-
     if (typeof id !== "string") {
       throw new Error("Invalid id");
     }
@@ -49,6 +48,18 @@ export async function GET(
         throw new Error("No Such Note Found");
       }
 
+      return NextResponse.json(note);
+    } catch (error) {
+      return NextResponse.json(error);
+    }
+  } else {
+    // Public viewer.
+    try {
+      const note = await prismadb.note.findUnique({
+        where: {
+          id: id,
+        },
+      });
       return NextResponse.json(note);
     } catch (error) {
       return NextResponse.json(error);

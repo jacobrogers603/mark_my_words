@@ -13,16 +13,9 @@ import { IoSettingsSharp } from "react-icons/io5";
 import axios from "axios";
 
 const Note = () => {
-  const { data: session, status } = useSession({
-    required: true,
-    onUnauthenticated() {
-      console.log("redirected");
-      redirect("/api/auth/signin");
-    },
-  });
-
-  const router = useRouter();
   const { noteId } = useParams();
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const { data: note } = useNote(noteId as string);
   const [hasReadAccess, setHasReadAccess] = useState(false);
   const [hasWriteAccess, setHasWriteAccess] = useState(false);
@@ -31,37 +24,51 @@ const Note = () => {
   useEffect(() => {
     const checkAccess = async () => {
       try {
+        console.log("status", status);
         const { data } = await axios.get(`/api/getAccessLists/${noteId}`);
-        const hasAccess = data.readAccessList.includes(session?.user?.email);
-        const hasWriteAccess = data.writeAccessList.includes(
-          session?.user?.email
-        );
-        setHasReadAccess(hasAccess);
-        setHasWriteAccess(hasWriteAccess);
-        if (!hasAccess) {
-          router.push("/unauthorized");
+        if (status === "authenticated") {
+          const hasAccess = data.readAccessList.includes(session?.user?.email);
+          const hasWriteAccess = data.writeAccessList.includes(
+            session?.user?.email
+          );
+          setHasReadAccess(hasAccess);
+          setHasWriteAccess(hasWriteAccess);
+
+          if (!hasAccess) {
+            router.push("/unauthorized");
+          }
+
+          const { data: noteUserId } = await axios.get(
+            `/api/getNoteUserId/${noteId}`
+          );
+          const currentUser = await axios.get("/api/current");
+
+          const noteCreator = noteUserId === currentUser.data?.id;
+
+          setIsCreator(noteCreator);
+        } else {
+          // public viewer
+          const hasAccess = data.readAccessList.includes("public");
+          setHasReadAccess(hasAccess);
+          setHasWriteAccess(false);
+          setIsCreator(false);
+
+          if (!hasAccess) {
+            router.push("/unauthorized");
+          }
         }
-
-        const { data: noteUserId } = await axios.get(
-          `/api/getNoteUserId/${noteId}`
-        );
-        const currentUser = await axios.get("/api/current");
-
-        const noteCreator = noteUserId === currentUser.data?.id;
-
-        setIsCreator(noteCreator);
       } catch (error) {
         console.error("Failed to fetch access list", error);
       }
     };
 
-    if (noteId && session) {
+    if (noteId) {
       checkAccess();
     }
   }, [noteId, session, router]);
 
   const routeHome = () => {
-    router.push("/");
+    router.back();
   };
 
   const routeEdit = () => {
@@ -123,26 +130,28 @@ const Note = () => {
           <Home size={15} />
           <span className="ml-2">Home</span>
         </Button>
-        <Button
-          className="mr-2 w-[9rem] mb-4 md:mb-0"
-          disabled={!hasWriteAccess}
-          onClick={routeEdit}>
-          <FaEdit />
-          <span className="ml-2">Edit note</span>
-        </Button>
-        <Button
-          className={`w-[9rem] ${
-            isCreator ? "cursor-pointer" : "cursor-not-allowed"
-          }`}
-          disabled={!isCreator}
-          onClick={routeSettings}>
-          <IoSettingsSharp />
-          <span className="ml-2">Note settings</span>
-        </Button>
+        {status === "authenticated" ? (
+          <Button
+            className="mr-2 w-[9rem] mb-4 md:mb-0"
+            disabled={!hasWriteAccess}
+            onClick={routeEdit}>
+            <FaEdit />
+            <span className="ml-2">Edit note</span>
+          </Button>
+        ) : null}
+        {status === "authenticated" ? (
+          <Button
+            className={`w-[9rem] ${
+              isCreator ? "cursor-pointer" : "cursor-not-allowed"
+            }`}
+            disabled={!isCreator}
+            onClick={routeSettings}>
+            <IoSettingsSharp />
+            <span className="ml-2">Note settings</span>
+          </Button>
+        ) : null}
       </div>
       <div className="h-fit mt-6 border-solid border-black border-2 rounded-md col-start-2 col-end-10 w-full bg-white p-4 mb-12">
-        {/* <p>{note?.htmlContent}</p> */}
-        {/* <p>--------------</p> */}
         <div
           className="markdown-content"
           dangerouslySetInnerHTML={{

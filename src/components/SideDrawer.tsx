@@ -44,7 +44,12 @@ const SideDrawer = ({
         <MenuIcon />
       </DrawerTrigger>
       <DrawerContent className="overflow-y-auto overflow-x-hidden">
-        <div className="grid grid-cols-2 grid-rows-3 gap-4 place-items-center p-2">
+        <div
+          className={`grid ${
+            noteId === "new" || noteId.includes("newPublic")
+              ? "grid-rows-2"
+              : "grid-rows-3"
+          } grid-cols-2 gap-4 place-items-center p-2`}>
           {!lgMode ? (
             <Button className="w-fit justify-self-start" onClick={routeHome}>
               <Home size={15} />
@@ -69,7 +74,7 @@ const SideDrawer = ({
               />
             </div>
           ) : null}
-          {noteId !== "new" && !lgMode ? (
+          {noteId !== "new" && !noteId.includes("newPublic") && !lgMode ? (
             <Button
               className={`w-fit justify-self-start ${
                 isCreator ? "cursor-pointer" : "cursor-not-allowed"
@@ -92,7 +97,11 @@ const SideDrawer = ({
               onClick={saveNote}
               variant={isSaved ? "secondary" : "default"}
               disabled={isSaved}
-              className={`w-fit col-span-2 ${
+              className={`w-fit ${
+                noteId === "new" || noteId.includes("newPublic")
+                  ? ""
+                  : "col-span-2"
+              } ${
                 isSaved
                   ? "border-solid border-gray-600 border-2 rounded-md"
                   : ""

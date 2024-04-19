@@ -4,7 +4,7 @@ import useNote from "@/hooks/useNote";
 import axios, { AxiosResponse } from "axios";
 import { useSession } from "next-auth/react";
 import { redirect, useParams, useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -99,7 +99,7 @@ const NoteSettings = () => {
   };
 
   const routeHome = () => {
-    router.push("/");
+    router.back();
   };
 
   const routeEditor = () => {
@@ -202,16 +202,23 @@ const NoteSettings = () => {
     }
   };
 
-  const fetchAllowedUsers = async () => {
+  const fetchAllowedUsers = useCallback(async () => {
     console.log("fetching access lists");
     try {
       const responseBundle = await axios.get(`/api/getAccessLists/${noteId}`);
+
       setAllowedUsers(responseBundle.data.readAccessList);
       setWriteAccessUsers(responseBundle.data.writeAccessList);
     } catch (error) {
       console.log("Failed to fetch access lists:", error);
     }
-  };
+  }, [noteId]);
+
+  useEffect(() => {
+    if (noteId) {
+      fetchAllowedUsers();
+    }
+  }, [noteId, fetchAllowedUsers]);
 
   useEffect(() => {
     if (noteId) {
@@ -424,6 +431,7 @@ const NoteSettings = () => {
                 className="h-fit min-h-8 max-h-24 w-48 rounded-md border overflow-y-auto p-2"
                 type="scroll">
                 {allowedUsers
+                  .filter((user, index) => index !== 0 && user !== "public")
                   .map((user, index) => (
                     <UserItem
                       key={index}
@@ -432,8 +440,7 @@ const NoteSettings = () => {
                       toggleWriteMode={toggleWriteMode}
                       removeUsersAccess={removeUsersAccess}
                     />
-                  ))
-                  .filter((_, index) => index !== 0)}
+                  ))}
               </ScrollArea>
             </CardContent>
           </Card>

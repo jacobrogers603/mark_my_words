@@ -12,9 +12,14 @@ export const dynamic = "force-dynamic";
 type DirectoryItemProps = {
   note: JsonObject;
   updateCurrentPath: (directoryId?: string) => Promise<void>;
+  status: string;
 };
 
-const DirectoryItem = ({ note, updateCurrentPath }: DirectoryItemProps) => {
+const DirectoryItem = ({
+  note,
+  updateCurrentPath,
+  status,
+}: DirectoryItemProps) => {
   const router = useRouter();
 
   const handleItemClick = async () => {
@@ -60,7 +65,7 @@ const DirectoryItem = ({ note, updateCurrentPath }: DirectoryItemProps) => {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement("a");
         link.href = url;
-        link.setAttribute('download', `${note.title}.zip`);
+        link.setAttribute("download", `${note.title}.zip`);
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -114,23 +119,27 @@ const DirectoryItem = ({ note, updateCurrentPath }: DirectoryItemProps) => {
       <div className="col-start-2 col-end-5 overflow-auto whitespace-nowrap w-full">
         {note?.title?.toString() ?? "No title"}
       </div>
-      <div
-        className="grid place-items-center w-full h-full z-100 col-start-6"
-        onClick={handleEditClick}>
-        <div className="">
-          {!note.isDirectory ? <FaEdit size={20} /> : null}
+      {status === "authenticated" ? (
+        <div
+          className="grid place-items-center w-full h-full z-100 col-start-6"
+          onClick={handleEditClick}>
+          <div className="">
+            {!note.isDirectory ? <FaEdit size={20} /> : null}
+          </div>
         </div>
-      </div>
+      ) : null}
       <div
         className="grid place-items-center w-full h-full z-100 col-start-7"
         onClick={handleDownloadClick}>
         <ArrowDownFromLine />
       </div>
-      <div
-        className="grid place-items-center w-full h-full z-100 col-start-8"
-        onClick={handleSettingsClick}>
-        <IoSettingsSharp />
-      </div>
+      {status === "authenticated" ? (
+        <div
+          className="grid place-items-center w-full h-full z-100 col-start-8"
+          onClick={handleSettingsClick}>
+          <IoSettingsSharp />
+        </div>
+      ) : null}
     </div>
   );
 };

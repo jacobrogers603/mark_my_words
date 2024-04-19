@@ -1,11 +1,9 @@
 import JSZip from "jszip";
-import { getServerSession } from "next-auth";
-import authOptions from "../../../../auth";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import prismadb from "@/lib/prismadb";
 import { Note } from "@prisma/client";
-import { Readable } from "stream"; // Node.js stream module for handling streams
+import { Readable } from "stream";
 
 async function addFilesToZip(
   note: Note,
@@ -26,7 +24,7 @@ async function addFilesToZip(
     } else {
       target.file(
         `${child.title}.${htmlMode ? "html" : "md"}`,
-        `${htmlMode ? child.htmlContent : child.content} || ''`
+        `${htmlMode ? child.htmlContent : child.content}`
       );
     }
   }
@@ -34,11 +32,6 @@ async function addFilesToZip(
 
 // Route handler for POST method
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return new NextResponse(null, { status: 401 });
-  }
-
   const { id, htmlMode } = await req.json();
   const note = await prismadb.note.findUnique({
     where: { id },

@@ -16,6 +16,13 @@ export const POST = async (req: Request) => {
       });
     }
 
+    if (allowedEmail === "public") {
+      return NextResponse.json({
+        error:
+          '"Public" is not allowed to be added to the access list, it is reserved.',
+      });
+    }
+
     const session = await getServerSession(authOptions);
 
     if (session) {

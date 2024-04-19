@@ -2,48 +2,47 @@ import prismadb from "@/lib/prismadb";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import authOptions from "../../../../auth";
-import { unified } from 'unified';
-import remarkParse from 'remark-parse';
-import remarkGfm from 'remark-gfm';
-import remarkRehype from 'remark-rehype';
-import rehypeStringify from 'rehype-stringify';
-import { visit } from 'unist-util-visit';
-export const dynamic = 'force-dynamic';
+import { unified } from "unified";
+import remarkParse from "remark-parse";
+import remarkGfm from "remark-gfm";
+import remarkRehype from "remark-rehype";
+import rehypeStringify from "rehype-stringify";
+import { visit } from "unist-util-visit";
+export const dynamic = "force-dynamic";
 
 export const POST = async (req: Request) => {
-  
   function addLinkAttributes() {
     return (tree: any) => {
-      visit(tree, 'element', (node) => {
-        if (node.tagName === 'a') {
+      visit(tree, "element", (node) => {
+        if (node.tagName === "a") {
           // Ensure properties object exists
           if (!node.properties) node.properties = {};
-          node.properties.target = '_blank';
-          node.properties.rel = 'noopener noreferrer';
+          node.properties.target = "_blank";
+          node.properties.rel = "noopener noreferrer";
         }
       });
     };
   }
-  
+
   async function convertMarkdownToHtml(markdown: string) {
-    if (!markdown || markdown === '') {
-      return '';
+    if (!markdown || markdown === "") {
+      return "";
     }
-  
+
     const processor = unified()
       .use(remarkParse) // Parse the Markdown text
       .use(remarkGfm) // Support GitHub Flavored Markdown
       .use(remarkRehype) // Turn Markdown into HTML
       .use(addLinkAttributes) // Custom plugin to add attributes to links
       .use(rehypeStringify); // Serialize the HTML
-  
+
     const file = await processor.process(markdown);
     return String(file);
   }
-  
 
   try {
-    const { id, title, content, isDirectory } = await req.json();
+    const { id, title, content, isDirectory, isPublic, parentId } =
+      await req.json();
 
     if (!title) {
       return NextResponse.json({ error: "Title is required" });
@@ -71,6 +70,13 @@ export const POST = async (req: Request) => {
           });
         }
 
+        if (user.username === title) {
+          return NextResponse.json({
+            error:
+              "Title cannot be the same as username, this is reserved for the root public note!",
+          });
+        }
+
         const userId = user?.id;
 
         if (id) {
@@ -94,22 +100,36 @@ export const POST = async (req: Request) => {
           // Create a new note
           const htmlContent = await convertMarkdownToHtml(content);
 
-          const newNote = await prismadb.note.create({
-            data: {
-              title,
-              content,
-              htmlContent,
-              isDirectory,
-              userId: userId || "",
-              parentId: user?.currentPath[user?.currentPath.length - 1],
-              readAccessList: [user.email],
-              writeAccessList: [user.email],
-            },
-          });
+          const newNote = isPublic
+            ? await prismadb.note.create({
+                data: {
+                  title,
+                  content,
+                  htmlContent,
+                  isDirectory,
+                  userId: userId || "",
+                  parentId: parentId,
+                  readAccessList: [user.email, "public"],
+                  writeAccessList: [user.email],
+                },
+              })
+            : await prismadb.note.create({
+                data: {
+                  title,
+                  content,
+                  htmlContent,
+                  isDirectory,
+                  userId: userId || "",
+                  parentId: user?.currentPath[user?.currentPath.length - 1],
+                  readAccessList: [user.email],
+                  writeAccessList: [user.email],
+                },
+              });
 
           // Update the parent directory's child array to contain this note.
-          const currentDirectoryId =
-            user?.currentPath[user?.currentPath.length - 1];
+          const currentDirectoryId = isPublic
+            ? parentId
+            : user?.currentPath[user?.currentPath.length - 1];
           const updatedDirectory = await prismadb.note.update({
             where: {
               id: currentDirectoryId ?? undefined,
