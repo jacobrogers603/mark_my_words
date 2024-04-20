@@ -36,8 +36,15 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import { set } from "react-hook-form";
+import { FiPlus, FiPlusCircle } from "react-icons/fi";
 
 const UserSettings = () => {
   const router = useRouter();
@@ -200,6 +207,10 @@ const UserSettings = () => {
     }
   };
 
+  const deleteMedia = () => {};
+
+  const addMedia = () => {};
+
   if (status === "loading") {
     return (
       <main className="w-full h-screen grid place-items-center pt-14">
@@ -220,6 +231,7 @@ const UserSettings = () => {
   return (
     <main className="flex flex-col w-full h-screen place-items-center pb-8">
       <NavBar />
+      {/* Template Title */}
       {isDialogOpen && (
         <Dialog open={isDialogOpen}>
           <DialogContent className="w-auto flex flex-col place-items-center rounded-md">
@@ -256,16 +268,17 @@ const UserSettings = () => {
         <AccordionItem value="item-1">
           <AccordionTrigger>Templates</AccordionTrigger>
           <AccordionContent className="flex flex-col w-full items-center text-center p-2">
-            {/* templates card */}
             <h2 className="font-extrabold text-xl mb-2">Templates</h2>
             <p className="text-gray-600 mb-4">
               Create your own predefined templates for your notes
             </p>
             <div className="flex flex-col md:flex-row w-full items-start justify-center">
               <div className="flex flex-col w-full md:w-[40%]  md:mr-[6.67%]">
-                <h4 className="font-extrabold mb-[0.5rem]">Current Templates</h4>
+                <h4 className="font-extrabold mb-[0.5rem]">
+                  Current Templates
+                </h4>
                 <ScrollArea
-                  className="w-full rounded-md border overflow-auto h-fit min-h-[4rem] max-h-[10rem]"
+                  className="w-full rounded-md border overflow-auto h-[10rem]"
                   type="scroll">
                   <div className="p-4">
                     {templates.map((template) => (
@@ -315,9 +328,40 @@ Ut dolorum, repudiandae ![nomen](connecto).
         </AccordionItem>
         <AccordionItem value="item-2">
           <AccordionTrigger>Media Management</AccordionTrigger>
-          <AccordionContent>
-            {/* media management */}
-            media...
+          <AccordionContent className="flex flex-col w-full items-center justify-center">
+            <FiPlusCircle
+              className="self-start ml-4 md:ml-12 mb-4 cursor-pointer"
+              size={30}
+              onClick={addMedia}
+            />
+            <Carousel
+              opts={{
+                align: "start",
+              }}
+              className="w-[70%]">
+              <CarouselContent>
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <CarouselItem key={index} className="basis-1/2 md:basis-1/3">
+                    <div className="p-1">
+                      <Card>
+                        <CardContent className="flex aspect-square items-center justify-center p-6 relative">
+                          <X
+                            className="absolute top-2 right-2 text-gray-600 cursor-pointer"
+                            size={23}
+                            onClick={deleteMedia}
+                          />
+                          <span className="text-3xl font-semibold">
+                            {index + 1}
+                          </span>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
           </AccordionContent>
         </AccordionItem>
       </Accordion>

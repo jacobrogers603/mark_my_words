@@ -34,6 +34,7 @@
     "clsx": "^2.1.0",
     "cmdk": "^0.2.1",
     "dompurify": "^3.0.11",
+    "embla-carousel-react": "^8.0.2",
     "file-saver": "^2.0.5",
     "fs": "^0.0.1-security",
     "jszip": "^3.10.1",
