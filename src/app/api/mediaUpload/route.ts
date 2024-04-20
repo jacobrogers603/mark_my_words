@@ -1,9 +1,8 @@
 import prismadb from "@/lib/prismadb";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import authOptions from "../../../../auth";
 import AWS from "aws-sdk";
-import { NextApiRequest, NextApiResponse } from "next";
 
 AWS.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -20,25 +19,24 @@ type ResponseData = {
   error?: string;
 };
 
-export const POST = async (
-  req: NextApiRequest,
-  res: NextApiResponse<ResponseData>
-) => {
-  const { fileType, fileName, userId } = req.body as {
-    fileType: string;
-    fileName: string;
-    userId: string;
+export const POST = async (req: NextRequest, res: NextResponse) => {
+  const { fileType, fileName, userId } = await req.json();
+
+  const s3Params = {
+    Bucket: "your_bucket_name",
+    Key: `users/${userId}/images/${fileName}`, // User-specific path
+    Expires: 300, // Link expiration time (in seconds)
+    ContentType: fileType,
+    ACL: "public-read",
   };
 
   if (!fileType || !fileName || !userId) {
-    return res
-      .status(400)
-      .json({ error: "Missing fileType or fileName or userId" });
+    return NextResponse.json({ error: "Missing required fields" });
   }
 
   const session = await getServerSession(authOptions);
   if (!session) {
-    return res.status(401).json({ error: "No session" });
+    return NextResponse.json({ error: "No session" });
   }
 
   const user = await prismadb.user.findUnique({
@@ -52,22 +50,25 @@ export const POST = async (
     return NextResponse.json({ error: "User not found" });
   }
 
-  const s3Params = {
-    Bucket: "your_bucket_name",
-    Key: `users/${userId}/images/${fileName}`, // User-specific path
-    Expires: 300,
-    ContentType: fileType,
-    ACL: "public-read",
-  };
-
-  s3.getSignedUrl("putObject", s3Params, (err, data) => {
-    if (err) {
-      console.log(err);
-      return res.status(500).json({ error: "Error creating pre-signed URL" });
-    }
-    res.status(200).json({
-      signedRequest: data,
-      url: `https://${s3Params.Bucket}.s3.amazonaws.com/${s3Params.Key}`,
+  return new Promise<Response>((resolve, reject) => {
+    s3.getSignedUrl("putObject", s3Params, (err, data) => {
+      if (err) {
+        console.error("Error getting signed URL:", err);
+        return resolve(
+          new Response(
+            JSON.stringify({ error: "Error creating pre-signed URL" }),
+            { status: 500 }
+          )
+        );
+      }
+      const response = new Response(
+        JSON.stringify({
+          signedRequest: data,
+          url: `https://${s3Params.Bucket}.s3.amazonaws.com/${s3Params.Key}`,
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+      resolve(response);
     });
   });
 };
