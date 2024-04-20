@@ -13,7 +13,7 @@ const s3Client = new S3Client({
   },
 });
 
-async function uploadFileToS3(file: Buffer, fileName: string) {
+async function uploadFileToS3(file: Buffer, fileName: string, folderName: string) {
   const fileBuffer = file;
   let contentType = "application/octet-stream";
 
@@ -25,7 +25,7 @@ async function uploadFileToS3(file: Buffer, fileName: string) {
 
   const params = {
     Bucket: process.env.NEXT_PUBLIC_AWS_S3_BUCKET_NAME,
-    Key: `${fileName}`,
+    Key: `${folderName}/${fileName}`,
     Body: fileBuffer,
     ContentType: contentType,
   };
@@ -47,6 +47,25 @@ export const POST = async (req: NextRequest) => {
     const formData = await req.formData();
     const file = formData.get("file");
 
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+      });
+    }
+
+    const user = await prismadb.user.findUnique({
+      where: {
+        email: session?.user?.email || "",
+      },
+    });
+
+    if (!user) {
+      console.log("user not found");
+      return NextResponse.json({ error: "User not found" });
+    }
+
     if (!(file instanceof File)) {
       return new Response(JSON.stringify({ error: "No file found" }), {
         status: 400,
@@ -54,7 +73,7 @@ export const POST = async (req: NextRequest) => {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const uploadedFileName = await uploadFileToS3(buffer, file.name);
+    const uploadedFileName = await uploadFileToS3(buffer, file.name, user.id);
 
     return new Response(
       JSON.stringify({
