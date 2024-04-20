@@ -22,10 +22,6 @@ A directory each user has where anything they put there will be publicly visible
 
 ## In Development Features
 
-### Sharable directories
-
-A place where you can see the list of directories you have shared with (an)other user(s). This would be a page similar to the main page of the application where you see a list of files, but there would only be a list of directories all of which would be shared to selected people.
-
 ### Encryption
 
 All notes and templates will be made encrypted so no one but the you and whomever you assign access to can see or edit a note. Currently passwords are already hashed, and thus secure.
@@ -33,6 +29,10 @@ All notes and templates will be made encrypted so no one but the you and whomeve
 ### Images and Videos
 
 The ability to embed images and videos in your notes will soon be added with the normal format in markdown for doing that.
+
+## Search
+
+Search for notes, words in notes, and other users' profiles.
 
 ## Technologies Being Used
 
@@ -42,3 +42,4 @@ The ability to embed images and videos in your notes will soon be added with the
 - MongoDB
 - NextAuth
 - Netlify
+- AWS S3

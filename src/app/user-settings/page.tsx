@@ -209,7 +209,34 @@ const UserSettings = () => {
 
   const deleteMedia = () => {};
 
-  const addMedia = () => {};
+  const addMedia = () => {
+    UploadImage();
+  };
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const UploadImage = () => {
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files ? event.target.files[0] : null;
+      setSelectedFile(file);
+    };
+
+    return (
+      <div>
+        <button onClick={() => document.getElementById("fileInput")?.click()}>
+          Upload Image
+        </button>
+        <input
+          type="file"
+          id="fileInput"
+          style={{ display: "none" }}
+          accept="image/*"
+          onChange={handleFileChange}
+        />
+        {selectedFile && <p>File: {selectedFile.name}</p>}
+      </div>
+    );
+  };
 
   if (status === "loading") {
     return (

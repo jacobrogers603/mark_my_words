@@ -3,15 +3,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import authOptions from "../../../../auth";
 import AWS from "aws-sdk";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
 
-AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION,
-  signatureVersion: "v4",
+const s3 = new AWS.S3({
+  region: process.env.NEXT_PUBLIC_AWS_S3_REGION,
+  credentials: {
+    accessKeyId: process.env.NEXT_PUBLIC_AWS_S3_ACCESS_KEY_ID ?? "",
+    secretAccessKey: process.env.NEXT_PUBLIC_AWS_S3_SECRET_ACCESS_KEY ?? "",
+  },
 });
-
-const s3 = new AWS.S3();
 
 type ResponseData = {
   signedRequest?: string;
