@@ -45,11 +45,14 @@ import {
 } from "@/components/ui/carousel";
 import { set } from "react-hook-form";
 import { FiPlus, FiPlusCircle } from "react-icons/fi";
+import { S3 } from "aws-sdk";
+import S3UploadForm from "@/components/S3UploadForm";
 
 const UserSettings = () => {
   const router = useRouter();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [templateTitle, setTemplateTitle] = useState("");
   const [templateContent, setTemplateContent] = useState("");
 
@@ -113,6 +116,10 @@ const UserSettings = () => {
 
   const closeDialog = () => {
     setIsDialogOpen(false);
+  };
+
+  const closeUploadDialog = () => {
+    setIsUploadDialogOpen(false);
   };
 
   const deleteTemplate = async (templateId: string) => {
@@ -210,32 +217,7 @@ const UserSettings = () => {
   const deleteMedia = () => {};
 
   const addMedia = () => {
-    UploadImage();
-  };
-
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const UploadImage = () => {
-
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files ? event.target.files[0] : null;
-      setSelectedFile(file);
-    };
-
-    return (
-      <div>
-        <button onClick={() => document.getElementById("fileInput")?.click()}>
-          Upload Image
-        </button>
-        <input
-          type="file"
-          id="fileInput"
-          style={{ display: "none" }}
-          accept="image/*"
-          onChange={handleFileChange}
-        />
-        {selectedFile && <p>File: {selectedFile.name}</p>}
-      </div>
-    );
+    setIsUploadDialogOpen(true);
   };
 
   if (status === "loading") {
@@ -282,6 +264,19 @@ const UserSettings = () => {
               </Button>
               <Button className="mt-2 md:ml-2" onClick={closeDialog}>
                 Cancel
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+      {/* Upload Dialog */}
+      {isUploadDialogOpen && (
+        <Dialog open={isUploadDialogOpen}>
+          <DialogContent className="w-auto flex flex-col place-items-center rounded-md">
+            <S3UploadForm />
+            <DialogFooter className="flex flex-col md:flex-row">
+              <Button className="mt-2 md:ml-2" onClick={closeUploadDialog}>
+                Close
               </Button>
             </DialogFooter>
           </DialogContent>

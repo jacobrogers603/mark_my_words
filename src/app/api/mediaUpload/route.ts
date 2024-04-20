@@ -3,9 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import authOptions from "../../../../auth";
 import AWS from "aws-sdk";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
-const s3 = new AWS.S3({
+const s3Client = new S3Client({
   region: process.env.NEXT_PUBLIC_AWS_S3_REGION,
   credentials: {
     accessKeyId: process.env.NEXT_PUBLIC_AWS_S3_ACCESS_KEY_ID ?? "",
@@ -13,62 +13,63 @@ const s3 = new AWS.S3({
   },
 });
 
+async function uploadFileToS3(file: Buffer, fileName: string) {
+  const fileBuffer = file;
+  let contentType = "application/octet-stream";
+
+  if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg')) {
+    contentType = "image/jpg";
+  } else if (fileName.endsWith('.png')) {
+    contentType = "image/png";
+  }
+
+  const params = {
+    Bucket: process.env.NEXT_PUBLIC_AWS_S3_BUCKET_NAME,
+    Key: `${fileName}`,
+    Body: fileBuffer,
+    ContentType: contentType,
+  };
+
+  const command = new PutObjectCommand(params);
+  await s3Client.send(command);
+
+  return fileName;
+}
+
 type ResponseData = {
   signedRequest?: string;
   url?: string;
   error?: string;
 };
 
-export const POST = async (req: NextRequest, res: NextResponse) => {
-  const { fileType, fileName, userId } = await req.json();
+export const POST = async (req: NextRequest) => {
+  try {
+    const formData = await req.formData();
+    const file = formData.get("file");
 
-  const s3Params = {
-    Bucket: "your_bucket_name",
-    Key: `users/${userId}/images/${fileName}`, // User-specific path
-    Expires: 300, // Link expiration time (in seconds)
-    ContentType: fileType,
-    ACL: "public-read",
-  };
+    if (!(file instanceof File)) {
+      return new Response(JSON.stringify({ error: "No file found" }), {
+        status: 400,
+      });
+    }
 
-  if (!fileType || !fileName || !userId) {
-    return NextResponse.json({ error: "Missing required fields" });
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const uploadedFileName = await uploadFileToS3(buffer, file.name);
+
+    return new Response(
+      JSON.stringify({
+        message: "File uploaded correctly.",
+        fileName: uploadedFileName,
+      }),
+      { status: 200 }
+    );
+  } catch (error) {
+    return new Response(
+      JSON.stringify({
+        message: "An error occurred while uploading the file.",
+        error,
+      }),
+      { status: 500 }
+    );
   }
-
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return NextResponse.json({ error: "No session" });
-  }
-
-  const user = await prismadb.user.findUnique({
-    where: {
-      email: session?.user?.email || "",
-    },
-  });
-
-  if (!user) {
-    console.log("user not found");
-    return NextResponse.json({ error: "User not found" });
-  }
-
-  return new Promise<Response>((resolve, reject) => {
-    s3.getSignedUrl("putObject", s3Params, (err, data) => {
-      if (err) {
-        console.error("Error getting signed URL:", err);
-        return resolve(
-          new Response(
-            JSON.stringify({ error: "Error creating pre-signed URL" }),
-            { status: 500 }
-          )
-        );
-      }
-      const response = new Response(
-        JSON.stringify({
-          signedRequest: data,
-          url: `https://${s3Params.Bucket}.s3.amazonaws.com/${s3Params.Key}`,
-        }),
-        { status: 200, headers: { "Content-Type": "application/json" } }
-      );
-      resolve(response);
-    });
-  });
 };
