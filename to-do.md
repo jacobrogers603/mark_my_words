@@ -28,3 +28,40 @@ when a user is logged in, they have access to buttons they shouldn't on another 
 ## encryption
 
 notes and data in general should be encrypted on the client side
+
+
+store:
+
+<FiPlusCircle
+              className="self-start ml-4 md:ml-12 mb-4 cursor-pointer"
+              size={30}
+              onClick={addMedia}
+            />
+            <Carousel
+              opts={{
+                align: "start",
+              }}
+              className="w-[70%]">
+              <CarouselContent>
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <CarouselItem key={index} className="basis-1/2 md:basis-1/3">
+                    <div className="p-1">
+                      <Card>
+                        <CardContent className="flex aspect-square items-center justify-center p-6 relative">
+                          <X
+                            className="absolute top-2 right-2 text-gray-600 cursor-pointer"
+                            size={23}
+                            onClick={deleteMedia}
+                          />
+                          <span className="text-3xl font-semibold">
+                            {index + 1}
+                          </span>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>

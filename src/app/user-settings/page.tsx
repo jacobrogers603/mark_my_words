@@ -47,6 +47,22 @@ import { set } from "react-hook-form";
 import { FiPlus, FiPlusCircle } from "react-icons/fi";
 import { S3 } from "aws-sdk";
 import S3UploadForm from "@/components/S3UploadForm";
+import { JsonObject } from "@prisma/client/runtime/library";
+import MediaCard from "@/components/MediaCard";
+
+interface FolderContentsProps {
+  folderPath: string;
+}
+
+interface FileDetails {
+  key: string;
+  title: string;
+  lastModified: string;
+}
+
+interface User {
+  id: string;
+}
 
 const UserSettings = () => {
   const router = useRouter();
@@ -55,11 +71,13 @@ const UserSettings = () => {
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [templateTitle, setTemplateTitle] = useState("");
   const [templateContent, setTemplateContent] = useState("");
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [files, setFiles] = useState<FileDetails[]>([]);
+  const [filesLoading, setFilesLoading] = useState(false);
+  const [noFilesMessage, setNoFilesMessage] = useState<string>("");
 
   const fetchTemplates = async () => {
     const response = await axios.get("/api/getTemplates");
-    console.log("fetching templates");
-    console.log(response.data);
     return response.data;
   };
 
@@ -220,6 +238,45 @@ const UserSettings = () => {
     setIsUploadDialogOpen(true);
   };
 
+  // Fetch the current user.
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        setFilesLoading(true);
+        setNoFilesMessage("Files loading...");
+        const response = await axios.get("/api/current");
+        setCurrentUser(response.data);
+      } catch (error) {
+        console.error("Failed to fetch user:", error);
+      }
+    };
+
+    getUser();
+  }, []);
+
+  // Fetch user's media files once the currentUser is set
+  useEffect(() => {
+    if (currentUser && currentUser.id) {
+      setFilesLoading(true);
+      const fetchFiles = async () => {
+        try {
+          const response = await axios.get(
+            `/api/getUsersMedia/${currentUser.id}`
+          );
+          setFilesLoading(false);
+          if (response.data.files.length === 0) {
+            setNoFilesMessage("No files found");
+          }
+          setFiles(response.data.files);
+        } catch (error) {
+          console.error("Error fetching files:", error);
+        }
+      };
+
+      fetchFiles();
+    }
+  }, [currentUser]);
+
   if (status === "loading") {
     return (
       <main className="w-full h-screen grid place-items-center pt-14">
@@ -348,42 +405,25 @@ Ut dolorum, repudiandae ![nomen](connecto).
             </div>
           </AccordionContent>
         </AccordionItem>
-        <AccordionItem value="item-2">
+        <AccordionItem value="item-2" className="overflow-y-auto max-h-96">
           <AccordionTrigger>Media Management</AccordionTrigger>
-          <AccordionContent className="flex flex-col w-full items-center justify-center">
+          <AccordionContent className="w-full h-fit max-h-full">
             <FiPlusCircle
-              className="self-start ml-4 md:ml-12 mb-4 cursor-pointer"
+              className="cursor-pointer"
               size={30}
               onClick={addMedia}
             />
-            <Carousel
-              opts={{
-                align: "start",
-              }}
-              className="w-[70%]">
-              <CarouselContent>
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <CarouselItem key={index} className="basis-1/2 md:basis-1/3">
-                    <div className="p-1">
-                      <Card>
-                        <CardContent className="flex aspect-square items-center justify-center p-6 relative">
-                          <X
-                            className="absolute top-2 right-2 text-gray-600 cursor-pointer"
-                            size={23}
-                            onClick={deleteMedia}
-                          />
-                          <span className="text-3xl font-semibold">
-                            {index + 1}
-                          </span>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
+            <div className="grid grid-cols-2 lg:grid-cols-3 place-items-center gap-2 mt-4 p-2 lg:p-4">
+              {files.length > 0 ? (
+                files.map((file) => (
+                  <MediaCard key={file.key} file={file} deleteMedia={deleteMedia} />
+                ))
+              ) : (
+                <p className="font-italic text-xl text-amber-600">
+                  {noFilesMessage}
+                </p>
+              )}
+            </div>
           </AccordionContent>
         </AccordionItem>
       </Accordion>

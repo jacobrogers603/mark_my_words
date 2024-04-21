@@ -13,13 +13,17 @@ const s3Client = new S3Client({
   },
 });
 
-async function uploadFileToS3(file: Buffer, fileName: string, folderName: string) {
+async function uploadFileToS3(
+  file: Buffer,
+  fileName: string,
+  folderName: string
+) {
   const fileBuffer = file;
   let contentType = "application/octet-stream";
 
-  if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg')) {
+  if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
     contentType = "image/jpg";
-  } else if (fileName.endsWith('.png')) {
+  } else if (fileName.endsWith(".png")) {
     contentType = "image/png";
   }
 
