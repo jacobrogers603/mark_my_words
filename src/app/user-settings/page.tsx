@@ -15,7 +15,7 @@ import axios, { AxiosResponse } from "axios";
 import { useSession } from "next-auth/react";
 import { redirect, useRouter } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Label } from "@radix-ui/react-label";
 import { Button } from "@/components/ui/button";
 import {
@@ -232,50 +232,63 @@ const UserSettings = () => {
     }
   };
 
-  const deleteMedia = () => {};
+  const deleteMedia = async (key: string) => {
+    try {
+      const response = await axios.delete(`/api/deleteMedia`, {
+        data: { key },
+      });
+      if (response.status === 200) {
+        // Remove the file from the list immediately upon successful deletion
+        setFiles((prevFiles) => prevFiles.filter((file) => file.key !== key));
+      }
+    } catch (error) {
+      console.error("Failed to delete media:", error);
+    }
+  };
 
   const addMedia = () => {
     setIsUploadDialogOpen(true);
   };
 
   // Fetch the current user.
-  useEffect(() => {
-    const getUser = async () => {
-      try {
-        setFilesLoading(true);
-        setNoFilesMessage("Files loading...");
-        const response = await axios.get("/api/current");
-        setCurrentUser(response.data);
-      } catch (error) {
-        console.error("Failed to fetch user:", error);
-      }
-    };
+  // useEffect(() => {
+  //   const getUser = async () => {
+  //     try {
+  //       setFilesLoading(true);
+  //       setNoFilesMessage("Files loading...");
+  //       const response = await axios.get("/api/current");
+  //       setCurrentUser(response.data);
+  //     } catch (error) {
+  //       console.error("Failed to fetch user:", error);
+  //     }
+  //   };
 
-    getUser();
-  }, []);
+  //   getUser();
+  // }, []);
 
-  // Fetch user's media files once the currentUser is set
-  useEffect(() => {
-    if (currentUser && currentUser.id) {
-      setFilesLoading(true);
-      const fetchFiles = async () => {
-        try {
-          const response = await axios.get(
-            `/api/getUsersMedia/${currentUser.id}`
-          );
-          setFilesLoading(false);
-          if (response.data.files.length === 0) {
-            setNoFilesMessage("No files found");
-          }
-          setFiles(response.data.files);
-        } catch (error) {
-          console.error("Error fetching files:", error);
-        }
-      };
+  // const fetchFiles = async () => {
+  //   setFilesLoading(true);
+  //   try {
+  //     const response = await axios.get(`/api/getUsersMedia/${currentUser?.id}`);
+  //     setFiles(response.data.files);
+  //     setNoFilesMessage(response.data.files.length ? "" : "No files found");
+  //   } catch (error) {
+  //     console.error("Error fetching files:", error);
+  //     setNoFilesMessage("Error loading files");
+  //   }
+  //   setFilesLoading(false);
+  // };
 
-      fetchFiles();
+  // useEffect(() => {
+  //   fetchFiles();
+  // }, []);
+
+  const handleMediaDelete = async (key: string) => {
+    const success = await deleteMedia(key); // make sure deleteMedia returns success status
+    if (success !== undefined) {
+      // fetchFiles(); // refetch the file list to reflect the updated state
     }
-  }, [currentUser]);
+  };
 
   if (status === "loading") {
     return (
@@ -416,7 +429,11 @@ Ut dolorum, repudiandae ![nomen](connecto).
             <div className="grid grid-cols-2 lg:grid-cols-3 place-items-center gap-2 mt-4 p-2 lg:p-4">
               {files.length > 0 ? (
                 files.map((file) => (
-                  <MediaCard key={file.key} file={file} deleteMedia={deleteMedia} />
+                  <MediaCard
+                    key={file.key}
+                    file={file}
+                    deleteMedia={handleMediaDelete}
+                  />
                 ))
               ) : (
                 <p className="font-italic text-xl text-amber-600">

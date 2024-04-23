@@ -1,56 +1,22 @@
-import prismadb from "@/lib/prismadb";
 import { NextRequest, NextResponse } from "next/server";
+import axios from "axios";
+import FormData from "form-data";
+import { Readable } from "stream";
 import { getServerSession } from "next-auth";
 import authOptions from "../../../../auth";
-import AWS from "aws-sdk";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-
-const s3Client = new S3Client({
-  region: process.env.NEXT_PUBLIC_AWS_S3_REGION,
-  credentials: {
-    accessKeyId: process.env.NEXT_PUBLIC_AWS_S3_ACCESS_KEY_ID ?? "",
-    secretAccessKey: process.env.NEXT_PUBLIC_AWS_S3_SECRET_ACCESS_KEY ?? "",
-  },
-});
-
-async function uploadFileToS3(
-  file: Buffer,
-  fileName: string,
-  folderName: string
-) {
-  const fileBuffer = file;
-  let contentType = "application/octet-stream";
-
-  if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
-    contentType = "image/jpg";
-  } else if (fileName.endsWith(".png")) {
-    contentType = "image/png";
-  }
-
-  const params = {
-    Bucket: process.env.NEXT_PUBLIC_AWS_S3_BUCKET_NAME,
-    Key: `${folderName}/${fileName}`,
-    Body: fileBuffer,
-    ContentType: contentType,
-  };
-
-  const command = new PutObjectCommand(params);
-  await s3Client.send(command);
-
-  return fileName;
-}
-
-type ResponseData = {
-  signedRequest?: string;
-  url?: string;
-  error?: string;
-};
+import prismadb from "@/lib/prismadb";
 
 export const POST = async (req: NextRequest) => {
-  try {
-    const formData = await req.formData();
-    const file = formData.get("file");
+  const formData = await req.formData();
+  const file = formData.get("file") as File;
 
+  if (!file) {
+    return new Response(JSON.stringify({ error: "No file found" }), {
+      status: 400,
+    });
+  }
+
+  try {
     const session = await getServerSession(authOptions);
 
     if (!session) {
@@ -60,39 +26,40 @@ export const POST = async (req: NextRequest) => {
     }
 
     const user = await prismadb.user.findUnique({
-      where: {
-        email: session?.user?.email || "",
-      },
+      where: { email: session?.user?.email || "" },
     });
 
     if (!user) {
-      console.log("user not found");
       return NextResponse.json({ error: "User not found" });
     }
 
-    if (!(file instanceof File)) {
-      return new Response(JSON.stringify({ error: "No file found" }), {
-        status: 400,
-      });
-    }
-
     const buffer = Buffer.from(await file.arrayBuffer());
-    const uploadedFileName = await uploadFileToS3(buffer, file.name, user.id);
+    const stream = new Readable();
+    stream.push(buffer);
+    stream.push(null); // Signals the end of the stream
+
+    const form = new FormData();
+    form.append("file", stream, { filename: file.name });
+
+    const nanodeUrl = `http://172.235.157.152:3000/upload?userId=${user.id}`; // Ensure this URL is correct and reachable
+
+    const response = await axios.post(nanodeUrl, form, {
+      headers: {
+        ...form.getHeaders(),
+      },
+    });    
 
     return new Response(
       JSON.stringify({
-        message: "File uploaded correctly.",
-        fileName: uploadedFileName,
+        message: "File uploaded successfully.",
+        url: response.data.url,
       }),
       { status: 200 }
     );
   } catch (error) {
-    return new Response(
-      JSON.stringify({
-        message: "An error occurred while uploading the file.",
-        error,
-      }),
-      { status: 500 }
-    );
+    console.error("Error uploading file:", error);
+    return NextResponse.json({
+      error,
+    });
   }
 };
