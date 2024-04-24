@@ -1,21 +1,12 @@
 "use client";
 import NavBar from "@/components/NavBar";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Template } from "@prisma/client";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
-import { Separator } from "@radix-ui/react-separator";
 import axios, { AxiosResponse } from "axios";
 import { useSession } from "next-auth/react";
 import { redirect, useRouter } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Label } from "@radix-ui/react-label";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,7 +19,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { ArrowDownFromLine, Home, PencilRuler, X } from "lucide-react";
+import { ArrowDownFromLine, Home, PencilRuler } from "lucide-react";
 import TemplateItem from "@/components/TemplateItem";
 import {
   Accordion,
@@ -36,19 +27,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import { set } from "react-hook-form";
-import { FiPlus, FiPlusCircle } from "react-icons/fi";
-import { S3 } from "aws-sdk";
-import S3UploadForm from "@/components/S3UploadForm";
-import { JsonObject } from "@prisma/client/runtime/library";
+import { FiPlusCircle } from "react-icons/fi";
 import MediaCard from "@/components/MediaCard";
+import JSZip from "jszip";
+import UploadForm from "@/components/UploadForm";
+import { set } from "react-hook-form";
 
 interface FolderContentsProps {
   folderPath: string;
@@ -56,8 +39,8 @@ interface FolderContentsProps {
 
 interface FileDetails {
   key: string;
-  title: string;
-  lastModified: string;
+  blob: Blob;
+  lastModified: Date;
 }
 
 interface User {
@@ -194,55 +177,25 @@ const UserSettings = () => {
     }
   };
 
-  const handleImageUpload = async (
-    file: File,
-    userId: string
-  ): Promise<string> => {
-    const res = await fetch("/api/upload", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        fileType: file.type,
-        fileName: file.name,
-        userId,
-      }),
-    });
-
-    const { signedRequest, url } = (await res.json()) as {
-      signedRequest: string;
-      url: string;
-    };
-
-    // Upload the file to the S3 bucket using the pre-signed URL
-    const result = await fetch(signedRequest, {
-      method: "PUT",
-      headers: {
-        "Content-Type": file.type,
-      },
-      body: file,
-    });
-
-    if (result.ok) {
-      console.log("Uploaded successfully:", url);
-      return url; // This URL can be used in markdown
-    } else {
-      throw new Error("Failed to upload image.");
-    }
-  };
-
   const deleteMedia = async (key: string) => {
+    if (!currentUser) {
+      console.error("No user logged in.");
+      return;
+    }
     try {
-      const response = await axios.delete(`/api/deleteMedia`, {
-        data: { key },
-      });
+      if (files.length === 1) {
+        setNoFilesMessage("No images");
+      }
+      const response = await axios.delete(
+        `http://172.235.157.152:3000/deleteMedia?userId=${currentUser.id}&fileName=${key}`
+      );
       if (response.status === 200) {
-        // Remove the file from the list immediately upon successful deletion
         setFiles((prevFiles) => prevFiles.filter((file) => file.key !== key));
+      } else {
+        console.error("Failed to delete media:", response.data.error);
       }
     } catch (error) {
-      console.error("Failed to delete media:", error);
+      console.log("Failed to delete media:", error);
     }
   };
 
@@ -251,44 +204,81 @@ const UserSettings = () => {
   };
 
   // Fetch the current user.
-  // useEffect(() => {
-  //   const getUser = async () => {
-  //     try {
-  //       setFilesLoading(true);
-  //       setNoFilesMessage("Files loading...");
-  //       const response = await axios.get("/api/current");
-  //       setCurrentUser(response.data);
-  //     } catch (error) {
-  //       console.error("Failed to fetch user:", error);
-  //     }
-  //   };
 
-  //   getUser();
-  // }, []);
-
-  // const fetchFiles = async () => {
-  //   setFilesLoading(true);
-  //   try {
-  //     const response = await axios.get(`/api/getUsersMedia/${currentUser?.id}`);
-  //     setFiles(response.data.files);
-  //     setNoFilesMessage(response.data.files.length ? "" : "No files found");
-  //   } catch (error) {
-  //     console.error("Error fetching files:", error);
-  //     setNoFilesMessage("Error loading files");
-  //   }
-  //   setFilesLoading(false);
-  // };
-
-  // useEffect(() => {
-  //   fetchFiles();
-  // }, []);
-
-  const handleMediaDelete = async (key: string) => {
-    const success = await deleteMedia(key); // make sure deleteMedia returns success status
-    if (success !== undefined) {
-      // fetchFiles(); // refetch the file list to reflect the updated state
+  const getUser = async () => {
+    setFilesLoading(true);
+    try {
+      const response = await axios.get("/api/current");
+      setCurrentUser(response.data);
+    } catch (error) {
+      console.error("Failed to fetch user:", error);
+    } finally {
+      setFilesLoading(false);
     }
   };
+
+  // Function to fetch and unzip media
+  const fetchAndUnzipMedia = async (): Promise<void> => {
+    if (!currentUser) {
+      getUser();
+    }
+    try {
+      setFilesLoading(true);
+      setNoFilesMessage("Images loading...");
+      const response: AxiosResponse<Blob> = await axios.get<Blob>(
+        `http://172.235.157.152:3000/getMedia?userId=${currentUser?.id}`,
+        {
+          responseType: "blob",
+        }
+      );
+
+      handleUnzip(response.data);
+    } catch (error) {
+      setNoFilesMessage("Failed to load images");
+      console.error("Error downloading or unzipping files:", error);
+    }
+  };
+
+  // Function to unzip files and update state
+  const handleUnzip = async (fileBlob: Blob): Promise<void> => {
+    const zip = new JSZip();
+    try {
+      const content = await zip.loadAsync(fileBlob); // Load the zip Blob
+      const filesArray: FileDetails[] = [];
+
+      for (const filename of Object.keys(content.files)) {
+        const file = content.files[filename];
+        if (!file.dir) {
+          const blob: Blob = await file.async("blob");
+          filesArray.push({
+            key: filename,
+            blob: blob,
+            lastModified: new Date(file.date),
+          });
+        }
+      }
+
+      setFiles(filesArray); // Update state with the new files
+      setFilesLoading(false);
+      setNoFilesMessage("No images");
+    } catch (error) {
+      console.error("Error unzipping the file:", error);
+    }
+  };
+
+  const refreshFiles = async () => {
+    fetchAndUnzipMedia();
+  };
+
+  useEffect(() => {
+    getUser();
+  }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchAndUnzipMedia();
+    }
+  }, [currentUser]);
 
   if (status === "loading") {
     return (
@@ -343,9 +333,14 @@ const UserSettings = () => {
       {isUploadDialogOpen && (
         <Dialog open={isUploadDialogOpen}>
           <DialogContent className="w-auto flex flex-col place-items-center rounded-md">
-            <S3UploadForm />
+            <UploadForm onUploadComplete={refreshFiles} />
             <DialogFooter className="flex flex-col md:flex-row">
-              <Button className="mt-2 md:ml-2" onClick={closeUploadDialog}>
+              <Button
+                className="mt-2 md:ml-2"
+                onClick={() => {
+                  closeUploadDialog();
+                  refreshFiles();
+                }}>
                 Close
               </Button>
             </DialogFooter>
@@ -432,11 +427,11 @@ Ut dolorum, repudiandae ![nomen](connecto).
                   <MediaCard
                     key={file.key}
                     file={file}
-                    deleteMedia={handleMediaDelete}
+                    deleteMedia={deleteMedia}
                   />
                 ))
               ) : (
-                <p className="font-italic text-xl text-amber-600">
+                <p className="flex justify-center items-center w-auto h-10 p-4 border-solid rounded-md border-black border-2 text-black font-semibold bg-amber-400 col-span-3">
                   {noFilesMessage}
                 </p>
               )}

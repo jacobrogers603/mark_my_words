@@ -1,34 +1,57 @@
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader } from "./ui/card";
+import React, { useEffect, useState } from "react";
+import { Card, CardContent } from "./ui/card";
 import { Info, X } from "lucide-react";
 
+// Define the interface for the MediaFile
 interface MediaFile {
   key: string;
-  title: string;
-  lastModified: string;
+  blob: Blob;
+  lastModified: Date;
 }
 
+// Define the interface for the component props
 interface MediaCardProps {
   file: MediaFile;
   deleteMedia: (key: string) => void;
 }
 
-const MediaCard = ({ file, deleteMedia }: MediaCardProps) => {
-  const [showInfo, setShowInfo] = useState(false);
-  const [hover, setHover] = useState(false);
+const MediaCard: React.FC<MediaCardProps> = ({ file, deleteMedia }) => {
+  const [showInfo, setShowInfo] = useState<boolean>(false);
+  const [hover, setHover] = useState<boolean>(false);
+  const [title, setTitle] = useState<string>("");
+  const [imageUrl, setImageUrl] = useState<string>("");
+
+  useEffect(() => {
+    // Regex to match the filename pattern and capture the needed parts
+    const pattern = /^(.+)-id:\d+(\.\w+)$/;
+    const match = file.key.match(pattern);
+
+    // If the pattern matches, recombine the filename parts excluding the id section
+    const titleWithExtension = match ? `${match[1]}${match[2]}` : file.key;
+
+    setTitle(titleWithExtension);
+    const url = URL.createObjectURL(file.blob);
+    setImageUrl(url);
+
+    // Cleanup function to revoke the blob URL
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [file]);
 
   return (
     <Card
-      className={`w-[10rem] h-[10rem] overflow-hidden cursor-default text-gray-600 relative ${showInfo ? "bg-gray-200" : ""}`}
-      key={file.key}
+      className={`w-[10rem] h-[10rem] overflow-hidden cursor-default text-gray-600 relative ${
+        showInfo ? "bg-gray-200" : ""
+      }`}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}>
       <CardContent className="flex flex-col items-center justify-center h-full w-full p-0 m-0">
-        {(hover && !showInfo) && (
+        {hover && !showInfo && (
           <div
             className="absolute inset-0 bg-gray-200 opacity-50 z-10"
-            style={{ borderRadius: "inherit" }} // Ensures the overlay has the same rounded corners as the card
-          ></div>
+            style={{ borderRadius: "inherit" }}
+          />
         )}
         {!showInfo && (
           <X
@@ -45,16 +68,24 @@ const MediaCard = ({ file, deleteMedia }: MediaCardProps) => {
         {showInfo ? (
           <>
             <h2 className="text-center mt-6 w-full mx-2 overflow-auto h-12 z-20">
-              {file.title}
+              {title}
             </h2>
             <p className="text-center mt-2 w-full mx-2 overflow-auto h-12 z-20">
-              {file.lastModified}
+              {file.lastModified.toLocaleString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: true,
+              })}
             </p>
           </>
         ) : (
           <img
-            src={`https://${process.env.NEXT_PUBLIC_AWS_S3_BUCKET_NAME}.s3.amazonaws.com/${file.key}`}
-            alt={file.title}
+            src={imageUrl}
+            alt={title}
             className="object-cover w-full h-full rounded-md"
           />
         )}

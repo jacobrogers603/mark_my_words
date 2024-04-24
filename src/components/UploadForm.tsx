@@ -6,7 +6,11 @@ import axios from "axios";
 import { Input } from "./ui/input";
 import { Label } from "@radix-ui/react-label";
 
-const S3UploadForm = () => {
+interface UploadFormProps {
+  onUploadComplete: () => void;
+}
+
+const UploadForm: React.FC<UploadFormProps> = ({onUploadComplete}) => {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -51,6 +55,7 @@ const S3UploadForm = () => {
       setUploadMessage("Image uploaded");
       setTimeout(() => {
         setUploadMessage("");
+        onUploadComplete();
       }, 3000);
     } catch (error) {
       setUploadMessage("Failed to upload image");
@@ -100,4 +105,4 @@ const S3UploadForm = () => {
   );
 };
 
-export default S3UploadForm;
+export default UploadForm;
