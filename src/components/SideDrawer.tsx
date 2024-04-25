@@ -4,8 +4,8 @@ import { Home, MenuIcon } from "lucide-react";
 import { Separator } from "./ui/separator";
 import { Button } from "./ui/button";
 import { IoSettingsSharp } from "react-icons/io5";
-import ComboBox from "./ComboBox";
-import { Label } from "@radix-ui/react-label";
+import { Image } from "lucide-react";
+import BottomDrawer from "./BottomDrawer";
 
 type SideDrawerProps = {
   lgMode: boolean;
@@ -44,12 +44,7 @@ const SideDrawer = ({
         <MenuIcon />
       </DrawerTrigger>
       <DrawerContent className="overflow-y-auto overflow-x-hidden">
-        <div
-          className={`grid ${
-            noteId === "new" || noteId.includes("newPublic")
-              ? "grid-rows-2"
-              : "grid-rows-3"
-          } grid-cols-2 gap-4 place-items-center p-2`}>
+        <div className="grid grid-rows-3 grid-cols-2 gap-4 place-items-center p-2">
           {!lgMode ? (
             <Button className="w-fit justify-self-start" onClick={routeHome}>
               <Home size={15} />
@@ -88,10 +83,15 @@ const SideDrawer = ({
           {!lgMode ? (
             <Button
               onClick={openTemplatesDialog}
-              className="w-fit justify-self-end">
+              className={`w-fit ${
+                noteId === "new" || noteId.includes("newPublic")
+                  ? "justify-self-start"
+                  : "justify-self-end"
+              }`}>
               Templates...
             </Button>
           ) : null}
+          {!lgMode ? <BottomDrawer lgMode={false} /> : null}
           {!lgMode ? (
             <Button
               onClick={saveNote}
@@ -99,8 +99,8 @@ const SideDrawer = ({
               disabled={isSaved}
               className={`w-fit ${
                 noteId === "new" || noteId.includes("newPublic")
-                  ? ""
-                  : "col-span-2"
+                  ? "col-span-2"
+                  : "justify-self-end"
               } ${
                 isSaved
                   ? "border-solid border-gray-600 border-2 rounded-md"

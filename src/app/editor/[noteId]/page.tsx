@@ -2,8 +2,6 @@
 import { useSession } from "next-auth/react";
 import { redirect, useParams, useRouter } from "next/navigation";
 import ComboBox from "@/components/ComboBox";
-import { HiDotsHorizontal } from "react-icons/hi";
-import FormattingButton from "@/components/FormattingButton";
 import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Dialog,
@@ -13,19 +11,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { set } from "react-hook-form";
 import axios from "axios";
-import useNote from "@/hooks/useNote";
 import useSWR from "swr";
 import fetcher from "@/lib/fetcher";
 import { Button } from "@/components/ui/button";
-import { Home, PencilRuler, X } from "lucide-react";
+import { Home, PencilRuler, Image } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import NavBar from "@/components/NavBar";
 import { IoSettingsSharp } from "react-icons/io5";
-import { Separator } from "@radix-ui/react-separator";
 import SideDrawer from "@/components/SideDrawer";
+import BottomDrawer from "@/components/BottomDrawer";
 
 export default function Editor() {
   const { data: session, status } = useSession({
@@ -215,7 +211,7 @@ export default function Editor() {
 
   const openTemplatesDialog = () => {
     setIsTemplatesDialogOpen(true);
-  };
+  }; 
 
   if (status === "loading" || !hasWriteAccess) {
     return (
@@ -332,6 +328,9 @@ export default function Editor() {
                 />
               </div>
             ) : null}
+            {lgMode ? (
+              <BottomDrawer lgMode={true}/>
+            ): null}
             {lgMode ? (
               <div className="grid place-items-center w-fit mr-6">
                 <ComboBox lgMode={lgMode} appendTemplate={appendTemplate} />
