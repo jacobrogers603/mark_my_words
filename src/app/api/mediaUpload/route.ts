@@ -41,7 +41,7 @@ export const POST = async (req: NextRequest) => {
     const form = new FormData();
     form.append("file", stream, { filename: file.name });
 
-    const nanodeUrl = `http://172.235.157.152:3000/upload?userId=${user.id}`; // Ensure this URL is correct and reachable
+    const nanodeUrl = `https://jrog603-linode.online/upload?userId=${user.id}`; // Ensure this URL is correct and reachable
 
     const response = await axios.post(nanodeUrl, form, {
       headers: {

@@ -55,7 +55,7 @@ const MediaCard: React.FC<MediaCardProps> = ({
       }
 
       const link =
-        "http://172.235.157.152:3000/images/" + currentUserId + "/" + file.key;
+        "https://jrog603-linode.online/images/" + currentUserId + "/" + file.key;
 
       appendImageLink(title, link);
     }
