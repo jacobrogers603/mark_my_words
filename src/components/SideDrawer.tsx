@@ -7,6 +7,12 @@ import { IoSettingsSharp } from "react-icons/io5";
 import { Image } from "lucide-react";
 import BottomDrawer from "./BottomDrawer";
 
+interface MediaFile {
+  key: string;
+  blob: Blob;
+  lastModified: Date;
+}
+
 type SideDrawerProps = {
   lgMode: boolean;
   routeHome: () => void;
@@ -21,6 +27,9 @@ type SideDrawerProps = {
   titleRef: React.RefObject<HTMLInputElement>;
   openTemplatesDialog: () => void;
   isCreator: boolean;
+  files: MediaFile[];
+  filesLoading: boolean;
+  noFilesMessage: string;
 };
 
 const SideDrawer = ({
@@ -37,6 +46,9 @@ const SideDrawer = ({
   titleRef,
   openTemplatesDialog,
   isCreator,
+  files,
+  filesLoading,
+  noFilesMessage,
 }: SideDrawerProps) => {
   return (
     <Drawer direction="right">
@@ -91,7 +103,14 @@ const SideDrawer = ({
               Templates...
             </Button>
           ) : null}
-          {!lgMode ? <BottomDrawer lgMode={false} /> : null}
+          {!lgMode ? (
+            <BottomDrawer
+              lgMode={false}
+              files={files}
+              filesLoading={filesLoading}
+              noFilesMessage={noFilesMessage}
+            />
+          ) : null}
           {!lgMode ? (
             <Button
               onClick={saveNote}

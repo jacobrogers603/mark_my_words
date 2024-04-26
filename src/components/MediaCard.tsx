@@ -13,9 +13,14 @@ interface MediaFile {
 interface MediaCardProps {
   file: MediaFile;
   deleteMedia: (key: string) => void;
+  deletable: boolean;
 }
 
-const MediaCard: React.FC<MediaCardProps> = ({ file, deleteMedia }) => {
+const MediaCard: React.FC<MediaCardProps> = ({
+  file,
+  deleteMedia,
+  deletable,
+}) => {
   const [showInfo, setShowInfo] = useState<boolean>(false);
   const [hover, setHover] = useState<boolean>(false);
   const [title, setTitle] = useState<string>("");
@@ -53,7 +58,7 @@ const MediaCard: React.FC<MediaCardProps> = ({ file, deleteMedia }) => {
             style={{ borderRadius: "inherit" }}
           />
         )}
-        {!showInfo && (
+        {(!showInfo && deletable) && (
           <X
             size={25}
             onClick={() => deleteMedia(file.key)}
