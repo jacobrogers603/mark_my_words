@@ -93,6 +93,7 @@ export default function Home() {
         updateCurrentPath={updateCurrentPath}
         isPublic={false}
         status={status}
+        currentUserIsCreator={true}
       />
     </main>
   );

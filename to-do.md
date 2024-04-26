@@ -13,10 +13,6 @@ hover card:
 - profile bio
 - https://ui.shadcn.com/docs/components/hover-card use for profile
 
-## Images
-
-Be able to manage and have images in your notes
-
 ## search
 
 ability to search for notes, words in notes, and other users, search results page to do, no drop down, i don't wanna

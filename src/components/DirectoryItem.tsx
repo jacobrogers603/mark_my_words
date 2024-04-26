@@ -13,12 +13,14 @@ type DirectoryItemProps = {
   note: JsonObject;
   updateCurrentPath: (directoryId?: string) => Promise<void>;
   status: string;
+  currentUserIsCreator: boolean;
 };
 
 const DirectoryItem = ({
   note,
   updateCurrentPath,
   status,
+  currentUserIsCreator,
 }: DirectoryItemProps) => {
   const router = useRouter();
 
@@ -119,7 +121,7 @@ const DirectoryItem = ({
       <div className="col-start-2 col-end-5 overflow-auto whitespace-nowrap w-full">
         {note?.title?.toString() ?? "No title"}
       </div>
-      {status === "authenticated" ? (
+      {(status === "authenticated" && currentUserIsCreator) ? (
         <div
           className="grid place-items-center w-full h-full z-100 col-start-6"
           onClick={handleEditClick}>
@@ -133,7 +135,7 @@ const DirectoryItem = ({
         onClick={handleDownloadClick}>
         <ArrowDownFromLine />
       </div>
-      {status === "authenticated" ? (
+      {(status === "authenticated" && currentUserIsCreator) ? (
         <div
           className="grid place-items-center w-full h-full z-100 col-start-8"
           onClick={handleSettingsClick}>

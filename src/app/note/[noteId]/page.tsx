@@ -23,10 +23,15 @@ const Note = () => {
 
   useEffect(() => {
     const checkAccess = async () => {
-      try {        
+      try {
         const { data } = await axios.get(`/api/getAccessLists/${noteId}`);
         if (status === "authenticated") {
-          const hasAccess = data.readAccessList.includes(session?.user?.email);
+          var hasAccess = false;
+          if (data.readAccessList.includes("public")) {
+            hasAccess = true;
+          } else {
+            hasAccess = data.readAccessList.includes(session?.user?.email);
+          }
           const hasWriteAccess = data.writeAccessList.includes(
             session?.user?.email
           );

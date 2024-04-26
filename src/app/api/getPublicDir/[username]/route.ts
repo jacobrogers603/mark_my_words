@@ -24,7 +24,7 @@ export async function GET(
       return NextResponse.json("No public dir can be found");
     }
 
-    const publicDirId = publicDir.id;
+    const publicDirId = publicDir;
 
     return NextResponse.json(publicDirId);
   } catch (error) {

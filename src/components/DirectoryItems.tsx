@@ -48,6 +48,7 @@ interface DirectoryItemsProps {
   updateCurrentPath: (directoryId?: string) => Promise<void>;
   isPublic: boolean;
   status: string;
+  currentUserIsCreator: boolean;
 }
 
 export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
@@ -56,6 +57,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
   updateCurrentPath,
   isPublic,
   status,
+  currentUserIsCreator,
 }) => {
   const router = useRouter();
   const [notes, setNotes] = useState<JsonObject[]>([]);
@@ -316,7 +318,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
         <AutoScrollH2 path={path} />
       </div>
       <div className="w-full h-8 flex mb-8">
-        {status === "authenticated" ? (
+        {(status === "authenticated" && currentUserIsCreator) ? (
           <div className="pl-8 flex items-center justify-start">
             <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
               <PopoverTrigger>
@@ -381,7 +383,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
           </TooltipProvider>
         ) : null}
         <div className="flex-grow"></div>
-        {status === "authenticated" ? (
+        {(status === "authenticated" && currentUserIsCreator) ? (
           <ArrowUpToLine
             onClick={handleUploadClick}
             className="ml-4 h-full w-fit hover:cursor-pointer"
@@ -410,6 +412,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
           note={note ?? null}
           updateCurrentPath={updateCurrentPath}
           status={status}
+          currentUserIsCreator={currentUserIsCreator}
         />
       ))}
 
@@ -420,6 +423,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
           note={note ?? null}
           updateCurrentPath={updateCurrentPath}
           status={status}
+          currentUserIsCreator={currentUserIsCreator}
         />
       ))}
     </main>
