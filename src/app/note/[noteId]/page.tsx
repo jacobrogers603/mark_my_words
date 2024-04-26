@@ -23,8 +23,7 @@ const Note = () => {
 
   useEffect(() => {
     const checkAccess = async () => {
-      try {
-        console.log("status", status);
+      try {        
         const { data } = await axios.get(`/api/getAccessLists/${noteId}`);
         if (status === "authenticated") {
           const hasAccess = data.readAccessList.includes(session?.user?.email);

@@ -4,8 +4,14 @@ import { Home, MenuIcon } from "lucide-react";
 import { Separator } from "./ui/separator";
 import { Button } from "./ui/button";
 import { IoSettingsSharp } from "react-icons/io5";
-import ComboBox from "./ComboBox";
-import { Label } from "@radix-ui/react-label";
+import { Image } from "lucide-react";
+import BottomDrawer from "./BottomDrawer";
+
+interface MediaFile {
+  key: string;
+  blob: Blob;
+  lastModified: Date;
+}
 
 type SideDrawerProps = {
   lgMode: boolean;
@@ -21,6 +27,11 @@ type SideDrawerProps = {
   titleRef: React.RefObject<HTMLInputElement>;
   openTemplatesDialog: () => void;
   isCreator: boolean;
+  files: MediaFile[];
+  filesLoading: boolean;
+  noFilesMessage: string;
+  appendImageLink: (altText: string, link: string) => void;
+  currentUserId: string;
 };
 
 const SideDrawer = ({
@@ -37,6 +48,11 @@ const SideDrawer = ({
   titleRef,
   openTemplatesDialog,
   isCreator,
+  files,
+  filesLoading,
+  noFilesMessage,
+  appendImageLink,
+  currentUserId,
 }: SideDrawerProps) => {
   return (
     <Drawer direction="right">
@@ -44,12 +60,7 @@ const SideDrawer = ({
         <MenuIcon />
       </DrawerTrigger>
       <DrawerContent className="overflow-y-auto overflow-x-hidden">
-        <div
-          className={`grid ${
-            noteId === "new" || noteId.includes("newPublic")
-              ? "grid-rows-2"
-              : "grid-rows-3"
-          } grid-cols-2 gap-4 place-items-center p-2`}>
+        <div className="grid grid-rows-3 grid-cols-2 gap-4 place-items-center p-2">
           {!lgMode ? (
             <Button className="w-fit justify-self-start" onClick={routeHome}>
               <Home size={15} />
@@ -88,9 +99,23 @@ const SideDrawer = ({
           {!lgMode ? (
             <Button
               onClick={openTemplatesDialog}
-              className="w-fit justify-self-end">
+              className={`w-fit ${
+                noteId === "new" || noteId.includes("newPublic")
+                  ? "justify-self-start"
+                  : "justify-self-end"
+              }`}>
               Templates...
             </Button>
+          ) : null}
+          {!lgMode ? (
+            <BottomDrawer
+              lgMode={false}
+              files={files}
+              filesLoading={filesLoading}
+              noFilesMessage={noFilesMessage}
+              appendImageLink={appendImageLink}
+              currentUserId={currentUserId}
+            />
           ) : null}
           {!lgMode ? (
             <Button
@@ -99,8 +124,8 @@ const SideDrawer = ({
               disabled={isSaved}
               className={`w-fit ${
                 noteId === "new" || noteId.includes("newPublic")
-                  ? ""
-                  : "col-span-2"
+                  ? "col-span-2"
+                  : "justify-self-end"
               } ${
                 isSaved
                   ? "border-solid border-gray-600 border-2 rounded-md"

@@ -118,3 +118,16 @@
     @apply ml-[-1.6em];
     @apply align-middle;
 }
+
+.markdown-content img {
+  @apply block;
+  @apply max-w-full;
+  @apply max-h-[500px];  /* Max height set to 500px */
+  @apply w-auto;         /* Width automatically adjusted to maintain aspect ratio */
+  @apply h-auto;         /* Height automatically adjusts to maintain aspect ratio */
+  @apply my-4;
+  @apply mx-auto;        /* Center align image */
+  @apply shadow-sm;      /* adds slight shadow for depth */
+  @apply rounded-lg;     /* adds rounded corners */
+}
+

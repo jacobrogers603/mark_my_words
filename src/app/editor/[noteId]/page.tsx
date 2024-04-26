@@ -2,8 +2,6 @@
 import { useSession } from "next-auth/react";
 import { redirect, useParams, useRouter } from "next/navigation";
 import ComboBox from "@/components/ComboBox";
-import { HiDotsHorizontal } from "react-icons/hi";
-import FormattingButton from "@/components/FormattingButton";
 import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Dialog,
@@ -13,19 +11,28 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { set } from "react-hook-form";
-import axios from "axios";
-import useNote from "@/hooks/useNote";
+import axios, { AxiosResponse } from "axios";
 import useSWR from "swr";
 import fetcher from "@/lib/fetcher";
 import { Button } from "@/components/ui/button";
-import { Home, PencilRuler, X } from "lucide-react";
+import { Home, PencilRuler, Image } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import NavBar from "@/components/NavBar";
 import { IoSettingsSharp } from "react-icons/io5";
-import { Separator } from "@radix-ui/react-separator";
 import SideDrawer from "@/components/SideDrawer";
+import BottomDrawer from "@/components/BottomDrawer";
+import JSZip from "jszip";
+
+interface FileDetails {
+  key: string;
+  blob: Blob;
+  lastModified: Date;
+}
+
+interface User {
+  id: string;
+}
 
 export default function Editor() {
   const { data: session, status } = useSession({
@@ -40,40 +47,56 @@ export default function Editor() {
   const router = useRouter();
   const [hasWriteAccess, setHasWriteAccess] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  const getUser = async () => {
+    setFilesLoading(true);
+    try {
+      const response = await axios.get("/api/current");
+      setCurrentUser(response.data);
+    } catch (error) {
+      console.error("Failed to fetch user:", error);
+    } finally {
+      setFilesLoading(false);
+    }
+  };
+
+  const checkAccess = async () => {
+    try {
+      if (noteId === "new" || noteId.includes("newPublic")) {
+        setHasWriteAccess(true);
+        setIsCreator(true);
+        return;
+      }
+
+      const { data } = await axios.get(`/api/getAccessLists/${noteId}`);
+      const hasAccess = data.writeAccessList.includes(session?.user?.email);
+      setHasWriteAccess(hasAccess);
+      if (!hasAccess) {
+        router.push("/unauthorized");
+      }
+
+      const { data: noteUserId } = await axios.get(
+        `/api/getNoteUserId/${noteId}`
+      );
+
+      const noteCreator = noteUserId === currentUser?.id;
+
+      setIsCreator(noteCreator);
+    } catch (error) {
+      console.error("Failed to fetch access list", error);
+    }
+  };
 
   useEffect(() => {
-    const checkAccess = async () => {
-      try {
-        if (noteId === "new" || noteId.includes("newPublic")) {
-          setHasWriteAccess(true);
-          setIsCreator(true);
-          return;
-        }
+    getUser();
+  }, []);
 
-        const { data } = await axios.get(`/api/getAccessLists/${noteId}`);
-        const hasAccess = data.writeAccessList.includes(session?.user?.email);
-        setHasWriteAccess(hasAccess);
-        if (!hasAccess) {
-          router.push("/unauthorized");
-        }
-
-        const { data: noteUserId } = await axios.get(
-          `/api/getNoteUserId/${noteId}`
-        );
-        const currentUser = await axios.get("/api/current");
-
-        const noteCreator = noteUserId === currentUser.data?.id;
-
-        setIsCreator(noteCreator);
-      } catch (error) {
-        console.error("Failed to fetch access list", error);
-      }
-    };
-
-    if (noteId && session) {
+  useEffect(() => {
+    if (noteId && session && currentUser) {
       checkAccess();
     }
-  }, [noteId, session, router]);
+  }, [noteId, session, router, currentUser]);
 
   const { data: note, mutate } = useSWR(`/api/getNote/${noteId}`, fetcher);
   const [noteText, setNoteText] = useState("");
@@ -88,6 +111,9 @@ export default function Editor() {
   const [settingsPressed, setSettingsPressed] = useState(false);
   const [lgMode, setLgMode] = useState(false);
   const [isTemplatesDialogOpen, setIsTemplatesDialogOpen] = useState(false);
+  const [files, setFiles] = useState<FileDetails[]>([]);
+  const [filesLoading, setFilesLoading] = useState(false);
+  const [noFilesMessage, setNoFilesMessage] = useState<string>("");
 
   useEffect(() => {
     if (noteId !== "new" && !noteId.includes("newPublic") && note) {
@@ -95,6 +121,60 @@ export default function Editor() {
       setNoteText(note.content);
     }
   }, [noteId, note]);
+
+  const fetchAndUnzipMedia = async (): Promise<void> => {
+    if (!currentUser) {
+      getUser();
+    }
+    try {
+      setFilesLoading(true);
+      setNoFilesMessage("Images loading...");
+      const response: AxiosResponse<Blob> = await axios.get<Blob>(
+        `http://172.235.157.152:3000/getMedia?userId=${currentUser?.id}`,
+        {
+          responseType: "blob",
+        }
+      );
+
+      handleUnzip(response.data);
+    } catch (error) {
+      setNoFilesMessage("Failed to load images");
+      console.error("Error downloading or unzipping files:", error);
+    }
+  };
+
+  // Function to unzip files and update state
+  const handleUnzip = async (fileBlob: Blob): Promise<void> => {
+    const zip = new JSZip();
+    try {
+      const content = await zip.loadAsync(fileBlob); // Load the zip Blob
+      const filesArray: FileDetails[] = [];
+
+      for (const filename of Object.keys(content.files)) {
+        const file = content.files[filename];
+        if (!file.dir) {
+          const blob: Blob = await file.async("blob");
+          filesArray.push({
+            key: filename,
+            blob: blob,
+            lastModified: new Date(file.date),
+          });
+        }
+      }
+
+      setFiles(filesArray); // Update state with the new files
+      setFilesLoading(false);
+      setNoFilesMessage("No images");
+    } catch (error) {
+      console.error("Error unzipping the file:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchAndUnzipMedia();
+    }
+  }, [currentUser]);
 
   const routeHome = () => {
     setHomePressed(true);
@@ -217,6 +297,11 @@ export default function Editor() {
     setIsTemplatesDialogOpen(true);
   };
 
+  const appendImageLink = (altText: string, link: string) => {
+    setNoteText((prev) => prev + `![${altText}](${link})`);
+    setIsSaved(false);
+  };
+
   if (status === "loading" || !hasWriteAccess) {
     return (
       <main className="w-full h-screen grid place-items-center pt-14">
@@ -333,6 +418,16 @@ export default function Editor() {
               </div>
             ) : null}
             {lgMode ? (
+              <BottomDrawer
+                lgMode={true}
+                files={files}
+                filesLoading={filesLoading}
+                noFilesMessage={noFilesMessage}
+                appendImageLink={appendImageLink}
+                currentUserId={currentUser?.id || ""}
+              />
+            ) : null}
+            {lgMode ? (
               <div className="grid place-items-center w-fit mr-6">
                 <ComboBox lgMode={lgMode} appendTemplate={appendTemplate} />
               </div>
@@ -376,6 +471,11 @@ export default function Editor() {
                 titleRef={titleRef}
                 openTemplatesDialog={openTemplatesDialog}
                 isCreator={isCreator}
+                files={files}
+                filesLoading={filesLoading}
+                noFilesMessage={noFilesMessage}
+                appendImageLink={appendImageLink}
+                currentUserId={currentUser?.id || ""}
               />
             </div>
           </nav>
