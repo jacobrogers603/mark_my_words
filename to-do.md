@@ -41,6 +41,10 @@ check if they are logged in and have access to view the note
 
 move from Atlas to nanode
 
+## make image links & templates enter the note text where the cursor was last
 
+## stop propagation of clicking photos when you press the X or i button on the media card
+
+is adding the link to the note when the user press i
 
 
