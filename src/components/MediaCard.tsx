@@ -12,14 +12,18 @@ interface MediaFile {
 // Define the interface for the component props
 interface MediaCardProps {
   file: MediaFile;
-  deleteMedia: (key: string) => void;
-  deletable: boolean;
+  deleteMedia?: (key: string) => void;
+  editor: boolean;
+  appendImageLink?: (altText: string, link: string) => void;
+  currentUserId?: string;
 }
 
 const MediaCard: React.FC<MediaCardProps> = ({
   file,
   deleteMedia,
-  deletable,
+  editor,
+  appendImageLink,
+  currentUserId,
 }) => {
   const [showInfo, setShowInfo] = useState<boolean>(false);
   const [hover, setHover] = useState<boolean>(false);
@@ -44,13 +48,33 @@ const MediaCard: React.FC<MediaCardProps> = ({
     };
   }, [file]);
 
+  const handleClick = () => {
+    if (editor && appendImageLink) {
+      if (!currentUserId || !file.key) {
+        return;
+      }
+
+      const link =
+        "http://172.235.157.152:3000/images/" + currentUserId + "/" + file.key;
+
+      appendImageLink(title, link);
+    }
+  };
+
+  const handleDelete = () => {
+    if (!editor && deleteMedia) {
+      deleteMedia(file.key);
+    }
+  };
+
   return (
     <Card
       className={`w-[10rem] h-[10rem] overflow-hidden cursor-default text-gray-600 relative ${
         showInfo ? "bg-gray-200" : ""
       }`}
       onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}>
+      onMouseLeave={() => setHover(false)}
+      onClick={handleClick}>
       <CardContent className="flex flex-col items-center justify-center h-full w-full p-0 m-0">
         {hover && !showInfo && (
           <div
@@ -58,10 +82,10 @@ const MediaCard: React.FC<MediaCardProps> = ({
             style={{ borderRadius: "inherit" }}
           />
         )}
-        {(!showInfo && deletable) && (
+        {!showInfo && !editor && (
           <X
             size={25}
-            onClick={() => deleteMedia(file.key)}
+            onClick={handleDelete}
             className="absolute top-2 right-2 cursor-pointer text-black hover:text-red-500 z-20"
           />
         )}

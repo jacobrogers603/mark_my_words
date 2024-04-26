@@ -297,6 +297,11 @@ export default function Editor() {
     setIsTemplatesDialogOpen(true);
   };
 
+  const appendImageLink = (altText: string, link: string) => {
+    setNoteText((prev) => prev + `![${altText}](${link})`);
+    setIsSaved(false);
+  };
+
   if (status === "loading" || !hasWriteAccess) {
     return (
       <main className="w-full h-screen grid place-items-center pt-14">
@@ -418,6 +423,8 @@ export default function Editor() {
                 files={files}
                 filesLoading={filesLoading}
                 noFilesMessage={noFilesMessage}
+                appendImageLink={appendImageLink}
+                currentUserId={currentUser?.id || ""}
               />
             ) : null}
             {lgMode ? (
@@ -467,6 +474,8 @@ export default function Editor() {
                 files={files}
                 filesLoading={filesLoading}
                 noFilesMessage={noFilesMessage}
+                appendImageLink={appendImageLink}
+                currentUserId={currentUser?.id || ""}
               />
             </div>
           </nav>

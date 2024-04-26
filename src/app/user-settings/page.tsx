@@ -428,7 +428,7 @@ Ut dolorum, repudiandae ![nomen](connecto).
                     key={file.key}
                     file={file}
                     deleteMedia={deleteMedia}
-                    deletable={true}
+                    editor={false}
                   />
                 ))
               ) : (

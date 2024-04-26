@@ -30,6 +30,8 @@ interface SideDrawerProps {
   files: MediaFile[];
   filesLoading: boolean;
   noFilesMessage: string;
+  appendImageLink: (altText: string, link: string) => void;
+  currentUserId: string;
 }
 
 const BottomDrawer = ({
@@ -37,8 +39,9 @@ const BottomDrawer = ({
   files,
   filesLoading,
   noFilesMessage,
+  appendImageLink,
+  currentUserId
 }: SideDrawerProps) => {
-  const doNothing = () => {};
 
   return (
     <Drawer direction="bottom">
@@ -72,8 +75,9 @@ const BottomDrawer = ({
                   <MediaCard
                     key={file.key}
                     file={file}
-                    deleteMedia={doNothing}
-                    deletable={false}
+                    editor={true}
+                    appendImageLink={appendImageLink}
+                    currentUserId={currentUserId}
                   />
                 </CarouselItem>
               ))

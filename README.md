@@ -26,9 +26,9 @@ A directory each user has where anything they put there will be publicly visible
 
 All notes and templates will be made encrypted so no one but the you and whomever you assign access to can see or edit a note. Currently passwords are already hashed, and thus secure.
 
-### Images and Videos
+### Images
 
-The ability to embed images and videos in your notes will soon be added with the normal format in markdown for doing that.
+The ability to embed images in your notes will soon be added with the normal format in markdown for doing that.
 
 ## Search
 

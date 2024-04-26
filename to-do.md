@@ -13,6 +13,10 @@ hover card:
 - profile bio
 - https://ui.shadcn.com/docs/components/hover-card use for profile
 
+## Images
+
+Be able to manage and have images in your notes
+
 ## search
 
 ability to search for notes, words in notes, and other users, search results page to do, no drop down, i don't wanna
@@ -29,39 +33,14 @@ when a user is logged in, they have access to buttons they shouldn't on another 
 
 notes and data in general should be encrypted on the client side
 
+## restrict anyone from accessing photos on nanode server with the link
 
-store:
+check if they are logged in and have access to view the note
 
-<FiPlusCircle
-              className="self-start ml-4 md:ml-12 mb-4 cursor-pointer"
-              size={30}
-              onClick={addMedia}
-            />
-            <Carousel
-              opts={{
-                align: "start",
-              }}
-              className="w-[70%]">
-              <CarouselContent>
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <CarouselItem key={index} className="basis-1/2 md:basis-1/3">
-                    <div className="p-1">
-                      <Card>
-                        <CardContent className="flex aspect-square items-center justify-center p-6 relative">
-                          <X
-                            className="absolute top-2 right-2 text-gray-600 cursor-pointer"
-                            size={23}
-                            onClick={deleteMedia}
-                          />
-                          <span className="text-3xl font-semibold">
-                            {index + 1}
-                          </span>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
+## move the mongo db to my nanode
+
+move from Atlas to nanode
+
+
+
+

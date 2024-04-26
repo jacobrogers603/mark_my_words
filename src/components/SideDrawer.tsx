@@ -30,6 +30,8 @@ type SideDrawerProps = {
   files: MediaFile[];
   filesLoading: boolean;
   noFilesMessage: string;
+  appendImageLink: (altText: string, link: string) => void;
+  currentUserId: string;
 };
 
 const SideDrawer = ({
@@ -49,6 +51,8 @@ const SideDrawer = ({
   files,
   filesLoading,
   noFilesMessage,
+  appendImageLink,
+  currentUserId,
 }: SideDrawerProps) => {
   return (
     <Drawer direction="right">
@@ -109,6 +113,8 @@ const SideDrawer = ({
               files={files}
               filesLoading={filesLoading}
               noFilesMessage={noFilesMessage}
+              appendImageLink={appendImageLink}
+              currentUserId={currentUserId}
             />
           ) : null}
           {!lgMode ? (
