@@ -187,7 +187,7 @@ const UserSettings = () => {
         setNoFilesMessage("No images");
       }
       const response = await axios.delete(
-        `http://172.235.157.152:3000/deleteMedia?userId=${currentUser.id}&fileName=${key}`
+        `https://jrog603-linode.online/deleteMedia?userId=${currentUser.id}&fileName=${key}`
       );
       if (response.status === 200) {
         setFiles((prevFiles) => prevFiles.filter((file) => file.key !== key));
@@ -226,7 +226,7 @@ const UserSettings = () => {
       setFilesLoading(true);
       setNoFilesMessage("Images loading...");
       const response: AxiosResponse<Blob> = await axios.get<Blob>(
-        `http://172.235.157.152:3000/getMedia?userId=${currentUser?.id}`,
+        `https://jrog603-linode.online/getMedia?userId=${currentUser?.id}`,
         {
           responseType: "blob",
         }
