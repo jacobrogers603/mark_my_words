@@ -36,7 +36,7 @@ export const POST = async (req: Request) => {
             },
         });
 
-        return NextResponse.json(updatedUser);
+        return new Response(null, { status: 200 });
       } catch (error) {
         return NextResponse.json(error);
       }
@@ -86,7 +86,7 @@ export const DELETE = async (req: Request) => {
             },
         });
 
-        return NextResponse.json(updatedUser);
+        return new Response(null, { status: 200 });
       } catch (error) {
         return NextResponse.json(error);
       }
