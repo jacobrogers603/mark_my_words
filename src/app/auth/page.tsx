@@ -20,6 +20,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { log } from "console";
+import { PencilRuler } from "lucide-react";
 
 interface IFormInput {
   email: string;
@@ -47,6 +48,7 @@ const signUpFormSchema = formSchema.extend({
 
 const AuthPage = () => {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const [variant, setVariant] = useState<"signin" | "signup">("signin");
   const toggleVariant = () => {
     setVariant(variant === "signin" ? "signup" : "signin");
@@ -76,6 +78,7 @@ const AuthPage = () => {
 
   const signin = async (email: string, password: string) => {
     try {
+      setLoading(true);
       const loginResult = await signIn("credentials", {
         email: email,
         password: password,
@@ -86,15 +89,18 @@ const AuthPage = () => {
         router.push("/");
       } else {
         setErrMssg("Invalid Login");
+        setLoading(false);
       }
     } catch (error) {
       console.error("Error during sign-in:", error);
       setErrMssg("An error occurred during sign-in");
+      setLoading(false);
     }
   };
 
   const signup = async (email: string, password: string) => {
     try {
+      setLoading(true);
       const signupResult = await axios.post("/api/signup", {
         email,
         password,
@@ -103,7 +109,9 @@ const AuthPage = () => {
       if (signupResult.status === 200) {
         signin(email, password);
       }
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       console.error(error);
     }
   };
@@ -121,6 +129,26 @@ const AuthPage = () => {
     form.reset();
     setErrMssg("");
   }
+
+  const routeAuth = () => {
+    router.push("/auth");
+  };
+
+  if (loading)
+    return (
+      <main className="w-full h-screen grid place-items-center pt-14">
+        <nav className="w-full h-14 absolute top-0 bg-amber-400 border-solid border-black border-b-2 grid grid-cols-8 place-items-center">
+          <PencilRuler
+            onClick={routeAuth}
+            size={30}
+            className="col-start-1 hover:cursor-pointer"
+          />
+        </nav>
+        <div className="flex justify-center items-center w-auto h-10 p-4 border-solid rounded-md border-black border-2 text-black font-semibold bg-amber-400">
+          Loading...
+        </div>
+      </main>
+    );
 
   return (
     <main className="grid place-items-center w-full h-screen">
