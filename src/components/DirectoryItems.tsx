@@ -94,7 +94,9 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
         const titles = await Promise.all(
           currentPath.map(async (directoryId) => {
             try {
-              const response = await axios.get(`/api/getNoteTitle/${directoryId}`);
+              const response = await axios.get(
+                `/api/getNoteTitle/${directoryId}`
+              );
               return response.data || "";
             } catch (error) {
               console.error("Failed to fetch note:", error);
@@ -301,7 +303,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
   };
 
   return (
-    <main className="w-[80%] md:w-[65%] lg:w-[50%]">
+    <main className="w-full h-full flex flex-col">
       <Toaster />
       <input
         type="file"
@@ -321,8 +323,8 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
         ) : null}
         <AutoScrollH2 path={path} />
       </div>
-      <div className="w-full h-8 flex mb-8">
-        {(status === "authenticated" && currentUserIsCreator) ? (
+      <div className="w-full h-8 flex mb-4">
+        {status === "authenticated" && currentUserIsCreator ? (
           <div className="pl-8 flex items-center justify-start">
             <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
               <PopoverTrigger>
@@ -387,7 +389,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
           </TooltipProvider>
         ) : null}
         <div className="flex-grow"></div>
-        {(status === "authenticated" && currentUserIsCreator) ? (
+        {status === "authenticated" && currentUserIsCreator ? (
           <ArrowUpToLine
             onClick={handleUploadClick}
             className="ml-4 h-full w-fit hover:cursor-pointer"
@@ -400,36 +402,37 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
           size={30}
         />
       </div>
+
       {currentPath && currentPath.length > 1 ? (
         <div
-          className="grid place-items-center grid-cols-8 w-full h-10 border-solid rounded-md border-2 bg-blue-400 border-black cursor-pointer mb-2 font-extrabold"
+          className="grid place-items-center grid-cols-8 w-full h-10 border-solid rounded-md border-2 bg-blue-400 border-black cursor-pointer font-extrabold"
           onClick={() => updateCurrentPath()}>
           <FolderClosed />
           <span className="col-start-2 col-end-5">↑ . . .</span>
         </div>
       ) : null}
-
-      {/* Render directories first */}
-      {dirNotes.map((note) => (
-        <DirectoryItem
-          key={note.id?.toString()}
-          note={note ?? null}
-          updateCurrentPath={updateCurrentPath}
-          status={status}
-          currentUserIsCreator={currentUserIsCreator}
-        />
-      ))}
-
-      {/* Render non-directory notes */}
-      {nonDirNotes.map((note) => (
-        <DirectoryItem
-          key={note.id?.toString()}
-          note={note ?? null}
-          updateCurrentPath={updateCurrentPath}
-          status={status}
-          currentUserIsCreator={currentUserIsCreator}
-        />
-      ))}
+      <div className="overflow-y-auto flex-grow pt-2">
+        {/* Render directories first */}
+        {dirNotes.map((note) => (
+          <DirectoryItem
+            key={note.id?.toString()}
+            note={note ?? null}
+            updateCurrentPath={updateCurrentPath}
+            status={status}
+            currentUserIsCreator={currentUserIsCreator}
+          />
+        ))}
+        {/* Render non-directory notes */}
+        {nonDirNotes.map((note) => (
+          <DirectoryItem
+            key={note.id?.toString()}
+            note={note ?? null}
+            updateCurrentPath={updateCurrentPath}
+            status={status}
+            currentUserIsCreator={currentUserIsCreator}
+          />
+        ))}
+      </div>
     </main>
   );
 };

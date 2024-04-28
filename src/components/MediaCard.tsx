@@ -55,16 +55,25 @@ const MediaCard: React.FC<MediaCardProps> = ({
       }
 
       const link =
-        "https://jrog603-linode.online/images/" + currentUserId + "/" + file.key;
+        "https://jrog603-linode.online/images/" +
+        currentUserId +
+        "/" +
+        file.key;
 
       appendImageLink(title, link);
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation();
     if (!editor && deleteMedia) {
       deleteMedia(file.key);
     }
+  };
+
+  const handleInfoClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation();
+    setShowInfo(!showInfo);
   };
 
   return (
@@ -83,17 +92,19 @@ const MediaCard: React.FC<MediaCardProps> = ({
           />
         )}
         {!showInfo && !editor && (
-          <X
-            size={25}
-            onClick={handleDelete}
-            className="absolute top-2 right-2 cursor-pointer text-black hover:text-red-500 z-20"
-          />
+          <div className="w-fit h-hit" onClick={handleDelete}>
+            <X
+              size={25}
+              className="absolute top-2 right-2 cursor-pointer text-black hover:text-red-500 z-20"
+            />
+          </div>
         )}
-        <Info
-          size={25}
-          className="absolute top-2 left-2 cursor-pointer text-black rounded-full z-20"
-          onClick={() => setShowInfo(!showInfo)}
-        />
+        <div className="w-fit h-hit" onClick={handleInfoClick}>
+          <Info
+            size={25}
+            className="absolute top-2 left-2 cursor-pointer text-black rounded-full z-20"
+          />
+        </div>
         {showInfo ? (
           <>
             <h2 className="text-center mt-6 w-full mx-2 overflow-auto h-12 z-20">

@@ -301,7 +301,7 @@ export default function Editor() {
   };
 
   const appendTemplate = (templateContent: string) => {
-    setNoteText((prev) => prev + "\n\n" + templateContent);
+    setNoteText((prev) => prev + "\n" + templateContent);
     setIsSaved(false);
     setIsTemplatesDialogOpen(false);
   };

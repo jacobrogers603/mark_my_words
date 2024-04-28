@@ -87,13 +87,15 @@ const PublicProfile = () => {
   return (
     <main className="h-screen w-full pt-14 flex flex-col items-center justify-between">
       <NavBar userProvided={true} userProp={currentUser}/>
-      <DirectoryItems
-        currentPath={currentPath}
-        updateCurrentPath={updateCurrentPath}
-        isPublic={true}
-        status={status}
-        currentUserIsCreator={isCreator}
-      />
+      <div className="h-full w-[80%] md:w-[65%] lg:w-[50%]">
+        <DirectoryItems
+          currentPath={currentPath}
+          updateCurrentPath={updateCurrentPath}
+          isPublic={true}
+          status={status}
+          currentUserIsCreator={isCreator}
+        />
+      </div>
     </main>
   );
 };

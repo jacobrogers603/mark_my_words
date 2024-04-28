@@ -71,15 +71,17 @@ export default function Home() {
   }
 
   return (
-    <main className="flex h-full flex-col items-center justify-between w-full pt-[5.5rem] bg-white">
+    <main className="h-screen w-full pt-14 flex flex-col items-center justify-between">
       <NavBar userProvided={false}/>
-      <DirectoryItems
-        currentPath={currentPath}
-        updateCurrentPath={updateCurrentPath}
-        isPublic={false}
-        status={status}
-        currentUserIsCreator={true}
-      />
+      <div className="h-full w-[80%] md:w-[65%] lg:w-[50%]">
+        <DirectoryItems
+          currentPath={currentPath}
+          updateCurrentPath={updateCurrentPath}
+          isPublic={false}
+          status={status}
+          currentUserIsCreator={true}
+        />
+      </div>
     </main>
   );
 }
