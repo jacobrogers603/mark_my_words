@@ -6,31 +6,43 @@ import {
   PopoverTrigger,
 } from "@radix-ui/react-popover";
 import { Button } from "@/components/ui/button";
-import { buttonVariants } from "@/components/ui/button";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import { IoSettingsSharp } from "react-icons/io5";
 import { PencilRuler } from "lucide-react";
 import axios from "axios";
-import { forEach } from "jszip";
 
 interface NavBarProps {
   editor?: boolean;
   routeHome?: () => void;
+  userProvided: boolean;
+  userProp?: User | undefined;
 }
 
 interface User {
-  username: string;
+  id: string;
   email: string;
+  username: string;
 }
 
-const NavBar: React.FC<NavBarProps> = ({ editor, routeHome }) => {
+const NavBar: React.FC<NavBarProps> = ({
+  editor,
+  routeHome,
+  userProp,
+  userProvided,
+}) => {
   const router = useRouter();
   const pathname = usePathname();
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [prettyUsername, setPrettyUsername] = useState<String>("Loading...");
+  const [user, setUser] = useState<User | undefined>(undefined);
 
   const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (userProvided && userProp) {
+      setUser(userProp);
+    }
+  }, [userProp, userProvided]);
 
   const routeUserSettings = () => {
     router.push("/user-settings");
@@ -41,24 +53,15 @@ const NavBar: React.FC<NavBarProps> = ({ editor, routeHome }) => {
   };
 
   const routePublicProfile = () => {
-    router.push(`/${currentUser?.username}`);
+    router.push(`/${user?.username}`);
   };
 
-  const fetchUser = async () => {
-    try {
-      const response = await axios.get<User>("/api/current");
-      setCurrentUser(response.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const prettyUpUsername = () => {
-    if (!currentUser) {
+  const prettyUpUsername = (input: string) => {
+    if (!input) {
       return "No username";
     }
 
-    const username = currentUser.username;
+    const username = input;
     let retval = "";
     let i = 0;
 
@@ -76,15 +79,26 @@ const NavBar: React.FC<NavBarProps> = ({ editor, routeHome }) => {
     return retval;
   };
 
-  useEffect(() => {
-    fetchUser();
-  }, []);
+  const fetchUser = async () => {
+    try {
+      const response = await axios.get("/api/getCurrentUsername");
+      setUser(response.data);
+    } catch (error) {
+      console.log("Failed to fetch user", error);
+    }
+  };
 
   useEffect(() => {
-    if (currentUser) {
-      setPrettyUsername(prettyUpUsername());
+    if (!user && !userProvided) {
+      fetchUser();
     }
-  }, [currentUser, prettyUpUsername]);
+  }, [user, userProvided]);
+
+  useEffect(() => {
+    if (user) {
+      setPrettyUsername(prettyUpUsername(user.username));
+    }
+  }, [user]);
 
   return (
     <nav className="w-full h-14 absolute top-0 bg-amber-400 border-solid border-black border-b-2 grid grid-cols-8 place-items-center">
@@ -123,10 +137,10 @@ const NavBar: React.FC<NavBarProps> = ({ editor, routeHome }) => {
                     {prettyUsername || "Loading..."}
                   </span>
                   <span className="text-gray-600">
-                    {"(" + currentUser?.email + ")"}
+                    {"(" + user?.email + ")"}
                   </span>
                 </h1>
-                {pathname !== `/${currentUser?.username}` ? (
+                {pathname !== `/${user?.username}` ? (
                   <Button
                     className="m-6 my-3"
                     variant={"secondary"}

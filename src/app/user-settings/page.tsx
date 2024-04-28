@@ -32,11 +32,6 @@ import MediaCard from "@/components/MediaCard";
 import JSZip from "jszip";
 import UploadForm from "@/components/UploadForm";
 import { set } from "react-hook-form";
-
-interface FolderContentsProps {
-  folderPath: string;
-}
-
 interface FileDetails {
   key: string;
   blob: Blob;
@@ -45,6 +40,8 @@ interface FileDetails {
 
 interface User {
   id: string;
+  email: string;
+  username: string;
 }
 
 const UserSettings = () => {
@@ -54,21 +51,37 @@ const UserSettings = () => {
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [templateTitle, setTemplateTitle] = useState("");
   const [templateContent, setTemplateContent] = useState("");
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
   const [files, setFiles] = useState<FileDetails[]>([]);
   const [filesLoading, setFilesLoading] = useState(false);
   const [noFilesMessage, setNoFilesMessage] = useState<string>("");
 
-  const fetchTemplates = async () => {
-    const response = await axios.get("/api/getTemplates");
-    return response.data;
+  const { data: session, status } = useSession({
+    required: true,
+    onUnauthenticated() {
+      console.log("redirected");
+      redirect("/api/auth/signin");
+    },
+  });
+
+  const getUser = async () => {
+    setFilesLoading(true);
+    try {
+      const response = await axios.get("/api/getCurrentUsername");
+      setCurrentUser(response.data);
+    } catch (error) {
+      console.error("Failed to fetch user:", error);
+    } finally {
+      setFilesLoading(false);
+    }
   };
 
-  const updateTemplates = async () => {
-    console.log("updating templates");
-    const updatedTemplates = await fetchTemplates();
-    setTemplates(updatedTemplates);
-    console.log("templates:", templates);
+  const fetchTemplates = async () => {
+    const response = await axios.get("/api/getTemplates");
+
+    if (response.data) {
+      setTemplates(response.data);
+    }
   };
 
   const saveTemplate = async () => {
@@ -77,7 +90,7 @@ const UserSettings = () => {
       content: templateContent,
     });
     setIsDialogOpen(false);
-    updateTemplates();
+    fetchTemplates();
     setTemplateTitle("");
     setTemplateContent("");
   };
@@ -93,23 +106,6 @@ const UserSettings = () => {
   ) => {
     setTemplateContent(event.target.value);
   };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const templates = await fetchTemplates();
-      setTemplates(templates);
-    };
-
-    fetchData();
-  }, []);
-
-  const { data: session, status } = useSession({
-    required: true,
-    onUnauthenticated() {
-      console.log("redirected");
-      redirect("/api/auth/signin");
-    },
-  });
 
   const handleSaveTemplateClick = () => {
     setIsDialogOpen(true);
@@ -135,7 +131,7 @@ const UserSettings = () => {
       console.error("deleteTemplate tryCatch error:", error);
     }
 
-    updateTemplates();
+    fetchTemplates();
   };
 
   const routeHome = () => {
@@ -203,21 +199,6 @@ const UserSettings = () => {
     setIsUploadDialogOpen(true);
   };
 
-  // Fetch the current user.
-
-  const getUser = async () => {
-    setFilesLoading(true);
-    try {
-      const response = await axios.get("/api/current");
-      setCurrentUser(response.data);
-    } catch (error) {
-      console.error("Failed to fetch user:", error);
-    } finally {
-      setFilesLoading(false);
-    }
-  };
-
-  // Function to fetch and unzip media
   const fetchAndUnzipMedia = async (): Promise<void> => {
     if (!currentUser) {
       getUser();
@@ -239,7 +220,6 @@ const UserSettings = () => {
     }
   };
 
-  // Function to unzip files and update state
   const handleUnzip = async (fileBlob: Blob): Promise<void> => {
     const zip = new JSZip();
     try {
@@ -276,6 +256,12 @@ const UserSettings = () => {
 
   useEffect(() => {
     if (currentUser) {
+      fetchTemplates();
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (currentUser) {
       fetchAndUnzipMedia();
     }
   }, [currentUser]);
@@ -299,7 +285,7 @@ const UserSettings = () => {
 
   return (
     <main className="flex flex-col w-full h-screen place-items-center pb-8">
-      <NavBar />
+      <NavBar userProvided={true} userProp={currentUser} />
       {/* Template Title */}
       {isDialogOpen && (
         <Dialog open={isDialogOpen}>

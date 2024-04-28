@@ -19,21 +19,6 @@ export default function Home() {
     },
   });
 
-  const [currentDirNotes, setCurrentDirNotes] = useState([]);
-
-  useEffect(() => {
-    const fetchCurrentDirectory = async () => {
-      try {
-        const response = await axios.get("/api/getCurrentDirectoryNotes");
-        setCurrentDirNotes(response.data);
-      } catch (error) {
-        console.log("Failed to fetch current directory", error);
-      }
-    };
-
-    fetchCurrentDirectory();
-  }, []);
-
   const [currentPath, setCurrentPath] = useState<string[]>([]);
 
   useEffect(() => {
@@ -48,6 +33,7 @@ export default function Home() {
 
     fetchCurrentPath();
   }, []);
+
 
   const updateCurrentPath = async (directoryId?: string) => {
     try {
@@ -86,9 +72,8 @@ export default function Home() {
 
   return (
     <main className="flex h-full flex-col items-center justify-between w-full pt-[5.5rem] bg-white">
-      <NavBar />
+      <NavBar userProvided={false}/>
       <DirectoryItems
-        currentDirNotes={currentDirNotes}
         currentPath={currentPath}
         updateCurrentPath={updateCurrentPath}
         isPublic={false}

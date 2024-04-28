@@ -9,6 +9,8 @@ import React, { useEffect, useState } from "react";
 
 interface User {
   id: string;
+  email: string;
+  username: string;
 }
 
 const PublicProfile = () => {
@@ -16,16 +18,15 @@ const PublicProfile = () => {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [currentPath, setCurrentPath] = useState<string[]>([]);
-  const [currentDirNotes, setCurrentDirNotes] = useState([]);
-  const [currentUser, setCurrentUser] = useState<string>("");
+  const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
   const [publicDirCreator, setPublicDirCreator] = useState<string>("");
   const [isCreator, setIsCreator] = useState(false);
 
   const fetchCurrentUser = async () => {
     try {
-      const response = await axios.get("/api/current");
+      const response = await axios.get("/api/getCurrentUsername");
       if (response) {
-        setCurrentUser(response.data.id);
+        setCurrentUser(response.data);
       }
     } catch (error) {
       console.error("Failed to fetch current user:", error);
@@ -54,27 +55,9 @@ const PublicProfile = () => {
 
   useEffect(() => {
     if (currentUser && publicDirCreator) {
-      console.log("currentUser: ", currentUser, "===", "publicDirCreator: ", publicDirCreator);
-      setIsCreator(currentUser === publicDirCreator);
+      setIsCreator(currentUser.id === publicDirCreator);
     }
   }, [currentUser, publicDirCreator]);
-
-  useEffect(() => {
-    const fetchCurrentDirectory = async () => {
-      try {
-        const response = await axios.get(
-          `/api/getPublicCurDirNotes/${currentPath[currentPath.length - 1]}`
-        );
-        setCurrentDirNotes(response.data);
-      } catch (error) {
-        console.error("Failed to fetch current directory notes:", error);
-      }
-    };
-
-    if (currentPath.length > 0) {
-      fetchCurrentDirectory();
-    }
-  }, [currentPath]); // This effect depends on `currentPath`
 
   if (status === "loading") {
     return (
@@ -103,9 +86,8 @@ const PublicProfile = () => {
 
   return (
     <main className="h-screen w-full pt-14 flex flex-col items-center justify-between">
-      <NavBar />
+      <NavBar userProvided={true} userProp={currentUser}/>
       <DirectoryItems
-        currentDirNotes={currentDirNotes}
         currentPath={currentPath}
         updateCurrentPath={updateCurrentPath}
         isPublic={true}

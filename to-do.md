@@ -21,10 +21,6 @@ ability to search for notes, words in notes, and other users, search results pag
 
 we don't want to fetch the content of the notes on the home page and we don't want notes being sent with data that shouldn't be seen by the user at specific times in the network inspector on the browser 
 
-## fix public profile access problems
-
-when a user is logged in, they have access to buttons they shouldn't on another user's public profile page
-
 ## encryption
 
 notes and data in general should be encrypted on the client side
@@ -43,4 +39,8 @@ move from Atlas to nanode
 
 is adding the link to the note when the user press i
 
+## Add currentPathTitles to User model in schema
 
+we have to query the database for the name of every path title, so each layer we go down in terms of nesting for making folders and sub folders we have the ask the server what the ID's name is to display it to the user... this is bad
+
+## deleting a note causes an error in the console despite doing the action correctly

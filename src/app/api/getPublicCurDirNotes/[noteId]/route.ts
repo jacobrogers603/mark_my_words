@@ -35,7 +35,19 @@ export async function GET(
       },
     });
 
-    return NextResponse.json(currentDirNotes);
+    if (!currentDirNotes) return NextResponse.json([]);
+
+    let response: { title: string, id: string, isDirectory: boolean }[] = [];
+
+      for (const note of currentDirNotes) {
+        response.push({
+          title: note.title,
+          id: note.id,
+          isDirectory: note.isDirectory,
+        });
+      }
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Error fetching directory notes:", error); // Log the error
     return NextResponse.json({ error });

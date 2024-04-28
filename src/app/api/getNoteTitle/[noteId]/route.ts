@@ -48,7 +48,7 @@ export async function GET(
         throw new Error("No Such Note Found");
       }
 
-      return NextResponse.json(note);
+      return NextResponse.json(note.title);
     } catch (error) {
       return NextResponse.json(error);
     }
@@ -61,7 +61,7 @@ export async function GET(
         },
       });
 
-      return NextResponse.json(note);
+      return NextResponse.json(note?.title);
     } catch (error) {
       return NextResponse.json(error);
     }

@@ -1,5 +1,4 @@
 "use client";
-import useNote from "@/hooks/useNote";
 import { useSession } from "next-auth/react";
 import { redirect, useRouter, useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -11,18 +10,48 @@ import { NotebookText, Home, PencilRuler } from "lucide-react";
 import { FaEdit } from "react-icons/fa";
 import { IoSettingsSharp } from "react-icons/io5";
 import axios from "axios";
+import { set } from "react-hook-form";
+
+interface User {
+  id: string;
+  email: string;
+  username: string;
+}
+
+interface Note {
+  content: string;
+  htmlContent: string;
+}
 
 const Note = () => {
   const { noteId } = useParams();
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { data: note } = useNote(noteId as string);
+  const [note, setNote] = useState<Note>();
+  const [user, setUser] = useState<User>();
   const [hasReadAccess, setHasReadAccess] = useState(false);
   const [hasWriteAccess, setHasWriteAccess] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
 
+  const fetchUser = async () => {
+    try {
+      const response = await axios.get("/api/getCurrentUsername");
+      setUser(response.data);
+    } catch (error) {
+      console.error("Failed to fetch user", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
+
   useEffect(() => {
     const checkAccess = async () => {
+      if(!user){
+        fetchUser();
+        return;
+      }
       try {
         const { data } = await axios.get(`/api/getAccessLists/${noteId}`);
         if (status === "authenticated") {
@@ -30,7 +59,7 @@ const Note = () => {
           if (data.readAccessList.includes("public")) {
             hasAccess = true;
           } else {
-            hasAccess = data.readAccessList.includes(session?.user?.email);
+            hasAccess = data.readAccessList.includes(user.email);
           }
           const hasWriteAccess = data.writeAccessList.includes(
             session?.user?.email
@@ -45,10 +74,8 @@ const Note = () => {
           const { data: noteUserId } = await axios.get(
             `/api/getNoteUserId/${noteId}`
           );
-          const currentUser = await axios.get("/api/current");
 
-          const noteCreator = noteUserId === currentUser.data?.id;
-
+          const noteCreator = noteUserId === user.id;
           setIsCreator(noteCreator);
         } else {
           // public viewer
@@ -66,10 +93,24 @@ const Note = () => {
       }
     };
 
-    if (noteId) {
+    if (noteId && user) {
       checkAccess();
     }
-  }, [noteId, session, router]);
+  }, [noteId, user, status]);
+
+  useEffect(() => {
+    if (hasReadAccess && noteId) {
+      const fetchNote = async () => {
+        try {
+          const response = await axios.get<Note>(`/api/getNote/${noteId}`);
+          setNote(response.data);
+        } catch (error) {
+          console.error("Failed to fetch note", error);
+        }
+      };
+      fetchNote();
+    }
+  }, [hasReadAccess, noteId]);
 
   const routeHome = () => {
     router.back();
@@ -128,7 +169,7 @@ const Note = () => {
 
   return (
     <main className="w-full h-full min-h-screen grid grid-cols-10 bg-blue-100 content-start">
-      <NavBar />
+      <NavBar userProvided={true} userProp={user} />
       <div className="mt-[5.25rem] mb-2 grid grid-cols-2 grid-rows-2  md:flex flex-row col-start-2 col-end-10 justify-self-start">
         <Button className="mr-2 w-[9rem] mb-4 md:mb-0" onClick={routeHome}>
           <Home size={15} />

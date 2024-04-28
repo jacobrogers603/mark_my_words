@@ -42,8 +42,13 @@ import { useToast } from "./ui/use-toast";
 import { Toaster } from "./ui/toaster";
 import { GiRamProfile } from "react-icons/gi";
 
+interface NoteIdentifier {
+  title: string;
+  id: string;
+  isDirectory: boolean;
+}
+
 interface DirectoryItemsProps {
-  currentDirNotes: JsonObject[] | null;
   currentPath: string[] | null;
   updateCurrentPath: (directoryId?: string) => Promise<void>;
   isPublic: boolean;
@@ -52,7 +57,6 @@ interface DirectoryItemsProps {
 }
 
 export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
-  currentDirNotes,
   currentPath,
   updateCurrentPath,
   isPublic,
@@ -60,7 +64,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
   currentUserIsCreator,
 }) => {
   const router = useRouter();
-  const [notes, setNotes] = useState<JsonObject[]>([]);
+  const [notes, setNotes] = useState<NoteIdentifier[]>([]);
   const [pathTitles, setPathTitles] = useState<string[]>([]);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const { toast } = useToast();
@@ -82,7 +86,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
 
   useEffect(() => {
     fetchNotes();
-  }, [currentPath, isPublic]); // useEffect just to trigger fetchNotes on dependency changes
+  }, [currentPath, isPublic]);
 
   useEffect(() => {
     const fetchPathTitles = async () => {
@@ -90,8 +94,8 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
         const titles = await Promise.all(
           currentPath.map(async (directoryId) => {
             try {
-              const response = await axios.get(`/api/getNote/${directoryId}`);
-              return response.data.title || "";
+              const response = await axios.get(`/api/getNoteTitle/${directoryId}`);
+              return response.data || "";
             } catch (error) {
               console.error("Failed to fetch note:", error);
               return "";

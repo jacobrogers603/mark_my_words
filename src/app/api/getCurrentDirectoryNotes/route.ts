@@ -2,9 +2,10 @@ import { getServerSession } from "next-auth";
 import authOptions from "../../../../auth";
 import prismadb from "@/lib/prismadb";
 import { NextResponse } from "next/server";
+import { forEach } from "jszip";
 export const dynamic = "force-dynamic";
 
-// Return the notes from a directory.
+// Return the titles and ids from the notes of a directory.
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
   if (session) {
@@ -36,7 +37,19 @@ export async function GET(req: Request) {
         },
       });
 
-      return NextResponse.json(currentDirNotes);
+      if(!currentDirNotes) return NextResponse.json([]);
+
+      let response: { title: string, id: string, isDirectory: boolean }[] = [];
+
+      for (const note of currentDirNotes) {
+        response.push({
+          title: note.title,
+          id: note.id,
+          isDirectory: note.isDirectory,
+        });
+      }
+
+      return NextResponse.json(response);
     } catch (error) {
       return NextResponse.json(error);
     }

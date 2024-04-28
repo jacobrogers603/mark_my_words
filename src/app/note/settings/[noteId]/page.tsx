@@ -4,7 +4,7 @@ import useNote from "@/hooks/useNote";
 import axios, { AxiosResponse } from "axios";
 import { useSession } from "next-auth/react";
 import { redirect, useParams, useRouter } from "next/navigation";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { use, useCallback, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -40,6 +40,19 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 
+interface User {
+  id: string;
+  email: string;
+  username: string;
+}
+
+interface Note {
+  id: string;
+  title: string;
+  htmlContent: string;
+  isDirectory: boolean;
+}
+
 const NoteSettings = () => {
   const { data: session, status } = useSession({
     required: true,
@@ -51,7 +64,8 @@ const NoteSettings = () => {
 
   const router = useRouter();
   const { noteId } = useParams();
-
+  const [note, setNote] = useState<Note | undefined>(undefined);
+  const [user, setUser] = useState<User | undefined>(undefined);
   const [isCreator, setIsCreator] = useState(false);
 
   useEffect(() => {
@@ -60,12 +74,12 @@ const NoteSettings = () => {
         const { data: noteUserId } = await axios.get(
           `/api/getNoteUserId/${noteId}`
         );
-        const currentUser = await axios.get("/api/current");
+        const currentUser = await axios.get("/api/getCurrentUsername");
 
         const noteCreator = noteUserId === currentUser.data?.id;
 
         setIsCreator(noteCreator);
-
+        setUser(currentUser.data);
         if (!noteCreator) {
           router.push("/unauthorized");
         }
@@ -82,7 +96,21 @@ const NoteSettings = () => {
     }
   }, [noteId, session, router]);
 
-  const { data: note } = useNote(noteId as string);
+  const fetchNote = async () => {
+    try {
+      const response = await axios.get(`/api/getNote/${noteId}`);
+      setNote(response.data);
+    } catch (error) {
+      console.error("Failed to fetch note:", error);
+    }
+  };
+
+  useEffect(() => {
+    if(isCreator && noteId){
+      fetchNote();
+    }
+  }, [isCreator, noteId]);
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
   const [allowedUsers, setAllowedUsers] = useState<string[]>([]);
@@ -156,7 +184,7 @@ const NoteSettings = () => {
   };
 
   const handleDownloadHtmlPress = async () => {
-    if (note.isDirectory) {
+    if (note?.isDirectory) {
       try {
         const response: AxiosResponse<Blob> = await axios.post<Blob>(
           "/api/downloadDirectory",
@@ -182,14 +210,18 @@ const NoteSettings = () => {
       }
     } else {
       try {
-        const content = note.htmlContent; // Assuming this is HTML content as a string
+        const content = note?.htmlContent;
+        if(!content){
+          console.error("No content to download");
+          return;
+        }
         const blob: Blob = new Blob([content], {
           type: "text/html;charset=utf-8",
         });
         const url: string = URL.createObjectURL(blob);
         const anchor: HTMLAnchorElement = document.createElement("a");
         anchor.href = url;
-        anchor.download = `${note.title}.html`;
+        anchor.download = `${note?.title}.html`;
 
         document.body.appendChild(anchor);
         anchor.click();
@@ -203,7 +235,6 @@ const NoteSettings = () => {
   };
 
   const fetchAllowedUsers = useCallback(async () => {
-    console.log("fetching access lists");
     try {
       const responseBundle = await axios.get(`/api/getAccessLists/${noteId}`);
 
@@ -213,12 +244,6 @@ const NoteSettings = () => {
       console.log("Failed to fetch access lists:", error);
     }
   }, [noteId]);
-
-  useEffect(() => {
-    if (noteId) {
-      fetchAllowedUsers();
-    }
-  }, [noteId, fetchAllowedUsers]);
 
   useEffect(() => {
     if (noteId) {
@@ -300,7 +325,7 @@ const NoteSettings = () => {
         className={`flex flex-col justify-start items-center w-full min-h-screen ${
           note?.isDirectory ? "bg-amber-100" : "bg-blue-100"
         }`}>
-        <NavBar />
+        <NavBar userProvided={true} userProp={user}/>
         {/* Delete confirmation dialog */}
         {isDialogOpen && (
           <Dialog open={isDialogOpen}>

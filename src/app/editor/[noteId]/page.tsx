@@ -32,6 +32,14 @@ interface FileDetails {
 
 interface User {
   id: string;
+  email: string;
+  username: string;
+}
+
+interface Note {
+  id: string;
+  title: string;
+  content: string;
 }
 
 export default function Editor() {
@@ -47,12 +55,12 @@ export default function Editor() {
   const router = useRouter();
   const [hasWriteAccess, setHasWriteAccess] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
 
   const getUser = async () => {
     setFilesLoading(true);
     try {
-      const response = await axios.get("/api/current");
+      const response = await axios.get("/api/getCurrentUsername");
       setCurrentUser(response.data);
     } catch (error) {
       console.error("Failed to fetch user:", error);
@@ -62,6 +70,10 @@ export default function Editor() {
   };
 
   const checkAccess = async () => {
+    if (!currentUser) {
+      getUser();
+      return;
+    }
     try {
       if (noteId === "new" || noteId.includes("newPublic")) {
         setHasWriteAccess(true);
@@ -70,7 +82,7 @@ export default function Editor() {
       }
 
       const { data } = await axios.get(`/api/getAccessLists/${noteId}`);
-      const hasAccess = data.writeAccessList.includes(session?.user?.email);
+      const hasAccess = data.writeAccessList.includes(currentUser.email);
       setHasWriteAccess(hasAccess);
       if (!hasAccess) {
         router.push("/unauthorized");
@@ -98,7 +110,7 @@ export default function Editor() {
     }
   }, [noteId, session, router, currentUser]);
 
-  const { data: note, mutate } = useSWR(`/api/getNote/${noteId}`, fetcher);
+  const [note, setNote] = useState<Note | undefined>(undefined);
   const [noteText, setNoteText] = useState("");
   const [title, setTitle] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -114,6 +126,21 @@ export default function Editor() {
   const [files, setFiles] = useState<FileDetails[]>([]);
   const [filesLoading, setFilesLoading] = useState(false);
   const [noFilesMessage, setNoFilesMessage] = useState<string>("");
+
+  const fetchNote = async () => {
+    try {
+      const response = await axios.get(`/api/getNote/${noteId}`);
+      setNote(response.data);
+    } catch (error) {
+      console.error("Failed to fetch note:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (!note && hasWriteAccess && noteId !== "new" && !noteId.includes("newPublic")) {
+      fetchNote();
+    }
+  }, [noteId, hasWriteAccess]);
 
   useEffect(() => {
     if (noteId !== "new" && !noteId.includes("newPublic") && note) {
@@ -171,10 +198,10 @@ export default function Editor() {
   };
 
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser && hasWriteAccess) {
       fetchAndUnzipMedia();
     }
-  }, [currentUser]);
+  }, [currentUser, hasWriteAccess]);
 
   const routeHome = () => {
     setHomePressed(true);
@@ -244,12 +271,11 @@ export default function Editor() {
         console.log(error);
       }
     }
-    mutate();
     setIsSaved(true);
     toast({
       description: `Your note: ${currentTitle} has been saved!`,
     });
-  }, [mutate, noteId, toast]);
+  }, [noteId, toast]);
 
   const closeDialog = () => setIsDialogOpen(false);
   const closeUnsavedDialog = () => setIsUnsavedDialogOpen(false);
@@ -323,7 +349,12 @@ export default function Editor() {
     <>
       <Toaster />
       <main className="w-full h-screen flex flex-col pt-[5.5rem] bg-blue-100">
-        <NavBar editor={true} routeHome={routeHome} />
+        <NavBar
+          userProvided={true}
+          userProp={currentUser}
+          editor={true}
+          routeHome={routeHome}
+        />
         <div className="">
           {/* No Title Dialog */}
           {isDialogOpen && (

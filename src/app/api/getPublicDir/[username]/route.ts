@@ -2,7 +2,7 @@ import prismadb from "@/lib/prismadb";
 import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
-// Return the public dir for a user based on their username.
+// Return a public dir's id and userId based on a username.
 export async function GET(
   req: Request,
   { params }: { params: { username: string } }
@@ -24,9 +24,12 @@ export async function GET(
       return NextResponse.json("No public dir can be found");
     }
 
-    const publicDirId = publicDir;
+    const response = {
+      id: publicDir.id,
+      userId: publicDir.userId,
+    };
 
-    return NextResponse.json(publicDirId);
+    return NextResponse.json(response);
   } catch (error) {
     return NextResponse.json(error);
   }

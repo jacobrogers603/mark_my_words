@@ -9,8 +9,14 @@ import { NotebookText, FolderClosed, ArrowDownFromLine } from "lucide-react";
 import axios, { AxiosResponse } from "axios";
 export const dynamic = "force-dynamic";
 
+interface NoteIdentifier {
+  title: string;
+  id: string;
+  isDirectory: boolean;
+}
+
 type DirectoryItemProps = {
-  note: JsonObject;
+  note: NoteIdentifier;
   updateCurrentPath: (directoryId?: string) => Promise<void>;
   status: string;
   currentUserIsCreator: boolean;
@@ -80,11 +86,20 @@ const DirectoryItem = ({
       }
     } else {
       try {
+        // Get the entire note including its content
+        var noteContent: string = "";
+        try{
+          const response = await axios.get(`/api/getNote/${note.id}`);
+          noteContent = response.data.content;
+        } catch (error) {
+          console.error("Failed to download note", error);
+          return;
+        }
         // Ensuring content is converted to a string in all cases
         const contentAsString: string =
-          typeof note.content === "object"
-            ? JSON.stringify(note.content)
-            : String(note.content);
+          typeof noteContent === "object"
+            ? JSON.stringify(noteContent)
+            : String(noteContent);
 
         // Proceed with Blob creation and downloading logic
         const blob: Blob = new Blob([contentAsString], {
