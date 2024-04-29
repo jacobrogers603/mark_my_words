@@ -79,6 +79,7 @@ const AuthPage = () => {
   const signin = async (email: string, password: string) => {
     try {
       setLoading(true);
+      email = email.toLowerCase();
       const loginResult = await signIn("credentials", {
         email: email,
         password: password,
@@ -100,6 +101,7 @@ const AuthPage = () => {
 
   const signup = async (email: string, password: string) => {
     try {
+      email = email.toLowerCase();
       setLoading(true);
       const signupResult = await axios.post("/api/signup", {
         email,
