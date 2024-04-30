@@ -36,7 +36,3 @@ move from Atlas to nanode
 we have to query the database for the name of every path title, so each layer we go down in terms of nesting for making folders and sub folders we have the ask the server what the ID's name is to display it to the user... this is bad
 
 ## deleting a note causes an error in the console despite doing the action correctly
-
-## some things are really slow in production
-
-for some unknown reason, logging in, and sometimes opening the user-settings page take a very long time

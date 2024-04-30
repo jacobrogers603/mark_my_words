@@ -1,7 +1,7 @@
 "use client";
 import NavBar from "@/components/NavBar";
 import useNote from "@/hooks/useNote";
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosResponse, all } from "axios";
 import { useSession } from "next-auth/react";
 import { redirect, useParams, useRouter } from "next/navigation";
 import React, { use, useCallback, useEffect, useState } from "react";
@@ -106,7 +106,7 @@ const NoteSettings = () => {
   };
 
   useEffect(() => {
-    if(isCreator && noteId){
+    if (isCreator && noteId) {
       fetchNote();
     }
   }, [isCreator, noteId]);
@@ -127,7 +127,14 @@ const NoteSettings = () => {
   };
 
   const routeHome = () => {
-    router.back();
+    if(!user || !allowedUsers){
+      router.push("/");
+    }
+    if (user && allowedUsers.includes("public")) {
+      router.push(`/${user.username}`);
+    } else {
+      router.push("/");
+    }
   };
 
   const routeEditor = () => {
@@ -211,7 +218,7 @@ const NoteSettings = () => {
     } else {
       try {
         const content = note?.htmlContent;
-        if(!content){
+        if (!content) {
           console.error("No content to download");
           return;
         }
@@ -301,7 +308,7 @@ const NoteSettings = () => {
     });
   };
 
-  if (status === "loading" || !isCreator) {
+  if (status === "loading" || !isCreator || !note) {
     return (
       <main className="w-full h-screen grid place-items-center pt-14">
         <nav className="w-full h-14 absolute top-0 bg-amber-400 border-solid border-black border-b-2 grid grid-cols-8 place-items-center">
@@ -325,7 +332,7 @@ const NoteSettings = () => {
         className={`flex flex-col justify-start items-center w-full min-h-screen ${
           note?.isDirectory ? "bg-amber-100" : "bg-blue-100"
         }`}>
-        <NavBar userProvided={true} userProp={user}/>
+        <NavBar routeHomeProvided={true} routeHome={routeHome} userProvided={true} userProp={user} />
         {/* Delete confirmation dialog */}
         {isDialogOpen && (
           <Dialog open={isDialogOpen}>

@@ -291,7 +291,7 @@ const UserSettings = () => {
 
   return (
     <main className="flex flex-col w-full h-screen place-items-center pb-8">
-      <NavBar userProvided={true} userProp={currentUser} />
+      <NavBar routeHomeProvided={false} userProvided={true} userProp={currentUser} />
       {/* Template Title */}
       {isDialogOpen && (
         <Dialog open={isDialogOpen}>

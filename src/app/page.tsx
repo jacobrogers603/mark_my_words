@@ -72,7 +72,7 @@ export default function Home() {
 
   return (
     <main className="h-screen w-full pt-14 flex flex-col items-center justify-between">
-      <NavBar userProvided={false}/>
+      <NavBar routeHomeProvided={false} userProvided={false}/>
       <div className="h-full w-[80%] md:w-[65%] lg:w-[50%]">
         <DirectoryItems
           currentPath={currentPath}

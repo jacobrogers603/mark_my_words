@@ -32,6 +32,9 @@ const Note = () => {
   const [hasReadAccess, setHasReadAccess] = useState(false);
   const [hasWriteAccess, setHasWriteAccess] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
+  const [publicNote, setPublicNote] = useState(false);
+  const [noteUserId, setNoteUserId] = useState<string>("");
+  const [noteUsername, setNoteUsername] = useState<string>("");
 
   const fetchUser = async () => {
     try {
@@ -42,13 +45,23 @@ const Note = () => {
     }
   };
 
+  const fetchNoteUsername = async () => {
+    if(!noteUserId) return;
+    try {
+      const response = await axios.get(`/api/getUsernameById/${noteUserId}`);
+      setNoteUsername(response.data.username);
+    } catch (error) {
+      console.error("Failed to fetch note username", error);
+    }
+  };
+
   useEffect(() => {
     fetchUser();
   }, []);
 
   useEffect(() => {
     const checkAccess = async () => {
-      if(!user){
+      if (!user) {
         fetchUser();
         return;
       }
@@ -58,6 +71,7 @@ const Note = () => {
           var hasAccess = false;
           if (data.readAccessList.includes("public")) {
             hasAccess = true;
+            setPublicNote(true);
           } else {
             hasAccess = data.readAccessList.includes(user.email);
           }
@@ -75,14 +89,23 @@ const Note = () => {
             `/api/getNoteUserId/${noteId}`
           );
 
+          setNoteUserId(noteUserId);
+
           const noteCreator = noteUserId === user.id;
           setIsCreator(noteCreator);
         } else {
           // public viewer
           const hasAccess = data.readAccessList.includes("public");
+          hasAccess ? setPublicNote(true) : setPublicNote(false);
           setHasReadAccess(hasAccess);
           setHasWriteAccess(false);
           setIsCreator(false);
+
+          const { data: noteUserId } = await axios.get(
+            `/api/getNoteUserId/${noteId}`
+          );
+
+          setNoteUserId(noteUserId);
 
           if (!hasAccess) {
             router.push("/unauthorized");
@@ -112,8 +135,18 @@ const Note = () => {
     }
   }, [hasReadAccess, noteId]);
 
+  useEffect(() => {
+    if (noteUserId) {
+      fetchNoteUsername();
+    }
+  }, [noteUserId]);
+
   const routeHome = () => {
-    router.back();
+    if (noteUsername && publicNote) {
+      router.push(`/${noteUsername}`);
+    } else {
+      router.push("/");
+    }
   };
 
   const routeEdit = () => {
@@ -169,7 +202,7 @@ const Note = () => {
 
   return (
     <main className="w-full h-full min-h-screen grid grid-cols-10 bg-blue-100 content-start">
-      <NavBar userProvided={true} userProp={user} />
+      <NavBar routeHomeProvided={true} routeHome={routeHome} userProvided={true} userProp={user} />
       <div className="mt-[5.25rem] mb-2 grid grid-cols-2 grid-rows-2  md:flex flex-row col-start-2 col-end-10 justify-self-start">
         <Button className="mr-2 w-[9rem] mb-4 md:mb-0" onClick={routeHome}>
           <Home size={15} />

@@ -14,6 +14,7 @@ import axios from "axios";
 
 interface NavBarProps {
   editor?: boolean;
+  routeHomeProvided: boolean;
   routeHome?: () => void;
   userProvided: boolean;
   userProp?: User | undefined;
@@ -27,6 +28,7 @@ interface User {
 
 const NavBar: React.FC<NavBarProps> = ({
   editor,
+  routeHomeProvided,
   routeHome,
   userProp,
   userProvided,
@@ -48,7 +50,7 @@ const NavBar: React.FC<NavBarProps> = ({
     router.push("/user-settings");
   };
 
-  const routeHomeNoEditor = () => {
+  const routeHomeDefault = () => {
     router.push("/");
   };
 
@@ -102,7 +104,7 @@ const NavBar: React.FC<NavBarProps> = ({
 
   return (
     <nav className="w-full h-14 absolute top-0 bg-amber-400 border-solid border-black border-b-2 grid grid-cols-8 place-items-center">
-      {editor ? (
+      {routeHomeProvided ? (
         <PencilRuler
           onClick={routeHome}
           size={30}
@@ -110,7 +112,7 @@ const NavBar: React.FC<NavBarProps> = ({
         />
       ) : (
         <PencilRuler
-          onClick={routeHomeNoEditor}
+          onClick={routeHomeDefault}
           size={30}
           className="col-start-1 hover:cursor-pointer"
         />
