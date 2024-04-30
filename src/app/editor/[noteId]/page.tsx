@@ -157,7 +157,7 @@ export default function Editor() {
       setFilesLoading(true);
       setNoFilesMessage("Images loading...");
       const response: AxiosResponse<Blob> = await axios.get<Blob>(
-        `https://jrog603-linode.online/getMedia?userId=${currentUser?.id}`,
+        `/api/getMedia/${currentUser?.id}`,
         {
           responseType: "blob",
         }

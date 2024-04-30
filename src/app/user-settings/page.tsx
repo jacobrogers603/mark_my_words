@@ -183,7 +183,7 @@ const UserSettings = () => {
         setNoFilesMessage("No images");
       }
       const response = await axios.delete(
-        `https://jrog603-linode.online/deleteMedia?userId=${currentUser.id}&fileName=${key}`
+        `/api/deleteMedia/${currentUser.id}/${key}`
       );
       if (response.status === 200) {
         setFiles((prevFiles) => prevFiles.filter((file) => file.key !== key));
@@ -207,12 +207,12 @@ const UserSettings = () => {
       setFilesLoading(true);
       setNoFilesMessage("Images loading...");
       const response: AxiosResponse<Blob> = await axios.get<Blob>(
-        `https://jrog603-linode.online/getMedia?userId=${currentUser?.id}`,
+        `/api/getMedia/${currentUser?.id}`,
         {
           responseType: "blob",
         }
       );
-
+      console.log("response:", response);
       handleUnzip(response.data);
     } catch (error) {
       setNoFilesMessage("Failed to load images");
@@ -224,10 +224,12 @@ const UserSettings = () => {
     const zip = new JSZip();
     try {
       const content = await zip.loadAsync(fileBlob); // Load the zip Blob
+      console.log("content:", content);
       const filesArray: FileDetails[] = [];
 
       for (const filename of Object.keys(content.files)) {
         const file = content.files[filename];
+        console.log("file:", file);
         if (!file.dir) {
           const blob: Blob = await file.async("blob");
           filesArray.push({

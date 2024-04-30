@@ -32,7 +32,7 @@ const MediaCard: React.FC<MediaCardProps> = ({
 
   useEffect(() => {
     // Regex to match the filename pattern and capture the needed parts
-    const pattern = /^(.+)-id:\d+(\.\w+)$/;
+    const pattern = /^(.+)-id=\d+(\.\w+)$/;
     const match = file.key.match(pattern);
 
     // If the pattern matches, recombine the filename parts excluding the id section
@@ -55,7 +55,7 @@ const MediaCard: React.FC<MediaCardProps> = ({
       }
 
       const link =
-        "https://jrog603-linode.online/images/" +
+        "https://mark-my-words.net/api/getImage/" +
         currentUserId +
         "/" +
         file.key;

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import axios from "axios";
-import FormData from "form-data";
-import { Readable } from "stream";
 import { getServerSession } from "next-auth";
 import authOptions from "../../../../auth";
 import prismadb from "@/lib/prismadb";
+import fs from "fs";
+import path from "path";
+import { blobToBuffer } from "@/lib/blobToBuffer";
 
 export const POST = async (req: NextRequest) => {
   const formData = await req.formData();
@@ -16,46 +16,40 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  try {
-    const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions);
 
-    if (!session) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-      });
-    }
-
-    const user = await prismadb.user.findUnique({
-      where: { email: session?.user?.email || "" },
+  if (!session) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
     });
+  }
 
-    if (!user) {
-      return NextResponse.json({ error: "User not found" });
+  const user = await prismadb.user.findUnique({
+    where: { email: session?.user?.email || "" },
+  });
+
+  if (!user) {
+    return NextResponse.json({ error: "User not found" });
+  }
+
+  try {
+    const uploadDir = path.join(`./public/uploads/${user.id}`);
+
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const stream = new Readable();
-    stream.push(buffer);
-    stream.push(null); // Signals the end of the stream
+    const buffer = await blobToBuffer(file);
+    const id = Date.now();
+    const name = file.name.slice(0, file.name.lastIndexOf("."));
+    const extension = file.name.slice(file.name.lastIndexOf("."));
+    const formattedName = `${name}-id=${id}${extension}`;
 
-    const form = new FormData();
-    form.append("file", stream, { filename: file.name });
+    const filePath = path.join(uploadDir, formattedName);
 
-    const nanodeUrl = `https://jrog603-linode.online/upload?userId=${user.id}`; // Ensure this URL is correct and reachable
+    fs.writeFileSync(filePath, buffer);
 
-    const response = await axios.post(nanodeUrl, form, {
-      headers: {
-        ...form.getHeaders(),
-      },
-    });    
-
-    return new Response(
-      JSON.stringify({
-        message: "File uploaded successfully.",
-        url: response.data.url,
-      }),
-      { status: 200 }
-    );
+    return new NextResponse(null, { status: 200 });
   } catch (error) {
     console.error("Error uploading file:", error);
     return NextResponse.json({
@@ -63,3 +57,4 @@ export const POST = async (req: NextRequest) => {
     });
   }
 };
+
