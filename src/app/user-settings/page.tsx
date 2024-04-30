@@ -212,7 +212,13 @@ const UserSettings = () => {
           responseType: "blob",
         }
       );
-      console.log("response:", response);
+
+      if(response.headers["content-type"] !== "application/json") {
+        setFilesLoading(false);
+        setNoFilesMessage("No images");
+        return;
+      }
+      
       handleUnzip(response.data);
     } catch (error) {
       setNoFilesMessage("Failed to load images");
@@ -224,12 +230,10 @@ const UserSettings = () => {
     const zip = new JSZip();
     try {
       const content = await zip.loadAsync(fileBlob); // Load the zip Blob
-      console.log("content:", content);
       const filesArray: FileDetails[] = [];
 
       for (const filename of Object.keys(content.files)) {
         const file = content.files[filename];
-        console.log("file:", file);
         if (!file.dir) {
           const blob: Blob = await file.async("blob");
           filesArray.push({

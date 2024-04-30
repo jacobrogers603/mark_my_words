@@ -18,7 +18,7 @@ export async function GET(
     
     if (!fs.existsSync(uploadDir)) {
       return NextResponse.json({
-        error: "No upload directory found for this userId",
+        Message: "No upload directory found for this userId",
       });
     }
 
