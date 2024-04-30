@@ -15,11 +15,18 @@ export async function GET(
 
   try {
     const uploadDir = path.join("./public/uploads", userId);
-    
+
     if (!fs.existsSync(uploadDir)) {
-      return NextResponse.json({
-        Message: "No upload directory found for this userId",
-      });
+      return NextResponse.json(
+        {
+          Message: "No upload directory found for this userId",
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
     }
 
     const files = fs.readdirSync(uploadDir);
