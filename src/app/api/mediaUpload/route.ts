@@ -33,7 +33,7 @@ export const POST = async (req: NextRequest) => {
   }
 
   try {
-    const uploadDir = path.join(`./public/uploads/${user.id}`);
+    const uploadDir = path.join("./public/uploads/", user.id);
 
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
