@@ -41,5 +41,4 @@ Search for notes, words in notes, and other users' profiles.
 - Typescript
 - MongoDB
 - NextAuth
-- Netlify
-- AWS S3
+- Linode server
