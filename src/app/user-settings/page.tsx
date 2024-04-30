@@ -213,7 +213,7 @@ const UserSettings = () => {
         }
       );
 
-      if(response.headers["content-type"] !== "application/json") {
+      if(response.headers["content-type"] === "application/json") {
         setFilesLoading(false);
         setNoFilesMessage("No images");
         return;
