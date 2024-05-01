@@ -51,10 +51,10 @@ export default function Editor() {
     },
   });
 
+  const [isPublicNote, setIsPublicNote] = useState(false);
   const { noteId } = useParams();
   const router = useRouter();
   const [hasWriteAccess, setHasWriteAccess] = useState(false);
-  const [isPublicNote, setIsPublicNote] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
 
@@ -79,11 +79,10 @@ export default function Editor() {
       if (noteId === "new" || noteId.includes("newPublic")) {
         setHasWriteAccess(true);
         setIsCreator(true);
+        if (noteId.includes("newPublic")) {
+          setIsPublicNote(true);
+        }
         return;
-      }
-
-      if (noteId.includes("newPublic")) {
-        setIsPublicNote(true);
       }
 
       const { data } = await axios.get(`/api/getAccessLists/${noteId}`);
@@ -92,6 +91,7 @@ export default function Editor() {
 
       setIsPublicNote(publicHasAccess);
       setHasWriteAccess(hasAccess);
+
       if (!hasAccess) {
         router.push("/unauthorized");
       }
