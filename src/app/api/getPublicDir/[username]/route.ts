@@ -1,3 +1,4 @@
+import { encrypt } from "@/lib/encryption";
 import prismadb from "@/lib/prismadb";
 import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
@@ -13,10 +14,12 @@ export async function GET(
     return NextResponse.json("No username given");
   }
 
+  const encryptedUsername = encrypt(username, true);
+
   try {
     const publicDir = await prismadb.note.findFirst({
       where: {
-        title: username,
+        title: encryptedUsername,
       },
     });
 

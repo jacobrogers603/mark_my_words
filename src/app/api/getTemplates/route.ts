@@ -2,6 +2,7 @@ import prismadb from "@/lib/prismadb";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import authOptions from "../../../../auth";
+import { decrypt } from "@/lib/encryption";
 export const dynamic = 'force-dynamic';
 
 export const GET = async (req: Request) => {
@@ -25,11 +26,23 @@ export const GET = async (req: Request) => {
 
         const templates = await Promise.all(
           templateIDs.map(async (id) => {
-            const template = await prismadb.template.findUnique({
+            let template = await prismadb.template.findUnique({
               where: {
                 id,
               },
             });
+
+            if (!template) {
+              return;
+            }
+    
+            if(template.title){
+              template.title = decrypt(template.title, true);
+            }
+    
+            if(template.content){
+              template.content = decrypt(template.content, false);
+            }
 
             return template;
           })

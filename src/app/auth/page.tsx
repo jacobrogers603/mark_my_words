@@ -78,7 +78,10 @@ const AuthPage = () => {
 
   const signin = async (email: string, password: string) => {
     try {
-      setLoading(true);
+      if (loading === false) {
+        setLoading(true);
+      }
+      
       email = email.toLowerCase();
       const loginResult = await signIn("credentials", {
         email: email,
@@ -111,7 +114,6 @@ const AuthPage = () => {
       if (signupResult.status === 200) {
         signin(email, password);
       }
-      setLoading(false);
     } catch (error) {
       setLoading(false);
       console.error(error);

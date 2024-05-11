@@ -17,17 +17,11 @@ hover card:
 
 ability to search for notes, words in notes, and other users, search results page to do, no drop down, i don't wanna 
 
-## encryption
-
-notes and data in general should be encrypted on the client side
+## photo encryption
 
 ## restrict anyone from accessing photos on nanode server with the link
 
 check if they are logged in and have access to view the note
-
-## move the mongo db to my nanode
-
-move from Atlas to nanode
 
 ## make image links & templates enter the note text where the cursor was last
 
@@ -40,3 +34,9 @@ we have to query the database for the name of every path title, so each layer we
 ## times on image cards say time of last render, not time of upload
 
 ## Make a public landing page 
+
+## sign out should redirect to auth page
+
+## If you type mark-my-words.net/<directoryName> you go there despite authentication
+
+It will assume it is a public directory and that it is the root note and take you there

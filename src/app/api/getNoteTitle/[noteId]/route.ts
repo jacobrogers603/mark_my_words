@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prismadb from "@/lib/prismadb";
 import authOptions from "../../../../../auth";
 import { getServerSession } from "next-auth";
+import { decrypt } from "@/lib/encryption";
 export const dynamic = "force-dynamic";
 
 export async function GET(
@@ -31,7 +32,7 @@ export async function GET(
     }
 
     try {
-      const note =
+      let note =
         id === "root"
           ? await prismadb.note.findFirst({
               where: {
@@ -46,6 +47,10 @@ export async function GET(
 
       if (!note) {
         throw new Error("No Such Note Found");
+      }
+
+      if(note.title){
+        note.title = decrypt(note.title, true);
       }
 
       return NextResponse.json(note.title);

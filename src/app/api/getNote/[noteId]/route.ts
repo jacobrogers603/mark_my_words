@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prismadb from "@/lib/prismadb";
 import authOptions from "../../../../../auth";
 import { getServerSession } from "next-auth";
+import { decrypt } from "@/lib/encryption";
 export const dynamic = "force-dynamic";
 
 export async function GET(
@@ -31,7 +32,7 @@ export async function GET(
     }
 
     try {
-      const note =
+      let note =
         id === "root"
           ? await prismadb.note.findFirst({
               where: {
@@ -48,6 +49,18 @@ export async function GET(
         throw new Error("No Such Note Found");
       }
 
+      if (note.htmlContent) {
+        note.htmlContent = decrypt(note.htmlContent, false);
+      }
+
+      if (note.content) {
+        note.content = decrypt(note.content, false);
+      }
+
+      if (note.title) {
+        note.title = decrypt(note.title, true);
+      }
+
       return NextResponse.json(note);
     } catch (error) {
       return NextResponse.json(error);
@@ -55,11 +68,27 @@ export async function GET(
   } else {
     // Public viewer.
     try {
-      const note = await prismadb.note.findUnique({
+      let note = await prismadb.note.findUnique({
         where: {
           id: id,
         },
       });
+
+      if (!note) {
+        throw new Error("No Such Note Found");
+      }
+
+      if (note.htmlContent) {
+        note.htmlContent = decrypt(note.htmlContent, false);
+      }
+
+      if (note.content) {
+        note.content = decrypt(note.content, false);
+      }
+
+      if (note.title) {
+        note.title = decrypt(note.title, true);
+      }
 
       return NextResponse.json(note);
     } catch (error) {

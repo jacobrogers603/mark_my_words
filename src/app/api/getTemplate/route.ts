@@ -2,6 +2,7 @@ import prismadb from "@/lib/prismadb";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import authOptions from "../../../../auth";
+import { decrypt } from "@/lib/encryption";
 export const dynamic = 'force-dynamic';
 
 export const GET = async (req: Request) => {
@@ -22,11 +23,23 @@ export const GET = async (req: Request) => {
           return NextResponse.json({ error: "User not found" });
         }
 
-        const template = await prismadb.template.findUnique({
+        let template = await prismadb.template.findUnique({
           where: {
             id: id,
           },
         });
+
+        if (!template) {
+          throw new Error("No Such Template Found");
+        }
+
+        if(template.title){
+          template.title = decrypt(template.title, true);
+        }
+
+        if(template.content){
+          template.content = decrypt(template.content, false);
+        }
 
         return NextResponse.json(template);
       } catch (error) {

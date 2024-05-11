@@ -8,6 +8,7 @@ import remarkGfm from "remark-gfm";
 import remarkRehype from "remark-rehype";
 import rehypeStringify from "rehype-stringify";
 import { visit } from "unist-util-visit";
+import { encrypt } from "@/lib/encryption";
 export const dynamic = "force-dynamic";
 
 export const POST = async (req: Request) => {
@@ -82,15 +83,18 @@ export const POST = async (req: Request) => {
         if (id) {
           // Update an existing note
           const htmlContent = await convertMarkdownToHtml(content);
+          const encryptedContent = encrypt(content, false);
+          const encryptedTitle = encrypt(title, true);
+          const encryptedHtmlContent = encrypt(htmlContent, false);
 
           const updatedNote = await prismadb.note.update({
             where: {
               id: id,
             },
             data: {
-              title,
-              content,
-              htmlContent,
+              title: encryptedTitle,
+              content: encryptedContent,
+              htmlContent: encryptedHtmlContent,
               isDirectory,
             },
           });
@@ -99,13 +103,16 @@ export const POST = async (req: Request) => {
         } else {
           // Create a new note
           const htmlContent = await convertMarkdownToHtml(content);
+          const encryptedContent = encrypt(content, false);
+          const encryptedTitle = encrypt(title, true);
+          const encryptedHtmlContent = encrypt(htmlContent, false);
 
           const newNote = isPublic
             ? await prismadb.note.create({
                 data: {
-                  title,
-                  content,
-                  htmlContent,
+                  title: encryptedTitle,
+                  content: encryptedContent,
+                  htmlContent: encryptedHtmlContent,
                   isDirectory,
                   userId: userId || "",
                   parentId: parentId,
@@ -115,9 +122,9 @@ export const POST = async (req: Request) => {
               })
             : await prismadb.note.create({
                 data: {
-                  title,
-                  content,
-                  htmlContent,
+                  title: encryptedTitle,
+                  content: encryptedContent,
+                  htmlContent: encryptedHtmlContent,
                   isDirectory,
                   userId: userId || "",
                   parentId: user?.currentPath[user?.currentPath.length - 1],

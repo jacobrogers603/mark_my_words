@@ -2,7 +2,8 @@ import prismadb from "@/lib/prismadb";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import authOptions from "../../../../auth";
-export const dynamic = 'force-dynamic';
+import { encrypt } from "@/lib/encryption";
+export const dynamic = "force-dynamic";
 
 export const POST = async (req: Request) => {
   try {
@@ -29,6 +30,13 @@ export const POST = async (req: Request) => {
 
         const userId = user?.id;
 
+        const encryptedTitle = encrypt(title, true);
+        const encryptedContent = encrypt(content, false);
+
+        if(!encryptedTitle || !encryptedContent){
+          return NextResponse.json({ error: "Encryption failed" });
+        }
+
         if (id) {
           // Update an existing template
           const updatedTemplate = await prismadb.template.update({
@@ -36,8 +44,8 @@ export const POST = async (req: Request) => {
               id: id,
             },
             data: {
-              title,
-              content,
+              title: encryptedTitle,
+              content: encryptedContent,
             },
           });
 
@@ -46,8 +54,8 @@ export const POST = async (req: Request) => {
           // Create a new note
           const newTemplate = await prismadb.template.create({
             data: {
-              title,
-              content,
+              title: encryptedTitle,
+              content: encryptedContent,
             },
           });
 

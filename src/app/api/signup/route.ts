@@ -2,7 +2,10 @@ import bcrypt from "bcrypt";
 import { NextResponse } from "next/server";
 import prismadb from "@/lib/prismadb";
 import { generateUsername } from "@/lib/animalsAndAdjectives";
+import { encrypt } from "@/lib/encryption";
 export const dynamic = "force-dynamic";
+import path from "path";
+import fs from "fs";
 
 export const POST = async (req: Request) => {
   try {
@@ -37,18 +40,22 @@ export const POST = async (req: Request) => {
       },
     });
 
+    const encryptedRootTitle = encrypt(email, true);
+
     const rootDir = await prismadb.note.create({
       data: {
-        title: email,
+        title: encryptedRootTitle,
         content: "",
         isDirectory: true,
         userId: user.id || "",
       },
     });
 
+    const encryptedPublicTitle = encrypt(username, true);
+
     const publicDir = await prismadb.note.create({
       data: {
-        title: username,
+        title: encryptedPublicTitle,
         content: "",
         isDirectory: true,
         userId: user.id || "",
@@ -80,6 +87,13 @@ export const POST = async (req: Request) => {
         },
       },
     });
+
+    // Create the user's upload directory
+    const uploadDir = path.join("./public/uploads/", user.id);
+
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
 
     return NextResponse.json(updatedUser);
   } catch (error) {

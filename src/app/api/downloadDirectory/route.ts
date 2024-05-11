@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import prismadb from "@/lib/prismadb";
 import { Note } from "@prisma/client";
 import { Readable } from "stream";
+import { decrypt } from "@/lib/encryption";
 
 async function addFilesToZip(
   note: Note,
@@ -11,7 +12,8 @@ async function addFilesToZip(
   zip: JSZip,
   isRoot: boolean = true
 ): Promise<void> {
-  const target = isRoot ? zip : zip.folder(note.title);
+  const decryptedDirTitle = decrypt(note.title, true);
+  const target = isRoot ? zip : zip.folder(decryptedDirTitle);
   if (!target) return;
 
   const children = await prismadb.note.findMany({
@@ -22,9 +24,13 @@ async function addFilesToZip(
     if (child.isDirectory) {
       await addFilesToZip(child, htmlMode, target, false);
     } else {
+      const decryptedContent = child.content ? decrypt(child.content, false) : '';
+      const decryptedHtmlContent = child.htmlContent ? decrypt(child.htmlContent, false) : '';
+      const decryptedTitle = child.title ? decrypt(child.title, true) : '';
+
       target.file(
-        `${child.title}.${htmlMode ? "html" : "md"}`,
-        `${htmlMode ? child.htmlContent : child.content}`
+        `${decryptedTitle}.${htmlMode ? "html" : "md"}`,
+        `${htmlMode ? decryptedHtmlContent : decryptedContent}`
       );
     }
   }

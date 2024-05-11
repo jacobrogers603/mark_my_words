@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import prismadb from "@/lib/prismadb";
 import { NextResponse } from "next/server";
+import { decrypt } from "@/lib/encryption";
 export const dynamic = "force-dynamic";
 
 // Return the notes from a directory.
@@ -10,7 +11,7 @@ export async function GET(
 ) {
   const noteId = params.noteId;
 
-  if (!noteId) {
+  if (!noteId || noteId === "undefined") {
     return NextResponse.json({ error: "No directory ID given" });
   }
 
@@ -39,9 +40,11 @@ export async function GET(
 
     let response: { title: string, id: string, isDirectory: boolean }[] = [];
 
-      for (const note of currentDirNotes) {
+    for (const note of currentDirNotes) {
+        const decryptedTitle = decrypt(note.title, true);
+        
         response.push({
-          title: note.title,
+          title: decryptedTitle,
           id: note.id,
           isDirectory: note.isDirectory,
         });
