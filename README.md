@@ -24,11 +24,11 @@ A directory each user has where anything they put there will be publicly visible
 
 The ability to embed images in your notes and manage them in user-settings.
 
-## In Development Features
-
 ### Encryption
 
-All notes and templates will be made encrypted so no one but the you and whomever you assign access to can see or edit a note. Currently passwords are already hashed, and thus secure.
+All notes and templates are encrypted so no one but the you and whomever you assign access to can see or edit a note. Passwords are also hashed, and thus secure.
+
+## In Development Features
 
 ## Search
 
