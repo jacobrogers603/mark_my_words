@@ -4,18 +4,18 @@
 
 Add Settings for the profile of the user:
 
-- profile avatar change
 - change password
+- chang email
 - delete account
+
+## search
+
+ability to search for notes, words in notes, and other users, search results page to do, no drop down, i don't wanna 
 
 hover card:
 
 - profile bio
 - https://ui.shadcn.com/docs/components/hover-card use for profile
-
-## search
-
-ability to search for notes, words in notes, and other users, search results page to do, no drop down, i don't wanna 
 
 ## photo encryption
 
@@ -40,3 +40,5 @@ we have to query the database for the name of every path title, so each layer we
 ## If you type mark-my-words.net/<directoryName> you go there despite authentication
 
 It will assume it is a public directory and that it is the root note and take you there
+
+## make forgot password option on auth page

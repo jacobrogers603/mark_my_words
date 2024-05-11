@@ -60,13 +60,21 @@ export async function GET(
   } else {
     // Public viewer.
     try {
-      const note = await prismadb.note.findUnique({
+      let note = await prismadb.note.findUnique({
         where: {
           id: id,
         },
       });
 
-      return NextResponse.json(note?.title);
+      if (!note) {
+        throw new Error("No Such Note Found");
+      }
+
+      if(note.title){
+        note.title = decrypt(note.title, true);
+      }
+
+      return NextResponse.json(note.title);
     } catch (error) {
       return NextResponse.json(error);
     }
