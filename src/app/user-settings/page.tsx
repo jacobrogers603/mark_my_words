@@ -213,12 +213,12 @@ const UserSettings = () => {
         }
       );
 
-      if(response.headers["content-type"] === "application/json") {
+      if (response.headers["content-type"] === "application/json") {
         setFilesLoading(false);
         setNoFilesMessage("No images");
         return;
       }
-      
+
       handleUnzip(response.data);
     } catch (error) {
       setNoFilesMessage("Failed to load images");
@@ -236,20 +236,26 @@ const UserSettings = () => {
         const file = content.files[filename];
         if (!file.dir) {
           const blob: Blob = await file.async("blob");
+          const dateCreated = extractFileID(filename); // The ID is the original date.now when the file was uploaded
           filesArray.push({
             key: filename,
             blob: blob,
-            lastModified: new Date(file.date),
+            lastModified: dateCreated,
           });
         }
       }
 
-      setFiles(filesArray); // Update state with the new files
+      setFiles(filesArray);
       setFilesLoading(false);
       setNoFilesMessage("No images");
     } catch (error) {
       console.error("Error unzipping the file:", error);
     }
+  };
+
+  const extractFileID = (filename: string): Date => {
+    const match = filename.match(/-id=(\d+)/);
+    return match ? new Date(parseInt(match[1], 10)) : new Date();
   };
 
   const refreshFiles = async () => {
@@ -291,7 +297,11 @@ const UserSettings = () => {
 
   return (
     <main className="flex flex-col w-full h-screen place-items-center pb-8">
-      <NavBar routeHomeProvided={false} userProvided={true} userProp={currentUser} />
+      <NavBar
+        routeHomeProvided={false}
+        userProvided={true}
+        userProp={currentUser}
+      />
       {/* Template Title */}
       {isDialogOpen && (
         <Dialog open={isDialogOpen}>
