@@ -6,6 +6,7 @@ import { PencilRuler } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { set } from "react-hook-form";
 
 interface User {
   id: string;
@@ -16,6 +17,47 @@ interface User {
 const PublicProfile = () => {
   const { username } = useParams();
   const router = useRouter();
+  const [checkingUsername, setCheckingUsername] = useState(true);
+  const [validUsername, setValidUsername] = useState(false);
+
+  const checkValidUsername = async (username: string) => {
+    try {
+      const response = await axios.get(`/api/checkValidUsername/${username}`);
+      if(!response) {
+        setValidUsername(false);
+        setCheckingUsername(false);
+        return;
+      }
+
+      if(response.data.valid === true){
+        setValidUsername(true);
+        setCheckingUsername(false);
+      }
+      else if(response.data.valid === false){
+        setValidUsername(false);
+        setCheckingUsername(false);
+      }
+
+      return;
+    } catch (error) {
+      setCheckingUsername(false);
+      console.error("Failed to check if username is valid:", error);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    checkValidUsername(username.toString());
+  }, [username]);
+
+  useEffect(() => {
+    if(!checkingUsername){
+      if(!validUsername){
+        router.push("/unauthorized");
+      }
+    }
+  }, [validUsername, checkingUsername]);
+
   const { data: session, status } = useSession();
   const [currentPath, setCurrentPath] = useState<string[]>([]);
   const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
@@ -59,7 +101,7 @@ const PublicProfile = () => {
     }
   }, [currentUser, publicDirCreator]);
 
-  if (status === "loading") {
+  if (status === "loading" || checkingUsername || !validUsername) {
     return (
       <main className="w-full h-screen grid place-items-center pt-14">
         <nav className="w-full h-14 absolute top-0 bg-amber-400 border-solid border-black border-b-2 grid grid-cols-8 place-items-center">
@@ -72,7 +114,6 @@ const PublicProfile = () => {
     );
   }
 
-
   const updateCurrentPath = async (directoryId?: string) => {
     if (directoryId) {
       setCurrentPath([...currentPath, directoryId]);
@@ -83,7 +124,11 @@ const PublicProfile = () => {
 
   return (
     <main className="h-screen w-full pt-14 flex flex-col items-center justify-between">
-      <NavBar routeHomeProvided={false} userProvided={true} userProp={currentUser}/>
+      <NavBar
+        routeHomeProvided={false}
+        userProvided={true}
+        userProp={currentUser}
+      />
       <div className="h-full w-[80%] md:w-[65%] lg:w-[50%]">
         <DirectoryItems
           currentPath={currentPath}

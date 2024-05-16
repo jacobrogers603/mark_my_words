@@ -10,7 +10,6 @@
 
 - Photo encryption & restrict anyone from accessing photos on nanode server with the link
 - sign out should redirect to auth page in all scenarios  
-- If you type mark-my-words.net/<directoryName> you go there despite authentication: It will assume it is a public directory and that it is the root note and take you there
 - deleting a note causes an error in the console despite doing the action correctly
 - Pressing close w/o saving while editing a public note brings you back to the private directoryItems page instead of the public profile page
 
