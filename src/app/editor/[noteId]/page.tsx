@@ -194,10 +194,11 @@ export default function Editor() {
         const file = content.files[filename];
         if (!file.dir) {
           const blob: Blob = await file.async("blob");
+          const dateCreated = extractFileID(filename); // The ID is the original date.now when the file was uploaded
           filesArray.push({
             key: filename,
             blob: blob,
-            lastModified: new Date(file.date),
+            lastModified: dateCreated,
           });
         }
       }
@@ -208,6 +209,11 @@ export default function Editor() {
     } catch (error) {
       console.error("Error unzipping the file:", error);
     }
+  };
+
+  const extractFileID = (filename: string): Date => {
+    const match = filename.match(/-id=(\d+)/);
+    return match ? new Date(parseInt(match[1], 10)) : new Date();
   };
 
   useEffect(() => {

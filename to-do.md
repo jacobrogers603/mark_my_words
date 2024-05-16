@@ -4,8 +4,6 @@
 
 **Things that the user would notice during normal use, breaking or just embarrassing**
 
-- Fix dates on media cards in editor page (already fixed on user-settings page)
-
 ## Pri II
 
 **Things that the user may not notice, or are more under the hood, but are still important**
@@ -14,6 +12,7 @@
 - sign out should redirect to auth page in all scenarios  
 - If you type mark-my-words.net/<directoryName> you go there despite authentication: It will assume it is a public directory and that it is the root note and take you there
 - deleting a note causes an error in the console despite doing the action correctly
+- Pressing close w/o saving while editing a public note brings you back to the private directoryItems page instead of the public profile page
 
 ## Pri III 
 
@@ -26,5 +25,6 @@
 - make image links & templates enter the note text where the cursor was last
 - Make a public landing page 
 - make forgot password option on auth page
+- Add share link button to directoryItem comp when it is public, also add it in the note viewer when it is public
 - Add currentPathTitles to User model in schema: we have to query the database for the name of every path title, so each layer we go down in terms of nesting for making folders and sub folders we have the ask the server what the ID's name is to display it to the user... this is bad
 
