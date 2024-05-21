@@ -136,7 +136,8 @@ export const POST = async (req: Request) => {
                     writeAccessList: [user.email],
                   },
                 });
-          } else // If we are making a note from an upload, we should generate a new id automatically{
+          } // If we are making a note from an upload, we should generate a new id automatically
+          else {
             const newNote = isPublic
               ? await prismadb.note.create({
                   data: {
