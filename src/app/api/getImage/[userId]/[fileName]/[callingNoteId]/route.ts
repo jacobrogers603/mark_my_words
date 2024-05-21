@@ -39,7 +39,7 @@ export async function GET(
       },
     });
 
-    if(!image || !image.id) {
+    if (!image || !image.id) {
       return NextResponse.json({ error: "Image not found" });
     }
 
@@ -49,37 +49,34 @@ export async function GET(
       });
     }
 
-    // Check if the current user has read access to the note that contains the image
-    const session = await getServerSession(authOptions);
+    // If the note is not public, check if the current user has read access to the note that contains the image
+    if (!callingNote.readAccessList.includes("public")) {
+      const session = await getServerSession(authOptions);
 
-    if (!session || !session.user || !session.user.email) {
-      return NextResponse.json({ error: "No session found" });
-    }
+      if (!session || !session.user || !session.user.email) {
+        return NextResponse.json({ error: "No session found" });
+      }
 
-    const currentUser = await prismadb.user.findUnique({
-      where: {
-        email: session.user.email,
-      },
-    });
-
-    if (!currentUser) {
-      return NextResponse.json({ error: "User not found" });
-    }
-
-    if (!callingNote.readAccessList) {
-      return NextResponse.json({ error: "could not get read access list" });
-    }
-
-    if (
-      !(
-        callingNote.readAccessList.includes("public") ||
-        callingNote.readAccessList.includes(currentUser.email)
-      )
-    ) {
-      return NextResponse.json({
-        error:
-          "User does not have read access to the note, and thus the image.",
+      const currentUser = await prismadb.user.findUnique({
+        where: {
+          email: session.user.email,
+        },
       });
+
+      if (!currentUser) {
+        return NextResponse.json({ error: "User not found" });
+      }
+
+      if (!callingNote.readAccessList) {
+        return NextResponse.json({ error: "could not get read access list" });
+      }
+
+      if (!callingNote.readAccessList.includes(currentUser.email)) {
+        return NextResponse.json({
+          error:
+            "User does not have read access to the note, and thus the image.",
+        });
+      }
     }
 
     // If we passed all the checks, get the image file and return it
