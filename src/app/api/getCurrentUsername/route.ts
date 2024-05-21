@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import prismadb from "@/lib/prismadb";
 export const dynamic = "force-dynamic";
 
-export async function GET(req: Request) {
+export async function GET(req: Request) {  
   const session = await getServerSession(authOptions);
 
   // Check if the user is not signed in

@@ -18,19 +18,29 @@ export async function GET(
 
   const session = await getServerSession(authOptions);
 
-  if(!session) {
+  if (!session) {
     return NextResponse.json({ error: "No session found" });
   }
 
   // Make sure the user that is logged in is the same one from the userId that was passed in
-  const response = await axios.get("/api/getCurrentUsername");
+  const response = await fetch(`http://localhost:3000/api/getCurrentUsername`);
 
-  if(!response.data || !response) {
+  if(!response) {
+    return NextResponse.json({ error: "No response found" });
+  }
+
+  const responseData = await response.json();
+
+  console.log("responseData = ", responseData);
+
+  if (!responseData) {
     return NextResponse.json({ error: "No user found" });
   }
 
-  if(response.data.id !== userId) {
-    return NextResponse.json({ error: "User does not have permission to download this media" });
+  if (responseData.id !== userId) {
+    return NextResponse.json({
+      error: "User does not have permission to download this media",
+    });
   }
 
   try {
