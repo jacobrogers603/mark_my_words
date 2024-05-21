@@ -9,6 +9,7 @@ import remarkRehype from "remark-rehype";
 import rehypeStringify from "rehype-stringify";
 import { visit } from "unist-util-visit";
 import { encrypt } from "@/lib/encryption";
+import { Note } from "@prisma/client";
 export const dynamic = "force-dynamic";
 
 export const POST = async (req: Request) => {
@@ -108,8 +109,9 @@ export const POST = async (req: Request) => {
           const encryptedHtmlContent = encrypt(htmlContent, false);
 
           // If we are making a note from the editor, we have already generated an ID.
+          let newNote: Note;
           if (generatedId) {
-            const newNote = isPublic
+            newNote = isPublic
               ? await prismadb.note.create({
                   data: {
                     id: generatedId,
@@ -138,7 +140,7 @@ export const POST = async (req: Request) => {
                 });
           } // If we are making a note from an upload, we should generate a new id automatically
           else {
-            const newNote = isPublic
+            newNote = isPublic
               ? await prismadb.note.create({
                   data: {
                     title: encryptedTitle,
