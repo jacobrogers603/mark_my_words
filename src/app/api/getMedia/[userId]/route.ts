@@ -4,7 +4,7 @@ import JSZip from "jszip";
 import path from "path";
 import { getServerSession } from "next-auth";
 import authOptions from "../../../../../auth";
-import axios from "axios";
+import prismadb from "@/lib/prismadb";
 
 export async function GET(
   req: NextRequest,
@@ -18,26 +18,22 @@ export async function GET(
 
   const session = await getServerSession(authOptions);
 
-  if (!session) {
+  if (!session || !session.user || !session.user.email) {
     return NextResponse.json({ error: "No session found" });
   }
 
-  // Make sure the user that is logged in is the same one from the userId that was passed in
-  const response = await fetch(`http://localhost:3000/api/getCurrentUsername`);
+  const currentUser = await prismadb.user.findUnique({
+    where: {
+      email: session.user.email,
+    },
+  });
 
-  if(!response) {
-    return NextResponse.json({ error: "No response found" });
+  // Check if currentUser is not found
+  if (!currentUser) {
+    return NextResponse.json({ error: "User not found" });
   }
 
-  const responseData = await response.json();
-
-  console.log("responseData = ", responseData);
-
-  if (!responseData) {
-    return NextResponse.json({ error: "No user found" });
-  }
-
-  if (responseData.id !== userId) {
+  if (currentUser.id !== userId) {
     return NextResponse.json({
       error: "User does not have permission to download this media",
     });
