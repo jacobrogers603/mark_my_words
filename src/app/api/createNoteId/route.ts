@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   try {
     let isUnique = false;
-    let newId: string;
+    let newId: string = "noID";
 
     while (!isUnique) {
       newId = new ObjectId().toString();
@@ -15,10 +15,10 @@ export async function POST(req: Request) {
       });
       if (!existingNote) {
         isUnique = true;
-        return newId;
       }
     }
 
+    return NextResponse.json({ id: newId });
   } catch (error) {
     console.log(error);
     return NextResponse.json(error);
