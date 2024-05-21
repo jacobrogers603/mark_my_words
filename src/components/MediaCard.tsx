@@ -57,7 +57,7 @@ const MediaCard: React.FC<MediaCardProps> = ({
       }
 
       const link =
-        "http://localhost:3000/api/getImage/" +
+        "https://mark-my-words.net/api/getImage/" +
         currentUserId +
         "/" +
         file.key +
