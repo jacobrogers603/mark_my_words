@@ -49,6 +49,14 @@ export const POST = async (req: NextRequest) => {
 
     fs.writeFileSync(filePath, buffer);
 
+    // Create a new image object in the database that represents the uploaded image
+    await prismadb.image.create({
+      data: {
+        userId: user.id,
+        fileName: formattedName,
+      },
+    });
+
     return new NextResponse(null, { status: 200 });
   } catch (error) {
     console.error("Error uploading file:", error);

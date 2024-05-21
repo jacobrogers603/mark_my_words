@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import axios from "axios";
+import prismadb from "@/lib/prismadb";
+import { getServerSession } from "next-auth";
+import authOptions from "../../../../../../../auth";
 
 export async function GET(
   req: NextRequest,
@@ -20,27 +22,58 @@ export async function GET(
   }
 
   try {
-    // Check if the user has read access to the note that contains the image
-    const currentUser = await axios.get("/api/getCurrentUsername");
+    // Check if the callingNote has the requested image in its imageIds list
+    const callingNote = await prismadb.note.findUnique({
+      where: {
+        id: callingNoteId,
+      },
+    });
 
-    if (!currentUser || !currentUser.data.email) {
-      return NextResponse.json({ error: "could not get current username" });
+    if (!callingNote) {
+      return NextResponse.json({ error: "Note not found" });
     }
 
-    const currentUserEmail = currentUser.data.email;
+    const image = await prismadb.image.findFirst({
+      where: {
+        fileName: fileName,
+      },
+    });
 
-    const accessLists = await axios.post(
-      `/api/getAccessLists/${callingNoteId}`
-    );
+    if(!image || !image.id) {
+      return NextResponse.json({ error: "Image not found" });
+    }
 
-    if (!accessLists || !accessLists.data.readAccessList) {
-      return NextResponse.json({ error: "could not get access lists" });
+    if (!callingNote?.imageIds.includes(image.id)) {
+      return NextResponse.json({
+        error: "Note does not contain the requested image",
+      });
+    }
+
+    // Check if the current user has read access to the note that contains the image
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user || !session.user.email) {
+      return NextResponse.json({ error: "No session found" });
+    }
+
+    const currentUser = await prismadb.user.findUnique({
+      where: {
+        email: session.user.email,
+      },
+    });
+
+    if (!currentUser) {
+      return NextResponse.json({ error: "User not found" });
+    }
+
+    if (!callingNote.readAccessList) {
+      return NextResponse.json({ error: "could not get read access list" });
     }
 
     if (
       !(
-        accessLists.data.readAccessList.includes("public") ||
-        accessLists.data.readAccessList.includes(currentUserEmail)
+        callingNote.readAccessList.includes("public") ||
+        callingNote.readAccessList.includes(currentUser.email)
       )
     ) {
       return NextResponse.json({
@@ -48,6 +81,8 @@ export async function GET(
           "User does not have read access to the note, and thus the image.",
       });
     }
+
+    // If we passed all the checks, get the image file and return it
 
     const filePath = path.join("./public/uploads", userId, fileName);
 
@@ -64,6 +99,7 @@ export async function GET(
       },
     });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ error });
   }
 }

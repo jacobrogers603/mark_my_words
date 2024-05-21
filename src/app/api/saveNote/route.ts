@@ -42,6 +42,19 @@ export const POST = async (req: Request) => {
     return String(file);
   }
 
+  function extractFileNames(content: string): string[] {
+    const fileNames: string[] = [];
+    const regex =
+      /!\[.*?\]\(https?:\/\/(?:localhost:3000|mark-my-words\.net)\/api\/getImage\/[^\/]+\/([^\/]+)\/[^\/]+\)/g;
+    let match;
+  
+    while ((match = regex.exec(content)) !== null) {
+      fileNames.push(match[1]);
+    }
+  
+    return fileNames;
+  }
+
   try {
     let { id, generatedId, title, content, isDirectory, isPublic, parentId } =
       await req.json();
@@ -88,6 +101,21 @@ export const POST = async (req: Request) => {
           const encryptedTitle = encrypt(title, true);
           const encryptedHtmlContent = encrypt(htmlContent, false);
 
+          // Determine all of the images that are being used in the note.
+          const fileNames = extractFileNames(content);
+
+          // Get the list of images that are being used in the note.
+          const images = await prismadb.image.findMany({
+            where: {
+              fileName: {
+                in: fileNames,
+              },
+            },
+          });
+
+          // get the list of image ids
+          const imageIds = images.map((image) => image.id);
+          
           const updatedNote = await prismadb.note.update({
             where: {
               id: id,
@@ -97,6 +125,7 @@ export const POST = async (req: Request) => {
               content: encryptedContent,
               htmlContent: encryptedHtmlContent,
               isDirectory,
+              imageIds
             },
           });
 
@@ -107,6 +136,21 @@ export const POST = async (req: Request) => {
           const encryptedContent = encrypt(content, false);
           const encryptedTitle = encrypt(title, true);
           const encryptedHtmlContent = encrypt(htmlContent, false);
+
+          // Determine all of the images that are being used in the note.
+          const fileNames = extractFileNames(content);
+
+          // Get the list of images that are being used in the note.
+          const images = await prismadb.image.findMany({
+            where: {
+              fileName: {
+                in: fileNames,
+              },
+            },
+          });
+
+          // get the list of image ids
+          const imageIds = images.map((image) => image.id);
 
           // If we are making a note from the editor, we have already generated an ID.
           let newNote: Note;
@@ -123,6 +167,7 @@ export const POST = async (req: Request) => {
                     parentId: parentId,
                     readAccessList: [user.email, "public"],
                     writeAccessList: [user.email],
+                    imageIds
                   },
                 })
               : await prismadb.note.create({
@@ -136,6 +181,7 @@ export const POST = async (req: Request) => {
                     parentId: user?.currentPath[user?.currentPath.length - 1],
                     readAccessList: [user.email],
                     writeAccessList: [user.email],
+                    imageIds
                   },
                 });
           } // If we are making a note from an upload, we should generate a new id automatically
@@ -151,6 +197,7 @@ export const POST = async (req: Request) => {
                     parentId: parentId,
                     readAccessList: [user.email, "public"],
                     writeAccessList: [user.email],
+                    imageIds
                   },
                 })
               : await prismadb.note.create({
@@ -163,6 +210,7 @@ export const POST = async (req: Request) => {
                     parentId: user?.currentPath[user?.currentPath.length - 1],
                     readAccessList: [user.email],
                     writeAccessList: [user.email],
+                    imageIds
                   },
                 });
           }

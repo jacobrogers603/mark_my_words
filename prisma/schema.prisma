@@ -29,8 +29,7 @@ model Note {
   parentId        String?  @db.ObjectId
   readAccessList  String[]
   writeAccessList String[]
-  photoUrls       String[]
-  videoUrls       String[]
+  imageIds        String[] @db.ObjectId
 }
 
 model Template {
@@ -46,4 +45,10 @@ model Session {
   expires      DateTime
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Image {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  userId   String @db.ObjectId
+  fileName String
 }
