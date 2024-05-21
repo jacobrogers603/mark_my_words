@@ -46,7 +46,7 @@ const Note = () => {
   };
 
   const fetchNoteUsername = async () => {
-    if(!noteUserId) return;
+    if (!noteUserId) return;
     try {
       const response = await axios.get(`/api/getUsernameById/${noteUserId}`);
       setNoteUsername(response.data.username);
@@ -67,7 +67,26 @@ const Note = () => {
       }
       try {
         const { data } = await axios.get(`/api/getAccessLists/${noteId}`);
-        if (status === "authenticated") {
+        // public viewer
+        if (status === "unauthenticated") {
+          const hasAccess = data.readAccessList.includes("public");
+          hasAccess ? setPublicNote(true) : setPublicNote(false);
+          setHasReadAccess(hasAccess);
+          setHasWriteAccess(false);
+          setIsCreator(false);
+
+          const { data: noteUserId } = await axios.get(
+            `/api/getNoteUserId/${noteId}`
+          );
+
+          setNoteUserId(noteUserId);
+
+          if (!hasAccess) {
+            router.push("/unauthorized");
+          }
+        }
+        // logged in viewer
+        else if (status === "authenticated") {
           var hasAccess = false;
           if (data.readAccessList.includes("public")) {
             hasAccess = true;
@@ -93,30 +112,13 @@ const Note = () => {
 
           const noteCreator = noteUserId === user.id;
           setIsCreator(noteCreator);
-        } else {
-          // public viewer
-          const hasAccess = data.readAccessList.includes("public");
-          hasAccess ? setPublicNote(true) : setPublicNote(false);
-          setHasReadAccess(hasAccess);
-          setHasWriteAccess(false);
-          setIsCreator(false);
-
-          const { data: noteUserId } = await axios.get(
-            `/api/getNoteUserId/${noteId}`
-          );
-
-          setNoteUserId(noteUserId);
-
-          if (!hasAccess) {
-            router.push("/unauthorized");
-          }
         }
       } catch (error) {
         console.error("Failed to fetch access list", error);
       }
     };
 
-    if (noteId && user) {
+    if (noteId && user && status !== "loading") {
       checkAccess();
     }
   }, [noteId, user, status]);
@@ -202,7 +204,12 @@ const Note = () => {
 
   return (
     <main className="w-full h-full min-h-screen grid grid-cols-10 bg-blue-100 content-start">
-      <NavBar routeHomeProvided={true} routeHome={routeHome} userProvided={true} userProp={user} />
+      <NavBar
+        routeHomeProvided={true}
+        routeHome={routeHome}
+        userProvided={true}
+        userProp={user}
+      />
       <div className="mt-[5.25rem] mb-2 grid grid-cols-2 grid-rows-2  md:flex flex-row col-start-2 col-end-10 justify-self-start">
         <Button className="mr-2 w-[9rem] mb-4 md:mb-0" onClick={routeHome}>
           <Home size={15} />
