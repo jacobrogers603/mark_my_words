@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import JSZip from "jszip";
 import path from "path";
+import { getServerSession } from "next-auth";
+import authOptions from "../../../../../auth";
+import axios from "axios";
 
 export async function GET(
   req: NextRequest,
@@ -11,6 +14,23 @@ export async function GET(
 
   if (!userId) {
     return NextResponse.json({ error: "Missing userID" });
+  }
+
+  const session = await getServerSession(authOptions);
+
+  if(!session) {
+    return NextResponse.json({ error: "No session found" });
+  }
+
+  // Make sure the user that is logged in is the same one from the userId that was passed in
+  const response = await axios.get("/api/getCurrentUsername");
+
+  if(!response.data || !response) {
+    return NextResponse.json({ error: "No user found" });
+  }
+
+  if(response.data.id !== userId) {
+    return NextResponse.json({ error: "User does not have permission to download this media" });
   }
 
   try {

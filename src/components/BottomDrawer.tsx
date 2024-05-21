@@ -30,6 +30,7 @@ interface SideDrawerProps {
   noFilesMessage: string;
   appendImageLink: (altText: string, link: string) => void;
   currentUserId: string;
+  noteId: string;
 }
 
 const BottomDrawer = ({
@@ -38,7 +39,8 @@ const BottomDrawer = ({
   filesLoading,
   noFilesMessage,
   appendImageLink,
-  currentUserId
+  currentUserId,
+  noteId
 }: SideDrawerProps) => {
 
   return (
@@ -76,6 +78,7 @@ const BottomDrawer = ({
                     editor={true}
                     appendImageLink={appendImageLink}
                     currentUserId={currentUserId}
+                    noteId={noteId}
                   />
                 </CarouselItem>
               ))

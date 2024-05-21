@@ -8,7 +8,7 @@
 
 **Things that the user may not notice, or are more under the hood, but are still important**
 
-- Photo encryption & restrict anyone from accessing photos on nanode server with the link
+- Photo encryption & restrict anyone from accessing photos on nanode server with the link: will need to update the getImage route with the noteId to check the access lists, but we'll also need to change how new notes are made, assigning their IDs before they are saved so we can put the correct Id they will have in a image link:
 - sign out should redirect to auth page in all scenarios  
 - deleting a note causes an error in the console despite doing the action correctly
 - Pressing close w/o saving while editing a public note brings you back to the private directoryItems page instead of the public profile page

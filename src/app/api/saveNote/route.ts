@@ -42,11 +42,11 @@ export const POST = async (req: Request) => {
   }
 
   try {
-    const { id, title, content, isDirectory, isPublic, parentId } =
+    let { id, generatedId, title, content, isDirectory, isPublic, parentId } =
       await req.json();
 
-    if (!title) {
-      return NextResponse.json({ error: "Title is required" });
+    if (!title || title === "") {
+      title = "Untitled";
     }
 
     const session = await getServerSession(authOptions);
@@ -107,31 +107,62 @@ export const POST = async (req: Request) => {
           const encryptedTitle = encrypt(title, true);
           const encryptedHtmlContent = encrypt(htmlContent, false);
 
-          const newNote = isPublic
-            ? await prismadb.note.create({
-                data: {
-                  title: encryptedTitle,
-                  content: encryptedContent,
-                  htmlContent: encryptedHtmlContent,
-                  isDirectory,
-                  userId: userId || "",
-                  parentId: parentId,
-                  readAccessList: [user.email, "public"],
-                  writeAccessList: [user.email],
-                },
-              })
-            : await prismadb.note.create({
-                data: {
-                  title: encryptedTitle,
-                  content: encryptedContent,
-                  htmlContent: encryptedHtmlContent,
-                  isDirectory,
-                  userId: userId || "",
-                  parentId: user?.currentPath[user?.currentPath.length - 1],
-                  readAccessList: [user.email],
-                  writeAccessList: [user.email],
-                },
-              });
+          // If we are making a note from the editor, we have already generated an ID.
+          if (generatedId) {
+            const newNote = isPublic
+              ? await prismadb.note.create({
+                  data: {
+                    id: generatedId,
+                    title: encryptedTitle,
+                    content: encryptedContent,
+                    htmlContent: encryptedHtmlContent,
+                    isDirectory,
+                    userId: userId || "",
+                    parentId: parentId,
+                    readAccessList: [user.email, "public"],
+                    writeAccessList: [user.email],
+                  },
+                })
+              : await prismadb.note.create({
+                  data: {
+                    id: generatedId,
+                    title: encryptedTitle,
+                    content: encryptedContent,
+                    htmlContent: encryptedHtmlContent,
+                    isDirectory,
+                    userId: userId || "",
+                    parentId: user?.currentPath[user?.currentPath.length - 1],
+                    readAccessList: [user.email],
+                    writeAccessList: [user.email],
+                  },
+                });
+          } else // If we are making a note from an upload, we should generate a new id automatically{
+            const newNote = isPublic
+              ? await prismadb.note.create({
+                  data: {
+                    title: encryptedTitle,
+                    content: encryptedContent,
+                    htmlContent: encryptedHtmlContent,
+                    isDirectory,
+                    userId: userId || "",
+                    parentId: parentId,
+                    readAccessList: [user.email, "public"],
+                    writeAccessList: [user.email],
+                  },
+                })
+              : await prismadb.note.create({
+                  data: {
+                    title: encryptedTitle,
+                    content: encryptedContent,
+                    htmlContent: encryptedHtmlContent,
+                    isDirectory,
+                    userId: userId || "",
+                    parentId: user?.currentPath[user?.currentPath.length - 1],
+                    readAccessList: [user.email],
+                    writeAccessList: [user.email],
+                  },
+                });
+          }
 
           // Update the parent directory's child array to contain this note.
           const currentDirectoryId = isPublic

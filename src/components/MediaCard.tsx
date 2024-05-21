@@ -16,6 +16,7 @@ interface MediaCardProps {
   editor: boolean;
   appendImageLink?: (altText: string, link: string) => void;
   currentUserId?: string;
+  noteId?: string;
 }
 
 const MediaCard: React.FC<MediaCardProps> = ({
@@ -24,6 +25,7 @@ const MediaCard: React.FC<MediaCardProps> = ({
   editor,
   appendImageLink,
   currentUserId,
+  noteId,
 }) => {
   const [showInfo, setShowInfo] = useState<boolean>(false);
   const [hover, setHover] = useState<boolean>(false);
@@ -49,16 +51,18 @@ const MediaCard: React.FC<MediaCardProps> = ({
   }, [file]);
 
   const handleClick = () => {
-    if (editor && appendImageLink) {
+    if (editor && appendImageLink && noteId) {
       if (!currentUserId || !file.key) {
         return;
       }
 
       const link =
-        "https://mark-my-words.net/api/getImage/" +
+        "http://localhost:3000/api/getImage/" +
         currentUserId +
         "/" +
-        file.key;
+        file.key +
+        "/" +
+        noteId;
 
       appendImageLink(title, link);
     }

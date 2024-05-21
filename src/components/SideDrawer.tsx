@@ -115,6 +115,7 @@ const SideDrawer = ({
               noFilesMessage={noFilesMessage}
               appendImageLink={appendImageLink}
               currentUserId={currentUserId}
+              noteId={noteId}
             />
           ) : null}
           {!lgMode ? (

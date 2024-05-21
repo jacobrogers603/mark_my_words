@@ -2,7 +2,7 @@
 import { useSession } from "next-auth/react";
 import { redirect, useParams, useRouter } from "next/navigation";
 import ComboBox from "@/components/ComboBox";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, use } from "react";
 import {
   Dialog,
   DialogContent,
@@ -52,7 +52,7 @@ export default function Editor() {
   });
 
   const [isPublicNote, setIsPublicNote] = useState(false);
-  const { noteId } = useParams();
+  let { noteId } = useParams();
   const router = useRouter();
   const [hasWriteAccess, setHasWriteAccess] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
@@ -162,6 +162,21 @@ export default function Editor() {
     }
   }, [noteId, note]);
 
+  const [generatedId, setGeneratedId] = useState<string>("");
+
+  const generateId = async () => {
+    const response = await axios.post("/api/createNoteId");
+    const newId = response.data;
+    setGeneratedId(newId);
+  };
+
+  // If the note is new, generate the ID now
+  useEffect(() => {
+    if (noteId === "new" || noteId.includes("newPublic")) {
+      generateId();
+    }
+  }, []);
+
   const fetchAndUnzipMedia = async (): Promise<void> => {
     if (!currentUser) {
       getUser();
@@ -260,6 +275,7 @@ export default function Editor() {
     if (noteId === "new") {
       try {
         const newlySavedNote = await axios.post("/api/saveNote", {
+          generatedId: generatedId,
           title: currentTitle,
           content: currentText,
           isDirectory: false,
@@ -273,6 +289,7 @@ export default function Editor() {
         let parentId = noteId.slice(prefix.length);
 
         const newlySavedNote = await axios.post("/api/saveNote", {
+          generatedId: generatedId,
           title: currentTitle,
           content: currentText,
           isDirectory: false,
@@ -480,6 +497,7 @@ export default function Editor() {
                 noFilesMessage={noFilesMessage}
                 appendImageLink={appendImageLink}
                 currentUserId={currentUser?.id || ""}
+                noteId={noteId.toString()}
               />
             ) : null}
             {lgMode ? (
@@ -519,7 +537,7 @@ export default function Editor() {
                 routeHome={routeHome}
                 routeSettings={routeSettings}
                 saveNote={saveNote}
-                noteId={noteId.toString()}
+                noteId={`noteId === "new" || noteId.includes("newPublic") ? generatedId : noteId.toString()`}
                 title={title}
                 setTitle={setTitle}
                 handleTextareaChange={handleTextareaChange}

@@ -44,6 +44,7 @@
     "jszip": "^3.10.1",
     "lucide-react": "^0.323.0",
     "micromark-extension-gfm-task-list-item": "^2.0.1",
+    "mongodb": "^6.6.2",
     "multer": "^1.4.5-lts.1",
     "next": "^14.2.3",
     "next-auth": "^4.24.5",
