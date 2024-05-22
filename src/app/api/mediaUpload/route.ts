@@ -5,6 +5,7 @@ import prismadb from "@/lib/prismadb";
 import fs from "fs";
 import path from "path";
 import { blobToBuffer } from "@/lib/blobToBuffer";
+import { encryptPhoto } from "@/lib/mediaEncryption";
 
 export const POST = async (req: NextRequest) => {
   const formData = await req.formData();
@@ -40,6 +41,7 @@ export const POST = async (req: NextRequest) => {
     }
 
     const buffer = await blobToBuffer(file);
+    const encryptedData = encryptPhoto(buffer);
     const id = Date.now();
     const name = file.name.slice(0, file.name.lastIndexOf("."));
     const extension = file.name.slice(file.name.lastIndexOf("."));
@@ -47,7 +49,7 @@ export const POST = async (req: NextRequest) => {
 
     const filePath = path.join(uploadDir, formattedName);
 
-    fs.writeFileSync(filePath, buffer);
+    fs.writeFileSync(filePath, encryptedData);
 
     // Create a new image object in the database that represents the uploaded image
     await prismadb.image.create({
@@ -65,4 +67,3 @@ export const POST = async (req: NextRequest) => {
     });
   }
 };
-

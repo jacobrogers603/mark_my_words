@@ -5,11 +5,9 @@ import path from "path";
 import { getServerSession } from "next-auth";
 import authOptions from "../../../../../auth";
 import prismadb from "@/lib/prismadb";
+import { decryptPhoto } from "@/lib/mediaEncryption";
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { userId: string } }
-) {
+export async function GET(req: NextRequest, { params }: { params: { userId: string } }) {
   const userId = params.userId;
 
   if (!userId) {
@@ -28,7 +26,6 @@ export async function GET(
     },
   });
 
-  // Check if currentUser is not found
   if (!currentUser) {
     return NextResponse.json({ error: "User not found" });
   }
@@ -58,11 +55,17 @@ export async function GET(
     const files = fs.readdirSync(uploadDir);
     const zip = new JSZip();
 
-    files.forEach((file) => {
+    for (const file of files) {
       const filePath = path.join(uploadDir, file);
-      const data = fs.readFileSync(filePath);
-      zip.file(file, data);
-    });
+      const encrypted = fs.readFileSync(filePath, 'utf8');
+      try {
+        const data = decryptPhoto(encrypted);
+        zip.file(file, data);
+      } catch (decryptError) {
+        console.error(`Error decrypting file ${file}:`, decryptError);
+        return NextResponse.json({ error: `Error decrypting file ${file}: ${decryptError}` });
+      }
+    }
 
     const content = await zip.generateAsync({ type: "nodebuffer" });
 

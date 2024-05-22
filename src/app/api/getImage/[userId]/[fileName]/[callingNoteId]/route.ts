@@ -4,6 +4,7 @@ import path from "path";
 import prismadb from "@/lib/prismadb";
 import { getServerSession } from "next-auth";
 import authOptions from "../../../../../../../auth";
+import { decryptPhoto } from "@/lib/mediaEncryption";
 
 export async function GET(
   req: NextRequest,
@@ -68,7 +69,7 @@ export async function GET(
       }
 
       if (!callingNote.readAccessList) {
-        return NextResponse.json({ error: "could not get read access list" });
+        return NextResponse.json({ error: "Could not get read access list" });
       }
 
       if (!callingNote.readAccessList.includes(currentUser.email)) {
@@ -80,14 +81,14 @@ export async function GET(
     }
 
     // If we passed all the checks, get the image file and return it
-
     const filePath = path.join("./public/uploads", userId, fileName);
 
     if (!fs.existsSync(filePath)) {
       return NextResponse.json({ error: "No file found" });
     }
 
-    const data = fs.readFileSync(filePath);
+    const encryptedData = fs.readFileSync(filePath, "utf8");
+    const data = decryptPhoto(encryptedData);
 
     return new NextResponse(data, {
       headers: {
