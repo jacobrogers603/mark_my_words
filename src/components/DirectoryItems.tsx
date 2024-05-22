@@ -276,7 +276,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
         }
         await axios.post("/api/saveNote", {
           title: title,
-          content: "",
+          content: content,
           isDirectory: false,
           isPublic: true,
           parentId: currentPath[currentPath.length - 1],

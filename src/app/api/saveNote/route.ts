@@ -347,6 +347,7 @@ export const DELETE = async (req: Request) => {
         };
 
         await recursiveDelete(noteId);
+        return NextResponse.json({ success: true, message: `Note deleted!` });
       } catch (error) {
         console.log(error);
         return NextResponse.json(error);
