@@ -8,10 +8,8 @@
 
 **Things that the user may not notice, or are more under the hood, but are still important**
 
-- Photo encryption
 - sign out should redirect to auth page in all scenarios  
 - Pressing close w/o saving while editing a public note brings you back to the private directoryItems page instead of the public profile page
-- uploading should reset image links to the new note id so they work assuming the image is still in the user's media library
 
 ## Pri III 
 
@@ -28,5 +26,6 @@
 - Add alt up and down for lines in editor like in vsc
 - Add more animal portraits and fix squishing on public profile 
 - Add more css styling to the rendered note, ie tables, do to lists, code blocks etc
+- uploading should reset image links to the new note id so they work assuming the image is still in the user's media library
 - Add currentPathTitles to User model in schema: we have to query the database for the name of every path title, so each layer we go down in terms of nesting for making folders and sub folders we have the ask the server what the ID's name is to display it to the user... this is bad
 

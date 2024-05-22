@@ -22,11 +22,11 @@ A directory each user has where anything they put there will be publicly visible
 
 ### Images
 
-The ability to embed images in your notes and manage them in user-settings.
+The ability to embed images in your notes and manage them in user-settings. Photos, along with notes and templates, are encrypted.
 
 ### Encryption
 
-All notes and templates are encrypted so no one but the you and whomever you assign access to can see or edit a note. Passwords are also hashed, and thus secure.
+All notes, photos, and templates are encrypted so no one but the you and whomever you assign access to can see or edit a note. Passwords are also hashed, and thus secure.
 
 ## In Development Features
 
@@ -36,9 +36,9 @@ Search for notes, words in notes, and other users' profiles.
 
 ## Technologies Being Used
 
-- React
 - Next-JS 14
+- React
 - Typescript
 - MongoDB
-- NextAuth
 - Linode server
+- NextAuth
