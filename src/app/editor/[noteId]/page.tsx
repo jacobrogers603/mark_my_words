@@ -166,7 +166,7 @@ export default function Editor() {
 
   const generateId = async () => {
     const response = await axios.post("/api/createNoteId");
-    const newId = response.data;
+    const newId = response.data.id;
     setGeneratedId(newId);
   };
 
@@ -280,6 +280,10 @@ export default function Editor() {
           content: currentText,
           isDirectory: false,
         });
+
+        if(newlySavedNote && newlySavedNote.status === 200) {
+          router.push(`/editor/${generatedId}`);
+        }
       } catch (error) {
         console.log(error);
       }
@@ -296,6 +300,10 @@ export default function Editor() {
           isPublic: true,
           parentId: parentId,
         });
+
+        if(newlySavedNote && newlySavedNote.status === 200) {
+          router.push(`/editor/${generatedId}`);
+        }
       } catch (error) {
         console.log(error);
       }
@@ -315,7 +323,7 @@ export default function Editor() {
     toast({
       description: `Your note: ${currentTitle} has been saved!`,
     });
-  }, [noteId, toast]);
+  }, [noteId, toast, generatedId]);
 
   const closeDialog = () => setIsDialogOpen(false);
   const closeUnsavedDialog = () => setIsUnsavedDialogOpen(false);

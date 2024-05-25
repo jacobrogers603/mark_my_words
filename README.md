@@ -40,5 +40,6 @@ Search for notes, words in notes, and other users' profiles.
 - React
 - Typescript
 - MongoDB
+- TailwindCSS
 - Linode server
 - NextAuth
