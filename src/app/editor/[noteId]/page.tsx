@@ -135,6 +135,11 @@ export default function Editor() {
   const [filesLoading, setFilesLoading] = useState(false);
   const [noFilesMessage, setNoFilesMessage] = useState<string>("");
 
+  const cursorPositionRef = useRef<{ start: number; end: number }>({
+    start: 0,
+    end: 0,
+  });
+
   const fetchNote = async () => {
     try {
       const response = await axios.get(`/api/getNote/${noteId}`);
@@ -281,7 +286,7 @@ export default function Editor() {
           isDirectory: false,
         });
 
-        if(newlySavedNote && newlySavedNote.status === 200) {
+        if (newlySavedNote && newlySavedNote.status === 200) {
           router.push(`/editor/${generatedId}`);
         }
       } catch (error) {
@@ -301,7 +306,7 @@ export default function Editor() {
           parentId: parentId,
         });
 
-        if(newlySavedNote && newlySavedNote.status === 200) {
+        if (newlySavedNote && newlySavedNote.status === 200) {
           router.push(`/editor/${generatedId}`);
         }
       } catch (error) {
@@ -374,6 +379,82 @@ export default function Editor() {
   const appendImageLink = (altText: string, link: string) => {
     setNoteText((prev) => prev + `![${altText}](${link})`);
     setIsSaved(false);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.altKey &&
+        (event.key === "ArrowUp" || event.key === "ArrowDown")
+      ) {
+        event.preventDefault();
+        moveLine(event.key === "ArrowUp" ? "up" : "down");
+      }
+    };
+
+    const textarea = textAreaRef.current;
+    textarea?.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      textarea?.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [noteText]);
+
+  const moveLine = (direction: "up" | "down") => {
+    if (!textAreaRef.current) return;
+
+    const textarea = textAreaRef.current;
+    const text = textarea.value;
+    const initialStart = textarea.selectionStart;
+    const initialEnd = textarea.selectionEnd;
+
+    const lines = text.split("\n");
+    let lineStart = 0;
+    let lineEnd = 0;
+    let currentLine = 0;
+
+    // Find the current line based on the cursor position
+    for (let i = 0; i < lines.length; i++) {
+      lineEnd = lineStart + lines[i].length;
+
+      if (initialStart >= lineStart && initialEnd <= lineEnd + 1) {
+        currentLine = i;
+        break;
+      }
+
+      lineStart = lineEnd + 1;
+    }
+
+    // Calculate the position within the line
+    const positionWithinLineStart = initialStart - lineStart;
+    const positionWithinLineEnd = initialEnd - lineStart;
+
+    // Swap lines based on the direction
+    if (direction === "up" && currentLine > 0) {
+      const temp = lines[currentLine - 1];
+      lines[currentLine - 1] = lines[currentLine];
+      lines[currentLine] = temp;
+    } else if (direction === "down" && currentLine < lines.length - 1) {
+      const temp = lines[currentLine + 1];
+      lines[currentLine + 1] = lines[currentLine];
+      lines[currentLine] = temp;
+    }
+
+    const newText = lines.join("\n");
+    cursorPositionRef.current = { start: initialStart, end: initialEnd }; // Store cursor position in ref
+    setNoteText(newText);
+
+    // Set the cursor position after the state has updated
+    requestAnimationFrame(() => {
+      const newLineStart =
+        newText
+          .split("\n")
+          .slice(0, currentLine + (direction === "up" ? -1 : 1))
+          .join("\n").length + 1;
+      const newCursorStart = newLineStart + positionWithinLineStart;
+      const newCursorEnd = newLineStart + positionWithinLineEnd;
+      textarea.setSelectionRange(newCursorStart, newCursorEnd);
+    });
   };
 
   if (status === "loading" || !hasWriteAccess) {
