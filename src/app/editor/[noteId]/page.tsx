@@ -134,6 +134,7 @@ export default function Editor() {
   const [files, setFiles] = useState<FileDetails[]>([]);
   const [filesLoading, setFilesLoading] = useState(false);
   const [noFilesMessage, setNoFilesMessage] = useState<string>("");
+  const [bottomDrawerIsOpen, setBottomDrawerIsOpen] = useState(false);
 
   const cursorPositionRef = useRef<{ start: number; end: number }>({
     start: 0,
@@ -376,9 +377,32 @@ export default function Editor() {
     setIsTemplatesDialogOpen(true);
   };
 
+  const toggleBottomDrawer = () => {
+    setBottomDrawerIsOpen((prev) => !prev);
+  };
+
   const appendImageLink = (altText: string, link: string) => {
-    setNoteText((prev) => prev + `![${altText}](${link})`);
-    setIsSaved(false);
+    if (!textAreaRef.current) return;
+
+    const textarea = textAreaRef.current;
+    const currentText = textarea.value;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    const textBefore = currentText.substring(0, start);
+    const textAfter = currentText.substring(end);
+    const imageLink = `![${altText}](${link})`;
+
+    const newText = textBefore + imageLink + textAfter;
+    setNoteText(newText);
+
+    // Set the cursor position after the inserted link
+    const newCursorPosition = start + imageLink.length;
+    requestAnimationFrame(() => {
+      textarea.setSelectionRange(newCursorPosition, newCursorPosition);
+    });
+
+    toggleBottomDrawer();
   };
 
   useEffect(() => {
@@ -402,33 +426,38 @@ export default function Editor() {
 
   const moveLine = (direction: "up" | "down") => {
     if (!textAreaRef.current) return;
-
+  
     const textarea = textAreaRef.current;
     const text = textarea.value;
     const initialStart = textarea.selectionStart;
     const initialEnd = textarea.selectionEnd;
-
+  
     const lines = text.split("\n");
     let lineStart = 0;
     let lineEnd = 0;
     let currentLine = 0;
-
+  
     // Find the current line based on the cursor position
     for (let i = 0; i < lines.length; i++) {
       lineEnd = lineStart + lines[i].length;
-
+  
       if (initialStart >= lineStart && initialEnd <= lineEnd + 1) {
         currentLine = i;
         break;
       }
-
+  
       lineStart = lineEnd + 1;
     }
-
+  
+    // Prevent moving beyond the boundaries
+    if ((direction === "up" && currentLine === 0) || (direction === "down" && currentLine === lines.length - 1)) {
+      return;
+    }
+  
     // Calculate the position within the line
     const positionWithinLineStart = initialStart - lineStart;
     const positionWithinLineEnd = initialEnd - lineStart;
-
+  
     // Swap lines based on the direction
     if (direction === "up" && currentLine > 0) {
       const temp = lines[currentLine - 1];
@@ -439,11 +468,11 @@ export default function Editor() {
       lines[currentLine + 1] = lines[currentLine];
       lines[currentLine] = temp;
     }
-
+  
     const newText = lines.join("\n");
     cursorPositionRef.current = { start: initialStart, end: initialEnd }; // Store cursor position in ref
     setNoteText(newText);
-
+  
     // Set the cursor position after the state has updated
     requestAnimationFrame(() => {
       const newLineStart =
@@ -455,7 +484,10 @@ export default function Editor() {
       const newCursorEnd = newLineStart + positionWithinLineEnd;
       textarea.setSelectionRange(newCursorStart, newCursorEnd);
     });
+  
+    setIsSaved(false);
   };
+  
 
   if (status === "loading" || !hasWriteAccess) {
     return (
@@ -587,6 +619,7 @@ export default function Editor() {
                 appendImageLink={appendImageLink}
                 currentUserId={currentUser?.id || ""}
                 noteId={noteId.toString()}
+                handleTextAreaChange={handleTextareaChange}
               />
             ) : null}
             {lgMode ? (

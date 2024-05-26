@@ -16,6 +16,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import MediaCard from "./MediaCard";
+import { Dispatch, SetStateAction, useState } from "react";
 
 interface MediaFile {
   key: string;
@@ -31,6 +32,7 @@ interface SideDrawerProps {
   appendImageLink: (altText: string, link: string) => void;
   currentUserId: string;
   noteId: string;
+  handleTextAreaChange: () => void;
 }
 
 const BottomDrawer = ({
@@ -40,14 +42,24 @@ const BottomDrawer = ({
   noFilesMessage,
   appendImageLink,
   currentUserId,
-  noteId
+  noteId,
+  handleTextAreaChange,
 }: SideDrawerProps) => {
+  const [isOpened, setIsOpened] = useState<boolean>(false);
+
+  const toggleDrawer = () => {
+    setIsOpened(!isOpened);
+  };
 
   return (
-    <Drawer direction="bottom">
+    <Drawer
+      direction="bottom"
+      open={isOpened}
+      onOpenChange={(open) => setIsOpened(open)}>
       <DrawerTrigger>
         <Image
           size={lgMode ? 35 : 40}
+          onClick={toggleDrawer}
           className={`cursor-pointer ${lgMode ? "mr-6 min-w-8" : ""}`}
         />
       </DrawerTrigger>
@@ -79,6 +91,8 @@ const BottomDrawer = ({
                     appendImageLink={appendImageLink}
                     currentUserId={currentUserId}
                     noteId={noteId}
+                    closeDrawer={toggleDrawer}
+                    handleTextAreaChange={handleTextAreaChange}
                   />
                 </CarouselItem>
               ))

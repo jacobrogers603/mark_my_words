@@ -17,6 +17,8 @@ interface MediaCardProps {
   appendImageLink?: (altText: string, link: string) => void;
   currentUserId?: string;
   noteId?: string;
+  closeDrawer?: () => void;
+  handleTextAreaChange?: () => void;
 }
 
 const MediaCard: React.FC<MediaCardProps> = ({
@@ -26,6 +28,8 @@ const MediaCard: React.FC<MediaCardProps> = ({
   appendImageLink,
   currentUserId,
   noteId,
+  closeDrawer,
+  handleTextAreaChange,
 }) => {
   const [showInfo, setShowInfo] = useState<boolean>(false);
   const [hover, setHover] = useState<boolean>(false);
@@ -65,6 +69,14 @@ const MediaCard: React.FC<MediaCardProps> = ({
         noteId;
 
       appendImageLink(title, link);
+      
+      if(handleTextAreaChange) {
+        handleTextAreaChange();
+      }
+
+      if(closeDrawer) {
+        closeDrawer();
+      }
     }
   };
 
