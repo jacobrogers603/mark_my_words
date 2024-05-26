@@ -426,68 +426,88 @@ export default function Editor() {
 
   const moveLine = (direction: "up" | "down") => {
     if (!textAreaRef.current) return;
-  
+
     const textarea = textAreaRef.current;
     const text = textarea.value;
     const initialStart = textarea.selectionStart;
     const initialEnd = textarea.selectionEnd;
-  
+
     const lines = text.split("\n");
     let lineStart = 0;
     let lineEnd = 0;
-    let currentLine = 0;
-  
-    // Find the current line based on the cursor position
+    let startLine = 0;
+    let endLine = 0;
+
+    // Find the start and end line of the selection
     for (let i = 0; i < lines.length; i++) {
       lineEnd = lineStart + lines[i].length;
-  
-      if (initialStart >= lineStart && initialEnd <= lineEnd + 1) {
-        currentLine = i;
+
+      if (initialStart >= lineStart && initialStart <= lineEnd + 1) {
+        startLine = i;
+      }
+      if (initialEnd >= lineStart && initialEnd <= lineEnd + 1) {
+        endLine = i;
         break;
       }
-  
+
       lineStart = lineEnd + 1;
     }
-  
+
     // Prevent moving beyond the boundaries
-    if ((direction === "up" && currentLine === 0) || (direction === "down" && currentLine === lines.length - 1)) {
+    if (
+      (direction === "up" && startLine === 0) ||
+      (direction === "down" && endLine === lines.length - 1)
+    ) {
       return;
     }
-  
+
     // Calculate the position within the line
-    const positionWithinLineStart = initialStart - lineStart;
-    const positionWithinLineEnd = initialEnd - lineStart;
-  
-    // Swap lines based on the direction
-    if (direction === "up" && currentLine > 0) {
-      const temp = lines[currentLine - 1];
-      lines[currentLine - 1] = lines[currentLine];
-      lines[currentLine] = temp;
-    } else if (direction === "down" && currentLine < lines.length - 1) {
-      const temp = lines[currentLine + 1];
-      lines[currentLine + 1] = lines[currentLine];
-      lines[currentLine] = temp;
+    const positionWithinLineStart =
+      initialStart -
+      text.split("\n").slice(0, startLine).join("\n").length -
+      (startLine > 0 ? 1 : 0);
+    const positionWithinLineEnd =
+      initialEnd -
+      text.split("\n").slice(0, endLine).join("\n").length -
+      (endLine > 0 ? 1 : 0);
+
+    // Swap lines or blocks of lines based on the direction
+    if (direction === "up" && startLine > 0) {
+      const temp = lines[startLine - 1];
+      lines.splice(startLine - 1, 1);
+      lines.splice(endLine, 0, temp);
+      startLine--;
+      endLine--;
+    } else if (direction === "down" && endLine < lines.length - 1) {
+      const temp = lines[endLine + 1];
+      lines.splice(endLine + 1, 1);
+      lines.splice(startLine, 0, temp);
+      startLine++;
+      endLine++;
     }
-  
+
     const newText = lines.join("\n");
-    cursorPositionRef.current = { start: initialStart, end: initialEnd }; // Store cursor position in ref
     setNoteText(newText);
-  
+
+    // Calculate the new cursor positions
+    const newStartLineStart =
+      lines.slice(0, startLine).join("\n").length + (startLine > 0 ? 1 : 0);
+    const newEndLineStart =
+      lines.slice(0, endLine).join("\n").length + (endLine > 0 ? 1 : 0);
+    const newCursorStart = newStartLineStart + positionWithinLineStart;
+    const newCursorEnd = newEndLineStart + positionWithinLineEnd;
+
     // Set the cursor position after the state has updated
     requestAnimationFrame(() => {
-      const newLineStart =
-        newText
-          .split("\n")
-          .slice(0, currentLine + (direction === "up" ? -1 : 1))
-          .join("\n").length + 1;
-      const newCursorStart = newLineStart + positionWithinLineStart;
-      const newCursorEnd = newLineStart + positionWithinLineEnd;
-      textarea.setSelectionRange(newCursorStart, newCursorEnd);
+      if (initialStart === initialEnd) {
+        textarea.setSelectionRange(newCursorStart, newCursorStart); // Set cursor position
+      } else {
+        textarea.setSelectionRange(newCursorStart, newCursorEnd); // Set selection range
+      }
     });
-  
+
     setIsSaved(false);
   };
-  
 
   if (status === "loading" || !hasWriteAccess) {
     return (
