@@ -116,6 +116,7 @@ const SideDrawer = ({
               appendImageLink={appendImageLink}
               currentUserId={currentUserId}
               noteId={noteId}
+              handleTextAreaChange={handleTextareaChange}
             />
           ) : null}
           {!lgMode ? (
