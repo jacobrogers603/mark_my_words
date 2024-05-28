@@ -414,7 +414,7 @@ export default function Editor() {
         event.preventDefault();
         moveLine(event.key === "ArrowUp" ? "up" : "down");
       }
-    };
+    }; 
 
     const textarea = textAreaRef.current;
     textarea?.addEventListener("keydown", handleKeyDown);
