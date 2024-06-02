@@ -7,7 +7,8 @@
 }
 
 .markdown-content {
-    
+  @apply w-full; /* Ensure the container takes the full width of its parent */
+  @apply break-words; /* Ensure text wraps correctly */
 }
 
 .markdown-content h1 {
@@ -36,6 +37,7 @@
 
 .markdown-content p {
   @apply mb-4;
+  @apply break-words; /* Ensure text wraps correctly */
 }
 
 .markdown-content strong {
@@ -55,79 +57,89 @@
 }
 
 .markdown-content a {
-    @apply bg-transparent;
-    @apply text-blue-500;
-    @apply decoration-inherit;
+  @apply bg-transparent;
+  @apply text-blue-500;
+  @apply decoration-inherit;
 }
 
 .markdown-content a:active,
 .markdown-content a:hover {
-    @apply outline-0;
+  @apply outline-0;
 }
 
 .markdown-content a:not([href]) {
-    @apply text-inherit;
-    @apply decoration-inherit;
+  @apply text-inherit;
+  @apply decoration-inherit;
 }
 
 .markdown-content del code {
-    @apply decoration-inherit;
+  @apply decoration-inherit;
 }
 
 .markdown-content table {
-    @apply border-spacing-0;
-    @apply border-collapse;
-    @apply block;
-    @apply mt-0;
-    @apply mb-4;
-    @apply w-max;
-    @apply max-w-[100%];
-    @apply overflow-auto;
+  @apply border-spacing-0;
+  @apply border-collapse;
+  @apply block;
+  @apply mt-0;
+  @apply mb-4;
+  @apply w-max;
+  @apply max-w-full;
+  @apply overflow-auto;
 }
 
 .markdown-content tr {
-    @apply bg-white;
-    @apply border-t-2;
+  @apply bg-white;
+  @apply border-t-2;
 }
 
 .markdown-content tr:nth-child(2n) {
-    @apply bg-[#f6f8fa];
+  @apply bg-[#f6f8fa];
 }
 
 .markdown-content td,
 .markdown-content th {
-    @apply pt-[6px];
-    @apply pb-[6px];
-    @apply pl-[13px];
-    @apply pr-[13px];
-    @apply border-[#d0d7de];
+  @apply pt-1.5;
+  @apply pb-1.5;
+  @apply pl-3;
+  @apply pr-3;
+  @apply border border-gray-300;
 }
 
 .markdown-content th {
-    @apply font-semibold;
+  @apply font-semibold;
 }
 
 .markdown-content table img {
-    @apply bg-transparent;
+  @apply bg-transparent;
 }
 
 .markdown-content input[type="checkbox"] {
-    @apply mt-0;
-    @apply mr-[0.2em];
-    @apply mb-[0.25em];
-    @apply ml-[-1.6em];
-    @apply align-middle;
+  @apply mt-0;
+  @apply mr-0.5;
+  @apply mb-1;
+  @apply ml-[-1.5em];
+  @apply align-middle;
 }
 
 .markdown-content img {
   @apply block;
   @apply max-w-full;
-  @apply max-h-[500px];  /* Max height set to 500px */
-  @apply w-auto;         /* Width automatically adjusted to maintain aspect ratio */
-  @apply h-auto;         /* Height automatically adjusts to maintain aspect ratio */
+  @apply max-h-[500px]; /* Max height set to 500px */
+  @apply w-auto; /* Width automatically adjusted to maintain aspect ratio */
+  @apply h-auto; /* Height automatically adjusts to maintain aspect ratio */
   @apply my-4;
-  @apply mx-auto;        /* Center align image */
-  @apply shadow-sm;      /* adds slight shadow for depth */
-  @apply rounded-lg;     /* adds rounded corners */
+  @apply mx-auto; /* Center align image */
+  @apply shadow-sm; /* adds slight shadow for depth */
+  @apply rounded-lg; /* adds rounded corners */
 }
 
+.markdown-content pre,
+.markdown-content code {
+  @apply block;
+  @apply overflow-x-auto; /* Add horizontal scroll if content overflows */
+  @apply break-all; /* Break words to prevent overflow */
+  @apply p-2; /* Add some padding */
+  @apply bg-gray-100; /* Light background color for contrast */
+  @apply border border-gray-300; /* Add a border for definition */
+  @apply rounded; /* Rounded corners */
+}
