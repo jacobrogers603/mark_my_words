@@ -150,6 +150,8 @@
 .markdown-content pre,
 .markdown-content code {
   @apply block;
+  @apply w-fit;
+  @apply max-w-full;
   @apply overflow-x-auto; /* Add horizontal scroll if content overflows */
   @apply break-all; /* Break words to prevent overflow */
   @apply p-2; /* Add some padding */
