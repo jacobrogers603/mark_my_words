@@ -199,7 +199,22 @@ const SideDrawer = ({
               orientation="horizontal"
             />
             <li>
-              <span className="font-bold italic">`Code`</span> Code Block
+              <span className="font-bold italic">`Code`</span> Inline Code
+            </li>
+            <Separator
+              className="h-[2px] bg-gray-800 my-2"
+              orientation="horizontal"
+            />
+            <li>
+              <span className="font-bold italic">
+                ```
+                <br />
+                Code
+                <br />
+                ```
+                <br />
+              </span>{" "}
+              Code Block
             </li>
             <Separator
               className="h-[2px] bg-gray-800 my-2"
@@ -222,6 +237,18 @@ const SideDrawer = ({
             <li>
               <span className="font-bold italic">![Alt Text](Image Path)</span>{" "}
               Image
+            </li>
+            <Separator
+              className="h-[2px] bg-gray-800 my-2"
+              orientation="horizontal"
+            />
+            <li>
+              <span className="font-bold italic">
+                | Heading |<br />
+                | -------- |
+                <br />| Content |<br />
+              </span>{" "}
+              Table
             </li>
           </ul>
         </div>
