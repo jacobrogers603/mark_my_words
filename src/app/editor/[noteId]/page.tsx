@@ -341,7 +341,12 @@ export default function Editor() {
 
   const handleCloseWithoutSavingPress = () => {
     if (homePressed) {
-      router.push("/");
+      if(isPublicNote && currentUser){
+        router.push(`/${currentUser.username}`);
+      }
+      else{
+        router.push("/");
+      }
     } else if (settingsPressed) {
       router.push(`/note/settings/${noteId}`);
     }

@@ -9,7 +9,6 @@
 **Things that the user may not notice, or are more under the hood, but are still important**
 
 - sign out should redirect to auth page in all scenarios  
-- Pressing close w/o saving while editing a public note brings you back to the private directoryItems page instead of the public profile page
 
 ## Pri III 
 
