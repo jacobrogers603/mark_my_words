@@ -14,9 +14,10 @@
 
 **Things that are unimportant, small, or are future desired features**
 
+- Ability to move notes in the hierarchy via settings
+- shared notes viewable
 - Line numbering and clicking to highlight the line
 - Add highlighting of all terms when double clicking like in vsc
-- Ability to move notes in the hierarchy via settings
 - Add more css styling to the rendered note, ie tables, do to lists
 - Add account settings to user-settings page accordion: change password, change email, delete account, profile bio
 - Add profile bio to public profile page

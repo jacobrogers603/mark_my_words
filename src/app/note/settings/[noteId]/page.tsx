@@ -13,6 +13,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { ArrowDownFromLine, Home, Link, PencilRuler } from "lucide-react";
 import {
@@ -39,6 +45,8 @@ import {
 } from "@/components/ui/tooltip";
 import { useToast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
+import { forEach } from "jszip";
+import DirectoryLocation from "@/components/DirectoryLocation";
 
 interface User {
   id: string;
@@ -50,6 +58,18 @@ interface Note {
   id: string;
   title: string;
   htmlContent: string;
+  isDirectory: boolean;
+  parentId: string;
+}
+
+interface Directory {
+  id: string;
+  title: string;
+}
+
+interface NoteItem {
+  title: string;
+  id: string;
   isDirectory: boolean;
 }
 
@@ -118,16 +138,144 @@ const NoteSettings = () => {
   const [userEmail, setUserEmail] = useState("");
   const [writeAccess, setWriteAccess] = useState(false);
   const { toast } = useToast();
+  const [subDirectories, setSubDirectories] = useState<Directory[]>([]);
+  const [parentDirectory, setParentDirectory] = useState<Directory | undefined>(
+    undefined
+  );
+  const [currentDirectory, setCurrentDirectory] = useState<
+    Directory | undefined
+  >(undefined);
+  const [currentDirectoryParent, setCurrentDirectoryParent] = useState<
+    Directory | undefined
+  >(undefined);
 
   const closeDialog = () => setIsDialogOpen(false);
   const closeAddUserDialog = () => setIsAddUserDialogOpen(false);
+
+  const fetchParentDirectory = async (parentId: string) => {
+    try {
+      const response = await axios.get(`/api/getNote/${parentId}`);
+      setParentDirectory({ id: response.data.id, title: response.data.title });
+
+      // First time we fetch the parent directory, set the current directory as well
+      if (!currentDirectory) {
+        setCurrentDirectory({
+          id: response.data.id,
+          title: response.data.title,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch parent directory:", error);
+    }
+  };
+
+  const fetchSubDirectories = async () => {
+    try {
+      const response = await axios.get(
+        `/api/getPublicCurDirNotes/${currentDirectory?.id}`
+      );
+
+      let subDirs: Directory[] = [];
+
+      response.data.forEach((noteItem: NoteItem) => {
+        if (noteItem.isDirectory) {
+          subDirs.push({ id: noteItem.id, title: noteItem.title });
+        }
+      });
+      setSubDirectories(subDirs);
+    } catch (error) {
+      console.error("Failed to fetch subdirectories:", error);
+    }
+  };
+
+  const fetchCurrentDirectoryParent = async () => {
+    try {
+      const response = await axios.get(
+        `/api/getNoteParentId/${currentDirectory?.id}`
+      );
+
+      if(!response.data) {
+        return;
+      }
+
+      const parentResponse = await axios.get(
+        `/api/getNoteTitleAndId/${response.data}`
+      );
+      setCurrentDirectoryParent(parentResponse.data);
+    } catch (error) {
+      console.error("Failed to fetch current directory parent:", error);
+    }
+  };
+
+  // Changing the current directory for the location UI
+  const changeCurrentDirectory = async (id: string, title: string) => {
+    setCurrentDirectory({ id: id, title: title });
+  };
+
+  const goUpADirectory = () => {
+    if (!currentDirectoryParent || !currentDirectoryParent.id) {
+      return;
+    }
+    changeCurrentDirectory(
+      currentDirectoryParent.id,
+      currentDirectoryParent.title
+    );
+  };
+
+  useEffect(() => {
+    if (note) {
+      fetchParentDirectory(note.parentId);
+    }
+  }, [note]);
+
+  useEffect(() => {
+    if (currentDirectory) {
+      fetchSubDirectories();
+      fetchCurrentDirectoryParent();
+    }
+  }, [currentDirectory]);
+
+  // Change the parent directory of the current note, which will move the note in the hierarchy
+  const changeParentDirectory = async (id?: string) => {
+    if (!id) {
+      return;
+    }
+
+    try {
+      // Check if the new parent is public
+      let publicDir = false;
+      const publicResponse = await axios.get(`/api/getAccessLists/${id}`);
+      if(publicResponse.data && publicResponse.data.readAccessList.includes("public")) {
+        publicDir = true;
+      }
+
+      // update the parentIds to move the note in the hierarchy
+      const response = await axios.post(`/api/changeParentDir/${noteId}/${id}`);
+
+      // update the access list to be public, or not, depending on the new parent
+      let accessResponse;
+      if(publicDir) {
+        accessResponse = await axios.post(`/api/forceNotePublic/${noteId}`);
+      }
+      else{
+        accessResponse = await axios.post(`/api/forceNotePrivate/${noteId}`);
+      } 
+
+      if (response.data.success === true && accessResponse.data.success === true) {
+        fetchParentDirectory(id);
+        fetchNote();
+      }
+    } catch (error) {
+      console.error("Failed to change parent directory:", error);
+    }
+  };
 
   const deleteButtonPressed = () => {
     setIsDialogOpen(true);
   };
 
   const routeHome = () => {
-    if(!user || !allowedUsers){
+    if (!user || !allowedUsers) {
       router.push("/");
     }
     if (user && allowedUsers.includes("public")) {
@@ -332,7 +480,12 @@ const NoteSettings = () => {
         className={`flex flex-col justify-start items-center w-full min-h-screen ${
           note?.isDirectory ? "bg-amber-100" : "bg-blue-100"
         }`}>
-        <NavBar routeHomeProvided={true} routeHome={routeHome} userProvided={true} userProp={user} />
+        <NavBar
+          routeHomeProvided={true}
+          routeHome={routeHome}
+          userProvided={true}
+          userProp={user}
+        />
         {/* Delete confirmation dialog */}
         {isDialogOpen && (
           <Dialog open={isDialogOpen}>
@@ -411,7 +564,8 @@ const NoteSettings = () => {
           </Dialog>
         )}
 
-        <div className="flex flex-col mx-8 max-w-[80%] md:max-w-[60%]">
+        {/* page title */}
+        <div className="flex flex-col mx-8 max-w-[80%] md:max-w-[60%]mb-4">
           <h1 className="mt-16 mb-4 font-medium text-xl md:text-3xl text-black text-center">
             {note?.isDirectory ? "Directory" : "Note"}&nbsp;Settings:
           </h1>
@@ -423,67 +577,8 @@ const NoteSettings = () => {
           </div>
         </div>
 
-        {/* Access controls */}
-        {note?.isDirectory ? null : (
-          <Card className="w-auto max-w-[25rem] flex-grow flex flex-col justify-start items-center mx-8">
-            <CardHeader className="text-center self-start">
-              <CardTitle>Access Controls</CardTitle>
-              <CardDescription>
-                <span>{`Control which users have access to this ${
-                  note?.isDirectory
-                    ? "directory, and thus its notes and subdirectories as well (unless manually overridden on a case by case basis)."
-                    : "note."
-                }`}</span>
-              </CardDescription>
-              <div className="flex">
-                <FiPlusCircle
-                  size={30}
-                  onClick={handleAddUserPress}
-                  className="cursor-pointer">
-                  Add User
-                </FiPlusCircle>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Link
-                        className="ml-4"
-                        onClick={linkButtonClicked}
-                        size={25}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Copy share link</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea
-                className="h-fit min-h-8 max-h-24 w-48 rounded-md border overflow-y-auto p-2"
-                type="scroll">
-                {allowedUsers
-                  .filter((user, index) => index !== 0 && user !== "public")
-                  .map((user, index) => (
-                    <UserItem
-                      key={index}
-                      email={user}
-                      writeAccess={checkWriteAccess(user)}
-                      toggleWriteMode={toggleWriteMode}
-                      removeUsersAccess={removeUsersAccess}
-                    />
-                  ))}
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        )}
-        <div className="flex-grow"></div>
-        <div
-          className={`${
-            note?.isDirectory
-              ? "flex"
-              : "grid grid-cols-2 grid-rows-2 w-auto place-items-center"
-          } col-start-2 row-start-4`}>
+        {/* Home & Edit button */}
+        <div className="flex w-full md:w-[60%] items-center justify-center">
           <Button className="mr-2 w-[9rem]" onClick={routeHome}>
             <Home size={15} />
             <span className="ml-2">Home</span>
@@ -494,31 +589,156 @@ const NoteSettings = () => {
               <span className="ml-2">Edit note</span>
             </Button>
           )}
-          <Button className="ml-2 w-[12rem]" onClick={handleDownloadHtmlPress}>
-            <ArrowDownFromLine size={15} />
-            <span className="ml-2">Download HTML</span>
-          </Button>
-          {note?.isDirectory ? null : (
-            <Button
-              className="mb-8 mt-8 w-[9rem]"
-              variant={"destructive"}
-              onClick={deleteButtonPressed}>
-              <span className="ml-2">
-                Delete {note?.isDirectory ? "directory" : "note"}
-              </span>
-            </Button>
-          )}
         </div>
-        {note?.isDirectory ? (
-          <Button
-            className="mb-8 mt-8 w-[9rem]"
-            variant={"destructive"}
-            onClick={deleteButtonPressed}>
-            <span className="ml-2">
-              Delete {note?.isDirectory ? "directory" : "note"}
-            </span>
-          </Button>
-        ) : null}
+
+        <Accordion
+          className="mt-6 w-full md:w-[60%] p-4 rounded-md shadow-md bg-white"
+          type="single"
+          collapsible>
+          <AccordionItem value="item-1">
+            <AccordionTrigger>Access Controls & Sharing</AccordionTrigger>
+            <AccordionContent className="flex flex-col w-full items-center text-center p-2">
+              {/* Access controls */}
+              {note?.isDirectory ? null : (
+                <Card className="w-auto max-w-[25rem] flex-grow flex flex-col justify-start items-center mx-8">
+                  <CardHeader className="text-center self-start">
+                    <CardDescription>
+                      <span>{`Control which users have access to this ${
+                        note?.isDirectory
+                          ? "directory, and thus its notes and subdirectories as well (unless manually overridden on a case by case basis)."
+                          : "note."
+                      }`}</span>
+                    </CardDescription>
+                    <div className="flex">
+                      <FiPlusCircle
+                        size={30}
+                        onClick={handleAddUserPress}
+                        className="cursor-pointer">
+                        Add User
+                      </FiPlusCircle>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Link
+                              className="ml-4"
+                              onClick={linkButtonClicked}
+                              size={25}
+                            />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Copy share link</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <ScrollArea
+                      className="h-fit min-h-8 max-h-24 w-48 rounded-md border overflow-y-auto p-2"
+                      type="scroll">
+                      {allowedUsers
+                        .filter(
+                          (user, index) => index !== 0 && user !== "public"
+                        )
+                        .map((user, index) => (
+                          <UserItem
+                            key={index}
+                            email={user}
+                            writeAccess={checkWriteAccess(user)}
+                            toggleWriteMode={toggleWriteMode}
+                            removeUsersAccess={removeUsersAccess}
+                          />
+                        ))}
+                    </ScrollArea>
+                  </CardContent>
+                </Card>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="item-2">
+            <AccordionTrigger>Location</AccordionTrigger>
+            <AccordionContent className="flex flex-col w-full items-center text-center p-2">
+              <div className="overflow-y-auto flex-grow pt-2 flex flex-col w-full justify-center items-center">
+                {/* current dir */}
+                <div className="flex flex-col w-full items-center">
+                  <div
+                    className={`w-[90%] md:w-[70%] h-10 grid grid-cols-2 place-items-center ${
+                      currentDirectory?.id === note.parentId
+                        ? "bg-green-200"
+                        : "bg-gray-200"
+                    } border-solid border-2 border-black rounded-md mb-4 p-2 overflow-auto`}>
+                    <span className="cursor-default">
+                      {currentDirectory?.title}
+                    </span>
+                    <Button
+                      variant={"link"}
+                      disabled={
+                        currentDirectory?.id === note.parentId ? true : false
+                      }
+                      className="h-5"
+                      onClick={() =>
+                        changeParentDirectory(currentDirectory?.id)
+                      }>
+                      {currentDirectory?.id === note.parentId
+                        ? "Current Location"
+                        : "Set Location"}
+                    </Button>
+                  </div>
+                </div>
+                {/* up dir */}
+                {currentDirectory?.title !== user?.email ? (
+                  <div
+                    className="w-[80%] md:w-[60%] h-10 grid place-items-center bg-blue-300 hover:bg-blue-400 cursor-pointer border-solid border-2 border-black rounded-md mb-2 p-2 overflow-auto"
+                    onClick={goUpADirectory}>
+                    ↑ . . .
+                  </div>
+                ) : null}
+                {/* sub dirs */}
+                {subDirectories.map((subDir: Directory) => (
+                  <DirectoryLocation
+                    key={subDir.id}
+                    title={subDir.title}
+                    id={subDir.id}
+                    changeCurrentDirectory={changeCurrentDirectory}
+                  />
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="item-3">
+            <AccordionTrigger>Delete & Other Options</AccordionTrigger>
+            <AccordionContent className="grid place-items-center p-2">
+              <Button
+                className="ml-2 w-[12rem]"
+                onClick={handleDownloadHtmlPress}>
+                <ArrowDownFromLine size={15} />
+                <span className="ml-2">Download HTML</span>
+              </Button>
+              {note?.isDirectory ? null : (
+                <Button
+                  className="mb-8 mt-8 w-[9rem]"
+                  variant={"destructive"}
+                  onClick={deleteButtonPressed}>
+                  <span className="ml-2">
+                    Delete {note?.isDirectory ? "directory" : "note"}
+                  </span>
+                </Button>
+              )}
+              {note?.isDirectory ? (
+                <Button
+                  className="mb-8 mt-8 w-[9rem]"
+                  variant={"destructive"}
+                  onClick={deleteButtonPressed}>
+                  <span className="ml-2">
+                    Delete {note?.isDirectory ? "directory" : "note"}
+                  </span>
+                </Button>
+              ) : null}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+
+        <div className="flex-grow"></div>
       </main>
     </>
   );

@@ -48,10 +48,12 @@ export const POST = async (req: Request) => {
         content: "",
         isDirectory: true,
         userId: user.id || "",
+        readAccessList: [email],
       },
     });
 
     const encryptedPublicTitle = encrypt(username, true);
+    const readAccessList = [email, "public"];
 
     const publicDir = await prismadb.note.create({
       data: {
@@ -60,6 +62,7 @@ export const POST = async (req: Request) => {
         isDirectory: true,
         userId: user.id || "",
         parentId: rootDir.id,
+        readAccessList: readAccessList,
       },
     });
 
