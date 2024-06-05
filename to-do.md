@@ -14,7 +14,6 @@
 
 **Things that are unimportant, small, or are future desired features**
 
-- Ability to move notes in the hierarchy via settings
 - shared notes viewable
 - Line numbering and clicking to highlight the line
 - Add highlighting of all terms when double clicking like in vsc

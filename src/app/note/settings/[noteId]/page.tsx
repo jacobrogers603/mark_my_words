@@ -194,7 +194,7 @@ const NoteSettings = () => {
         `/api/getNoteParentId/${currentDirectory?.id}`
       );
 
-      if(!response.data) {
+      if (!response.data) {
         return;
       }
 
@@ -245,28 +245,50 @@ const NoteSettings = () => {
       // Check if the new parent is public
       let publicDir = false;
       const publicResponse = await axios.get(`/api/getAccessLists/${id}`);
-      if(publicResponse.data && publicResponse.data.readAccessList.includes("public")) {
+      if (
+        publicResponse.data &&
+        publicResponse.data.readAccessList.includes("public")
+      ) {
         publicDir = true;
       }
 
       // update the parentIds to move the note in the hierarchy
       const response = await axios.post(`/api/changeParentDir/${noteId}/${id}`);
 
-      // update the access list to be public, or not, depending on the new parent
-      let accessResponse;
-      if(publicDir) {
-        accessResponse = await axios.post(`/api/forceNotePublic/${noteId}`);
-      }
-      else{
-        accessResponse = await axios.post(`/api/forceNotePrivate/${noteId}`);
-      } 
+      // update the access list to be public, or not, depending on the new parent, if it is a directory, do it recursively
+      const accessResponse = await changeAccess(publicDir, noteId);
 
-      if (response.data.success === true && accessResponse.data.success === true) {
+      if (
+        response.data.success === true &&
+        accessResponse === true
+      ) {
         fetchParentDirectory(id);
         fetchNote();
       }
     } catch (error) {
       console.error("Failed to change parent directory:", error);
+    }
+  };
+
+  const changeAccess = async (publicAccess: boolean, noteId: string | string[]) => {
+    try {
+      const childrenIdsResponse = await axios.get(
+        `/api/getChildrenIds/${noteId}`
+      );
+
+      for (let i = 0; i < childrenIdsResponse.data.length; i++) {
+        await changeAccess(publicAccess, childrenIdsResponse.data[i]);
+      }
+
+      if (publicAccess) {
+        await axios.post(`/api/forceNotePublic/${noteId}`);
+      } else {
+        await axios.post(`/api/forceNotePrivate/${noteId}`);
+      }
+      return true;
+    } catch (error) {
+      console.error("Failed to change access:", error);
+      return false;
     }
   };
 
@@ -595,66 +617,68 @@ const NoteSettings = () => {
           className="mt-6 w-full md:w-[60%] p-4 rounded-md shadow-md bg-white"
           type="single"
           collapsible>
-          <AccordionItem value="item-1">
-            <AccordionTrigger>Access Controls & Sharing</AccordionTrigger>
-            <AccordionContent className="flex flex-col w-full items-center text-center p-2">
-              {/* Access controls */}
-              {note?.isDirectory ? null : (
-                <Card className="w-auto max-w-[25rem] flex-grow flex flex-col justify-start items-center mx-8">
-                  <CardHeader className="text-center self-start">
-                    <CardDescription>
-                      <span>{`Control which users have access to this ${
-                        note?.isDirectory
-                          ? "directory, and thus its notes and subdirectories as well (unless manually overridden on a case by case basis)."
-                          : "note."
-                      }`}</span>
-                    </CardDescription>
-                    <div className="flex">
-                      <FiPlusCircle
-                        size={30}
-                        onClick={handleAddUserPress}
-                        className="cursor-pointer">
-                        Add User
-                      </FiPlusCircle>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Link
-                              className="ml-4"
-                              onClick={linkButtonClicked}
-                              size={25}
+          {!note.isDirectory ? (
+            <AccordionItem value="item-1">
+              <AccordionTrigger>Access Controls & Sharing</AccordionTrigger>
+              <AccordionContent className="flex flex-col w-full items-center text-center p-2">
+                {/* Access controls */}
+                {note?.isDirectory ? null : (
+                  <Card className="w-auto max-w-[25rem] flex-grow flex flex-col justify-start items-center mx-8">
+                    <CardHeader className="text-center self-start">
+                      <CardDescription>
+                        <span>{`Control which users have access to this ${
+                          note?.isDirectory
+                            ? "directory, and thus its notes and subdirectories as well (unless manually overridden on a case by case basis)."
+                            : "note."
+                        }`}</span>
+                      </CardDescription>
+                      <div className="flex">
+                        <FiPlusCircle
+                          size={30}
+                          onClick={handleAddUserPress}
+                          className="cursor-pointer">
+                          Add User
+                        </FiPlusCircle>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Link
+                                className="ml-4"
+                                onClick={linkButtonClicked}
+                                size={25}
+                              />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Copy share link</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <ScrollArea
+                        className="h-fit min-h-8 max-h-24 w-48 rounded-md border overflow-y-auto p-2"
+                        type="scroll">
+                        {allowedUsers
+                          .filter(
+                            (user, index) => index !== 0 && user !== "public"
+                          )
+                          .map((user, index) => (
+                            <UserItem
+                              key={index}
+                              email={user}
+                              writeAccess={checkWriteAccess(user)}
+                              toggleWriteMode={toggleWriteMode}
+                              removeUsersAccess={removeUsersAccess}
                             />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Copy share link</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <ScrollArea
-                      className="h-fit min-h-8 max-h-24 w-48 rounded-md border overflow-y-auto p-2"
-                      type="scroll">
-                      {allowedUsers
-                        .filter(
-                          (user, index) => index !== 0 && user !== "public"
-                        )
-                        .map((user, index) => (
-                          <UserItem
-                            key={index}
-                            email={user}
-                            writeAccess={checkWriteAccess(user)}
-                            toggleWriteMode={toggleWriteMode}
-                            removeUsersAccess={removeUsersAccess}
-                          />
-                        ))}
-                    </ScrollArea>
-                  </CardContent>
-                </Card>
-              )}
-            </AccordionContent>
-          </AccordionItem>
+                          ))}
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+                )}
+              </AccordionContent>
+            </AccordionItem>
+          ) : null}
           <AccordionItem value="item-2">
             <AccordionTrigger>Location</AccordionTrigger>
             <AccordionContent className="flex flex-col w-full items-center text-center p-2">
@@ -694,14 +718,16 @@ const NoteSettings = () => {
                   </div>
                 ) : null}
                 {/* sub dirs */}
-                {subDirectories.map((subDir: Directory) => (
-                  <DirectoryLocation
-                    key={subDir.id}
-                    title={subDir.title}
-                    id={subDir.id}
-                    changeCurrentDirectory={changeCurrentDirectory}
-                  />
-                ))}
+                {subDirectories
+                  .filter((subDir: Directory) => subDir.title !== note.title)
+                  .map((subDir: Directory) => (
+                    <DirectoryLocation
+                      key={subDir.id}
+                      title={subDir.title}
+                      id={subDir.id}
+                      changeCurrentDirectory={changeCurrentDirectory}
+                    />
+                  ))}
               </div>
             </AccordionContent>
           </AccordionItem>
