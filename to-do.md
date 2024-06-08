@@ -17,7 +17,6 @@
 - shared notes viewable
 - Line numbering and clicking to highlight the line
 - Add highlighting of all terms when double clicking like in vsc
-- Add more css styling to the rendered note, ie tables, do to lists
 - Add account settings to user-settings page accordion: change password, change email, delete account, profile bio
 - Add profile bio to public profile page
 - ability to search for notes, words in notes, and other users, results appear on search results page

@@ -150,6 +150,14 @@ const NavBar: React.FC<NavBarProps> = ({
                     Public Profile
                   </Button>
                 ) : null}
+                {pathname === `/${user?.username}` ? (
+                  <Button
+                    className="m-6 my-3"
+                    variant="secondary"
+                    onClick={routeHomeDefault}>
+                    Private Profile
+                  </Button>
+                ) : null} 
                 {pathname !== "/user-settings" ? (
                   <Button
                     className="m-6 my-3"
@@ -158,7 +166,7 @@ const NavBar: React.FC<NavBarProps> = ({
                     <IoSettingsSharp className="mr-2" />
                     User Settings
                   </Button>
-                ) : null}
+                ) : null}                
                 <Button
                   className="m-6 my-3"
                   variant="destructive"
