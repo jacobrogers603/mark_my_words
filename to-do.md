@@ -8,6 +8,7 @@
 
 **Things that the user may not notice, or are more under the hood, but are still important**
 
+- add router stack tracking so we can see where we were last to fix home button woes
 - sign out should redirect to auth page in all scenarios  
 
 ## Pri III 

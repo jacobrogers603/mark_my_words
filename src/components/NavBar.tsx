@@ -58,6 +58,10 @@ const NavBar: React.FC<NavBarProps> = ({
     router.push(`/${user?.username}`);
   };
 
+  const routeShared = () => {
+    router.push("/shared");
+  };
+
   const prettyUpUsername = (input: string) => {
     if (!input) {
       return "No username";
@@ -157,7 +161,15 @@ const NavBar: React.FC<NavBarProps> = ({
                     onClick={routeHomeDefault}>
                     Private Profile
                   </Button>
-                ) : null} 
+                ) : null}
+                {pathname !== "/shared" ? (
+                  <Button
+                    className="m-6 my-3"
+                    variant="secondary"
+                    onClick={routeShared}>
+                    Shared
+                  </Button>
+                ) : null}
                 {pathname !== "/user-settings" ? (
                   <Button
                     className="m-6 my-3"
@@ -166,7 +178,7 @@ const NavBar: React.FC<NavBarProps> = ({
                     <IoSettingsSharp className="mr-2" />
                     User Settings
                   </Button>
-                ) : null}                
+                ) : null}
                 <Button
                   className="m-6 my-3"
                   variant="destructive"
