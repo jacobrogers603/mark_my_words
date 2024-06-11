@@ -15,7 +15,7 @@ import axios, { AxiosResponse } from "axios";
 import useSWR from "swr";
 import fetcher from "@/lib/fetcher";
 import { Button } from "@/components/ui/button";
-import { Home, PencilRuler, Image } from "lucide-react";
+import { Home, PencilRuler, Image, ArrowLeft, Eye } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import NavBar from "@/components/NavBar";
@@ -53,6 +53,7 @@ export default function Editor() {
 
   const [isPublicNote, setIsPublicNote] = useState(false);
   let { noteId } = useParams();
+  const [newNote, setNewNote] = useState(noteId === "new" || noteId.includes("newPublic") ? true : false);
   const router = useRouter();
   const [hasWriteAccess, setHasWriteAccess] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
@@ -257,6 +258,24 @@ export default function Editor() {
     }
   };
 
+  const routeBack = () => {
+    if (!isSaved && !isUnsavedDialogOpen) {
+      setIsUnsavedDialogOpen(true);
+      return;
+    }
+
+    router.back();
+  };
+
+  const routeView = () => {
+    if (!isSaved && !isUnsavedDialogOpen) {
+      setIsUnsavedDialogOpen(true);
+      return;
+    }
+
+    router.push(`/note/${noteId}`);
+  };
+
   const routeSettings = () => {
     setSettingsPressed(true);
     if (!isSaved && !isUnsavedDialogOpen) {
@@ -367,7 +386,7 @@ export default function Editor() {
 
   useEffect(() => {
     const checkScreenSize = () => {
-      setLgMode(window.innerWidth >= 1024); // 1024px as the lg screen size breakpoint
+      setLgMode(window.innerWidth >= 1370); // 1370px as the lg screen size breakpoint
     };
 
     // Check on mount and add listener for resize events
@@ -611,11 +630,17 @@ export default function Editor() {
               <p className="text-gray-500 w-fit">Markdown Format</p>
             </div>
             {lgMode ? (
-              <Button className="w-fit mr-6" onClick={routeHome}>
-                <Home size={15} />
-                <span className="ml-2">Home</span>
+              <Button className="w-fit mr-6" onClick={routeBack}>
+                <ArrowLeft size={15} />
+                <span className="ml-2">Back</span>
               </Button>
             ) : null}
+            {lgMode && !newNote ? (
+              <Button className="w-fit mr-6" onClick={routeView} variant={"outline"}>
+                <Eye size={15} />
+                <span className="ml-2">View</span>
+              </Button>
+             ) : null}
             <div className="flex-grow"></div>
             {lgMode ? (
               <div className="flex flex-col mr-6">
@@ -683,8 +708,9 @@ export default function Editor() {
                 isSaved={isSaved}
                 routeHome={routeHome}
                 routeSettings={routeSettings}
+                routeView={routeView}
                 saveNote={saveNote}
-                noteId={`noteId === "new" || noteId.includes("newPublic") ? generatedId : noteId.toString()`}
+                noteId={`${noteId === "new" || noteId.includes("newPublic") ? generatedId : noteId.toString()}`}
                 title={title}
                 setTitle={setTitle}
                 handleTextareaChange={handleTextareaChange}
@@ -696,6 +722,7 @@ export default function Editor() {
                 noFilesMessage={noFilesMessage}
                 appendImageLink={appendImageLink}
                 currentUserId={currentUser?.id || ""}
+                newNote={newNote}
               />
             </div>
           </nav>

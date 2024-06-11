@@ -62,36 +62,36 @@ const Shared = () => {
   );
   // const [loadedUsernames, setLoadedUsernames] = useState<boolean>(false);
 
-  const addUsernames = async () => {
-    const notesWithoutUsernames = sharedWithMeNotes;
-    let retval: NoteIdentifier[] = [];
+  // const addUsernames = async () => {
+  //   const notesWithoutUsernames = sharedWithMeNotes;
+  //   let retval: NoteIdentifier[] = [];
 
-    notesWithoutUsernames.forEach(async (note) => {
-      try {
-        const response = await axios.get(
-          `/api/getUsernameById/${note.noteCreator.id}`
-        );
-        const noteRetval: NoteIdentifier = {
-          title: note.title,
-          id: note.id,
-          noteCreator: {
-            id: note.noteCreator.id,
-            email: note.noteCreator.email,
-            username: response?.data.username,
-          },
-          readAccessList: note.readAccessList,
-          writeAccessList: note.writeAccessList,
-        };
+  //   notesWithoutUsernames.forEach(async (note) => {
+  //     try {
+  //       const response = await axios.get(
+  //         `/api/getUsernameById/${note.noteCreator.id}`
+  //       );
+  //       const noteRetval: NoteIdentifier = {
+  //         title: note.title,
+  //         id: note.id,
+  //         noteCreator: {
+  //           id: note.noteCreator.id,
+  //           email: note.noteCreator.email,
+  //           username: response?.data.username,
+  //         },
+  //         readAccessList: note.readAccessList,
+  //         writeAccessList: note.writeAccessList,
+  //       };
 
-        retval.push(noteRetval);
-      } catch (error) {
-        console.error("Failed to fetch username:", error);
-      }
-    });
-    console.log(retval);
-    setSharedWithMeNotes(retval);
-    setLoadedUsernames(true);
-  };
+  //       retval.push(noteRetval);
+  //     } catch (error) {
+  //       console.error("Failed to fetch username:", error);
+  //     }
+  //   });
+  //   console.log(retval);
+  //   setSharedWithMeNotes(retval);
+  //   setLoadedUsernames(true);
+  // };
 
   const fetchSharedNotes = async () => {
     try {
@@ -146,7 +146,7 @@ const Shared = () => {
         userProvided={true}
         userProp={currentUser}
       />
-      <span className="mt-4 text-2xl font-bold">Shared with you</span>
+      <span className="mt-4 text-2xl font-semibold border-2 p-2 rounded-md border-black">Shared with you</span>
       <div className="mt-8 min-w-[80%] md:min-w-[60%]">
         {sharedWithMeNotes.length > 0 && currentUser
           ? sharedWithMeNotes.map((note) => (

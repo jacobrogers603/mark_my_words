@@ -19,7 +19,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { ArrowDownFromLine, Home, PencilRuler } from "lucide-react";
+import { ArrowDownFromLine, ArrowLeft, Home, PencilRuler } from "lucide-react";
 import TemplateItem from "@/components/TemplateItem";
 import {
   Accordion,
@@ -136,6 +136,10 @@ const UserSettings = () => {
 
   const routeHome = () => {
     router.push("/");
+  };
+
+  const routeBack = () => {
+    router.back();
   };
 
   const handleDownloadHtmlPress = async () => {
@@ -446,9 +450,9 @@ Ut dolorum, repudiandae ![nomen](connecto).
       {/* bottom buttons */}
       <div className="flex-grow"></div>
       <div className="flex">
-        <Button className="mr-2 w-[9rem]" onClick={routeHome}>
-          <Home size={15} />
-          <span className="ml-2">Home</span>
+        <Button className="mr-2 w-[9rem]" onClick={routeBack}>
+          <ArrowLeft size={15} />
+          <span className="ml-2">Back</span>
         </Button>
         <Button className="ml-2 w-[12rem]" onClick={handleDownloadHtmlPress}>
           <ArrowDownFromLine size={15} />

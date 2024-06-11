@@ -8,14 +8,10 @@
 
 **Things that the user may not notice, or are more under the hood, but are still important**
 
-- add router stack tracking so we can see where we were last to fix home button woes
-- sign out should redirect to auth page in all scenarios  
-
 ## Pri III 
 
 **Things that are unimportant, small, or are future desired features**
 
-- shared notes viewable
 - Line numbering and clicking to highlight the line
 - Add highlighting of all terms when double clicking like in vsc
 - Add account settings to user-settings page accordion: change password, change email, delete account, profile bio
@@ -30,4 +26,5 @@
 - Add more animal portraits and fix squishing on public profile 
 - uploading should reset image links to the new note id so they work assuming the image is still in the user's media library
 - Add currentPathTitles to User model in schema: we have to query the database for the name of every path title, so each layer we go down in terms of nesting for making folders and sub folders we have the ask the server what the ID's name is to display it to the user... this is bad
+- shared notes should show username as well as email
 

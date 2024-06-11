@@ -20,7 +20,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { ArrowDownFromLine, Home, Link, PencilRuler } from "lucide-react";
+import { ArrowDownFromLine, ArrowLeft, Home, Link, PencilRuler } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -305,6 +305,10 @@ const NoteSettings = () => {
     } else {
       router.push("/");
     }
+  };
+
+  const routeBack = () => {
+    router.back();
   };
 
   const routeEditor = () => {
@@ -601,9 +605,9 @@ const NoteSettings = () => {
 
         {/* Home & Edit button */}
         <div className="flex w-full md:w-[60%] items-center justify-center">
-          <Button className="mr-2 w-[9rem]" onClick={routeHome}>
-            <Home size={15} />
-            <span className="ml-2">Home</span>
+          <Button className="mr-2 w-[9rem]" onClick={routeBack}>
+            <ArrowLeft size={15} />
+            <span className="ml-2">Back</span>
           </Button>
           {note?.isDirectory ? null : (
             <Button className="w-[9rem]" onClick={routeEditor}>

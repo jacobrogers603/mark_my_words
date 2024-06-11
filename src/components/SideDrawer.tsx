@@ -1,6 +1,6 @@
 "use client";
 import { Drawer, DrawerContent, DrawerTrigger } from "./ui/drawer";
-import { Home, MenuIcon } from "lucide-react";
+import { ArrowLeft, Eye, Home, MenuIcon } from "lucide-react";
 import { Separator } from "./ui/separator";
 import { Button } from "./ui/button";
 import { IoSettingsSharp } from "react-icons/io5";
@@ -19,6 +19,7 @@ type SideDrawerProps = {
   saveNote: () => void;
   isSaved: boolean;
   routeSettings: () => void;
+  routeView: () => void;
   appendTemplate: (template: string) => void;
   noteId: string;
   title: string;
@@ -32,6 +33,7 @@ type SideDrawerProps = {
   noFilesMessage: string;
   appendImageLink: (altText: string, link: string) => void;
   currentUserId: string;
+  newNote: boolean;
 };
 
 const SideDrawer = ({
@@ -40,6 +42,7 @@ const SideDrawer = ({
   saveNote,
   isSaved,
   routeSettings,
+  routeView,
   appendTemplate,
   noteId,
   title,
@@ -53,6 +56,7 @@ const SideDrawer = ({
   noFilesMessage,
   appendImageLink,
   currentUserId,
+  newNote,
 }: SideDrawerProps) => {
   return (
     <Drawer direction="right">
@@ -62,13 +66,13 @@ const SideDrawer = ({
       <DrawerContent className="overflow-y-auto overflow-x-hidden">
         <div className="grid grid-rows-3 grid-cols-2 gap-4 place-items-center p-2">
           {!lgMode ? (
-            <Button className="w-fit justify-self-start" onClick={routeHome}>
-              <Home size={15} />
-              <span className="ml-2">Home</span>
+            <Button className="w-fit row-start-2 " onClick={routeHome}>
+              <ArrowLeft size={15} />
+              <span className="ml-2">Back</span>
             </Button>
           ) : null}
           {!lgMode ? (
-            <div className="flex flex-col">
+            <div className="flex flex-col col-span-2">
               <label htmlFor="title" className="font-bold">
                 Title
               </label>
@@ -85,39 +89,43 @@ const SideDrawer = ({
               />
             </div>
           ) : null}
-          {noteId !== "new" && !noteId.includes("newPublic") && !lgMode ? (
+          {!newNote && !lgMode ? (
             <Button
-              className={`w-fit justify-self-start ${
+              className={`w-fit row-start-2 ${
                 isCreator ? "cursor-pointer" : "cursor-not-allowed"
               }`}
               onClick={routeSettings}
               disabled={!isCreator}>
               <IoSettingsSharp />
-              <span className="ml-2">Note settings</span>
+              <span className="ml-2">Settings</span>
             </Button>
           ) : null}
           {!lgMode ? (
             <Button
               onClick={openTemplatesDialog}
-              className={`w-fit ${
-                noteId === "new" || noteId.includes("newPublic")
-                  ? "justify-self-start"
-                  : "justify-self-end"
-              }`}>
-              Templates...
+              className={`w-fit row-start-3`}>
+              Templates
+            </Button>
+          ) : null}
+          {!lgMode && !newNote ? (
+            <Button className="w-fit row-start-4" onClick={routeView} variant={"outline"}>
+              <Eye size={15} />
+              <span className="ml-2">View</span>
             </Button>
           ) : null}
           {!lgMode ? (
-            <BottomDrawer
-              lgMode={false}
-              files={files}
-              filesLoading={filesLoading}
-              noFilesMessage={noFilesMessage}
-              appendImageLink={appendImageLink}
-              currentUserId={currentUserId}
-              noteId={noteId}
-              handleTextAreaChange={handleTextareaChange}
-            />
+            <div className="">
+              <BottomDrawer
+                lgMode={false}
+                files={files}
+                filesLoading={filesLoading}
+                noFilesMessage={noFilesMessage}
+                appendImageLink={appendImageLink}
+                currentUserId={currentUserId}
+                noteId={noteId}
+                handleTextAreaChange={handleTextareaChange}
+              />
+            </div>
           ) : null}
           {!lgMode ? (
             <Button
@@ -125,10 +133,6 @@ const SideDrawer = ({
               variant={isSaved ? "secondary" : "default"}
               disabled={isSaved}
               className={`w-fit ${
-                noteId === "new" || noteId.includes("newPublic")
-                  ? "col-span-2"
-                  : "justify-self-end"
-              } ${
                 isSaved
                   ? "border-solid border-gray-600 border-2 rounded-md"
                   : ""
