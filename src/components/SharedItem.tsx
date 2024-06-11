@@ -80,24 +80,24 @@ const SharedItem = ({ note, currentUser }: SharedItemProps) => {
   const currentUserCanEdit = note.writeAccessList.includes(currentUser.email);
 
   return (
-    <main className="grid grid-cols-8 place-items-center w-full h-10 border-solid rounded-md border-black border-2 text-black font-normal cursor-pointer mb-2 bg-blue-100 hover:bg-blue-200" onClick={handleItemClick}>
+    <main className="grid grid-cols-10 place-items-center w-full h-10 border-solid rounded-md border-black border-2 text-black font-normal cursor-pointer mb-2 bg-blue-100 hover:bg-blue-200" onClick={handleItemClick}>
       <NotebookText />
-      <div className="col-start-2 col-end-4 overflow-auto whitespace-nowrap w-full">
+      <div className="col-start-2 col-end-5 overflow-auto whitespace-nowrap w-full">
         {note?.title?.toString() ?? "No title"}
       </div>
-      <div className="col-start-5 col-end-6 overflow-auto whitespace-nowrap w-full">
+      <div className="col-start-6 col-end-9 overflow-auto whitespace-nowrap w-full">
         {/* {`${note.noteCreator.email}` + " (" + `${note.noteCreator.username}` + ")"} */}
         {`${note.noteCreator.email}`}
       </div>
       {currentUserCanEdit ? (
         <div
-          className="grid place-items-center w-full h-full z-100 col-start-6"
+          className="grid place-items-center w-full h-full z-100 col-start-9"
           onClick={handleEditClick}>
           <FaEdit size={20} />
         </div>
       ) : null}
       <div
-        className="grid place-items-center w-full h-full z-100 col-start-7"
+        className="grid place-items-center w-full h-full z-100 col-start-10 mr-1"
         onClick={handleDownloadClick}>
         <ArrowDownFromLine />
       </div>
