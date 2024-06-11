@@ -709,6 +709,7 @@ export default function Editor() {
                 routeHome={routeHome}
                 routeSettings={routeSettings}
                 routeView={routeView}
+                routeBack={routeBack}
                 saveNote={saveNote}
                 noteId={`${noteId === "new" || noteId.includes("newPublic") ? generatedId : noteId.toString()}`}
                 title={title}

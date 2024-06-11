@@ -19,6 +19,7 @@ type SideDrawerProps = {
   saveNote: () => void;
   isSaved: boolean;
   routeSettings: () => void;
+  routeBack: () => void;
   routeView: () => void;
   appendTemplate: (template: string) => void;
   noteId: string;
@@ -42,6 +43,7 @@ const SideDrawer = ({
   saveNote,
   isSaved,
   routeSettings,
+  routeBack,
   routeView,
   appendTemplate,
   noteId,
@@ -66,7 +68,7 @@ const SideDrawer = ({
       <DrawerContent className="overflow-y-auto overflow-x-hidden">
         <div className="grid grid-rows-3 grid-cols-2 gap-4 place-items-center p-2">
           {!lgMode ? (
-            <Button className="w-fit row-start-2 " onClick={routeHome}>
+            <Button className="w-fit row-start-2 " onClick={routeBack}>
               <ArrowLeft size={15} />
               <span className="ml-2">Back</span>
             </Button>
