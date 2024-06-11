@@ -146,8 +146,10 @@ const Shared = () => {
         userProvided={true}
         userProp={currentUser}
       />
-      <span className="mt-4 text-2xl font-semibold border-2 p-2 rounded-md border-black">Shared with you</span>
-      <div className="mt-8 min-w-[80%] md:min-w-[60%]">
+      <h1 className="mt-12 font-semibold text-2xl p-2 border-2 border-black rounded-md">
+        Shared with you
+      </h1>
+      <div className="mt-12 min-w-[80%] md:min-w-[60%]">
         {sharedWithMeNotes.length > 0 && currentUser
           ? sharedWithMeNotes.map((note) => (
               <SharedItem key={note.id} note={note} currentUser={currentUser} />

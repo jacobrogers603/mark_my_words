@@ -71,9 +71,12 @@ export default function Home() {
   }
 
   return (
-    <main className="h-screen w-full pt-14 flex flex-col items-center justify-between">
+    <main className="h-screen w-full flex flex-col items-center justify-between">
       <NavBar routeHomeProvided={false} userProvided={false}/>
-      <div className="h-full w-[80%] md:w-[65%] lg:w-[50%]">
+      <h1 className="mt-[6.5rem] font-semibold text-2xl p-2 border-2 border-black rounded-md">
+        Private Profile
+      </h1>
+      <div className="mt-4 h-full w-[80%] md:w-[65%] lg:w-[50%]">
         <DirectoryItems
           currentPath={currentPath}
           updateCurrentPath={updateCurrentPath}

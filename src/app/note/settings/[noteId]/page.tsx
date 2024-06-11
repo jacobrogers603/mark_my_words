@@ -591,20 +591,20 @@ const NoteSettings = () => {
         )}
 
         {/* page title */}
-        <div className="flex flex-col mx-8 max-w-[80%] md:max-w-[60%]mb-4">
-          <h1 className="mt-16 mb-4 font-medium text-xl md:text-3xl text-black text-center">
-            {note?.isDirectory ? "Directory" : "Note"}&nbsp;Settings:
-          </h1>
+        <h1 className="mt-[6.5rem] text-center max-h-fit flex flex-col mx-8 max-w-[80%] md:max-w-[60%]mb-4 border-2 border-black rounded-md p-2 bg-white font-semibold text-2xl">
+          <div className="mb-4 text-black text-center">
+            {note?.isDirectory ? "Directory" : "Note"}&nbsp;Settings
+          </div>
 
-          <div className="mb-4 overflow-x-auto">
-            <span className="text-gray-600 italic text-xl md:text-3xl whitespace-nowrap text-start">
+          <div className="overflow-x-auto">
+            <span className="text-gray-600 whitespace-nowrap text-center">
               {note?.title}
             </span>
           </div>
-        </div>
+        </h1>
 
         {/* Home & Edit button */}
-        <div className="flex w-full md:w-[60%] items-center justify-center">
+        <div className="flex w-full md:w-[60%] items-center justify-center mt-12">
           <Button className="mr-2 w-[9rem]" onClick={routeBack}>
             <ArrowLeft size={15} />
             <span className="ml-2">Back</span>
@@ -618,7 +618,7 @@ const NoteSettings = () => {
         </div>
 
         <Accordion
-          className="mt-6 w-full md:w-[60%] p-4 rounded-md shadow-md bg-white"
+          className="mt-4 w-full md:w-[60%] p-4 rounded-md shadow-md bg-white"
           type="single"
           collapsible>
           {!note.isDirectory ? (

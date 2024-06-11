@@ -354,8 +354,19 @@ const UserSettings = () => {
         </Dialog>
       )}
 
+      {/* Title */}
+      <h1 className="mt-[6.5rem] font-semibold text-2xl p-2 border-2 border-black rounded-md">
+        User-Settings
+      </h1>
+
+      {/* Back Button */}
+      <Button className="mt-12 w-[9rem]" onClick={routeBack}>
+        <ArrowLeft size={15} />
+        <span className="ml-2">Back</span>
+      </Button>
+
       <Accordion
-        className="mt-16 w-full md:w-[60%] p-4"
+        className="mt-4 w-full md:w-[60%] p-4"
         type="single"
         collapsible>
         <AccordionItem value="item-1">
@@ -445,26 +456,28 @@ Ut dolorum, repudiandae ![nomen](connecto).
             </div>
           </AccordionContent>
         </AccordionItem>
+        <AccordionItem value="item-3">
+          <AccordionTrigger>Account Management & Other</AccordionTrigger>
+          <AccordionContent className="flex flex-col w-full items-center p-2">
+            <div className="flex">
+              <Button
+                className="ml-2 w-[12rem]"
+                onClick={handleDownloadHtmlPress}>
+                <ArrowDownFromLine size={15} />
+                <span className="ml-2">Download HTML</span>
+              </Button>
+            </div>
+            <Button
+              className="mr-2 w-[9rem] mt-4 mb-8"
+              variant={"destructive"}
+              disabled={true}>
+              <span className="ml-2">Delete account</span>
+            </Button>
+          </AccordionContent>
+        </AccordionItem>
       </Accordion>
 
-      {/* bottom buttons */}
       <div className="flex-grow"></div>
-      <div className="flex">
-        <Button className="mr-2 w-[9rem]" onClick={routeBack}>
-          <ArrowLeft size={15} />
-          <span className="ml-2">Back</span>
-        </Button>
-        <Button className="ml-2 w-[12rem]" onClick={handleDownloadHtmlPress}>
-          <ArrowDownFromLine size={15} />
-          <span className="ml-2">Download HTML</span>
-        </Button>
-      </div>
-      <Button
-        className="mr-2 w-[9rem] mt-4 mb-8"
-        variant={"destructive"}
-        disabled={true}>
-        <span className="ml-2">Delete account</span>
-      </Button>
     </main>
   );
 };

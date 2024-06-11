@@ -27,4 +27,5 @@
 - uploading should reset image links to the new note id so they work assuming the image is still in the user's media library
 - Add currentPathTitles to User model in schema: we have to query the database for the name of every path title, so each layer we go down in terms of nesting for making folders and sub folders we have the ask the server what the ID's name is to display it to the user... this is bad
 - shared notes should show username as well as email
+- add delete account option
 

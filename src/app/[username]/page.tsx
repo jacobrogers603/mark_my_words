@@ -123,13 +123,16 @@ const PublicProfile = () => {
   };
 
   return (
-    <main className="h-screen w-full pt-14 flex flex-col items-center justify-between">
+    <main className="h-screen w-full flex flex-col items-center justify-between">
       <NavBar
         routeHomeProvided={false}
         userProvided={true}
         userProp={currentUser}
       />
-      <div className="h-full w-[80%] md:w-[65%] lg:w-[50%]">
+      <h1 className="mt-[6.5rem] font-semibold text-2xl p-2 border-2 border-black rounded-md">
+        Public Profile
+      </h1>
+      <div className="h-full w-[80%] md:w-[65%] lg:w-[50%] mt-4">
         <DirectoryItems
           currentPath={currentPath}
           updateCurrentPath={updateCurrentPath}
