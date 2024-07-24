@@ -4,6 +4,8 @@
 
 **Things that the user would notice during normal use, breaking or just embarrassing**
 
+- If you press close w/o saving after pressing the back button in the editor, nothing happens
+
 ## Pri II
 
 **Things that the user may not notice, or are more under the hood, but are still important**
