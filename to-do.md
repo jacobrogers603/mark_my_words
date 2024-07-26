@@ -4,11 +4,16 @@
 
 **Things that the user would notice during normal use, breaking or just embarrassing**
 
+- implement password reset by email
 - If you press close w/o saving after pressing the back button in the editor, nothing happens
+- If you press close w/o saving after pressing the view button in the editor, nothing happens
+- allow larger files sizes, and return an error if it is too big
 
 ## Pri II
 
 **Things that the user may not notice, or are more under the hood, but are still important**
+
+- If two people are saving at the same time it overwrites, saves the last one
 
 ## Pri III 
 
