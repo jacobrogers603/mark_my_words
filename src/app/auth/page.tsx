@@ -152,12 +152,22 @@ const AuthPage = () => {
         return;
       }
 
+      setErrMssg(["Sending reset code...", "text-amber-500"]);
       const emailSent = await axios.post("/api/sendResetEmail", {
         email,
         resetCode: resetCode.data.resetCode.resetCode,
       });
-    } catch (error) {}
-    setErrMssg(["Reset code sent", "text-green-500"]);
+
+      if (emailSent.status !== 200) {
+        setErrMssg(["An error occurred", "text-red-500"]);
+        return;
+      }
+      
+      setErrMssg(["Reset code sent", "text-green-500"]);
+    } catch (error) {
+      setErrMssg(["An error occurred", "text-red-500"]);
+      return;
+    }
   };
 
   // Define a submit handler. This will validate the data automatically.

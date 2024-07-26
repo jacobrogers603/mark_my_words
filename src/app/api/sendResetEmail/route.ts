@@ -3,7 +3,9 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 const transporter = nodemailer.createTransport({
-  service: "Gmail",
+  host: "smtp.aol.com",
+  port: 465,
+  secure: true, // true for 465, false for other ports
   auth: {
     user: process.env.EMAIL,
     pass: process.env.EMAIL_PASSWORD,
@@ -35,9 +37,9 @@ export const POST = async (req: Request) => {
       text: message,
     });
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true }, { status: 200 });
   } catch (error) {
     console.log(error);
-    return NextResponse.json({ error });
+    return NextResponse.json({ error }, { status: 500 });
   }
 };
