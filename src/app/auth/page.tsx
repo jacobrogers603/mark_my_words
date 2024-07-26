@@ -81,7 +81,7 @@ const AuthPage = () => {
       if (loading === false) {
         setLoading(true);
       }
-      
+
       email = email.toLowerCase();
       const loginResult = await signIn("credentials", {
         email: email,
@@ -136,6 +136,10 @@ const AuthPage = () => {
 
   const routeAuth = () => {
     router.push("/auth");
+  };
+
+  const forgotPassword = () => {
+
   };
 
   if (loading)
@@ -214,6 +218,15 @@ const AuthPage = () => {
                 {variant === "signin" ? " Create an Account" : " Login"}
               </span>
             </p>
+            {variant === "signin" ? (
+              <p className="text-gray-500">
+                <span
+                  className="text-black text-semibold hover:underline cursor-pointer"
+                  onClick={forgotPassword}>
+                  Forgot Password?
+                </span>
+              </p>
+            ) : null}
           </form>
         </Form>
       </div>
