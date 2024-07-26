@@ -52,3 +52,10 @@ model Image {
   userId   String @db.ObjectId
   fileName String
 }
+
+model ResetCode {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  resetCode    Int   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+}
