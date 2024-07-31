@@ -1,17 +1,17 @@
 import * as React from "react";
 
 interface EmailTemplateProps {
-  email: string;
+  userName: string;
   resetCode: string;
 }
 
 export const EmailTemplate: React.FC<Readonly<EmailTemplateProps>> = ({
-  email,
+  userName,
   resetCode,
 }) => (
     <main style={{ whiteSpace: "pre-wrap", fontFamily: "Arial, sans-serif" }}>
   <h1 style={{ fontSize: "18px", fontWeight: "bold" }}>
-    Greetings, {email}, from Mark My Words!
+    Greetings, {userName}, from Mark My Words!
   </h1>
 
   <p>You have requested a password reset.</p>

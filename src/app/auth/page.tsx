@@ -143,6 +143,13 @@ const AuthPage = () => {
         return;
       }
 
+      const userName = await axios.get(`/api/getUsernameById/${userId.data}`);
+
+      if (userName.status !== 200) {
+        setErrMssg(["An error occurred", "text-red-500"]);
+        return;
+      }
+
       const resetCode = await axios.post("/api/generateResetCode", {
         userId: userId.data,
       });
@@ -154,8 +161,9 @@ const AuthPage = () => {
 
       setErrMssg(["Sending reset code...", "text-amber-500"]);
       const emailSent = await axios.post("/api/sendResetEmail", {
-        email,
+        userName: userName.data.username,
         resetCode: resetCode.data.resetCode.resetCode,
+        email: email,
       });
 
       if (emailSent.status !== 200) {
