@@ -273,8 +273,13 @@ const Reset = () => {
               <h1 className="text-black text-xl mb-4">
                 Enter your new password
               </h1>
-              <p className={`${errMssgColor} self-center text-lg`}>{errMssg}</p>
+              {errMssg && (
+                <p className={`${errMssgColor} self-center text-lg`}>
+                  {errMssg}
+                </p>
+              )}
             </FormDescription>
+
             <form onSubmit={form.handleSubmit(onReset)} className="space-y-8">
               <FormField
                 control={form.control}
