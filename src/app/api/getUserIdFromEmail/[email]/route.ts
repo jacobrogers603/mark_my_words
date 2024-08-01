@@ -9,7 +9,7 @@ export async function GET(
   const email = params.email;
 
   if (!email) {
-    return NextResponse.json({ error: "No email provided" }, { status: 400 });
+    return NextResponse.json({ message: "No email provided" }, { status: 400 });
   }
 
   try {
@@ -20,7 +20,7 @@ export async function GET(
     });
 
     if (!user) {
-      return NextResponse.json({ error: "No user found" }, { status: 404 });
+      return NextResponse.json({ message: "No user found" }, { status: 404 });
     }
 
     const response = user.id;

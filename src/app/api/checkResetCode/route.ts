@@ -29,6 +29,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Code expired" }, { status: 403 });
     }
 
+    if(matchingResetCode.isUsed){
+        return NextResponse.json({ message: "Code already used" }, { status: 403 });
+    }
+
     return NextResponse.json(
       { message: "Code is valid", resetCode: matchingResetCode },
       { status: 200 }

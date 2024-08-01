@@ -37,6 +37,10 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: "Reset code expired" }, { status: 400 });
     }
 
+    if(resetCode.isUsed){
+        return NextResponse.json({ message: "Reset code already used" }, { status: 400 });
+    }
+
     const hashedNewPassword = await bcrypt.hash(newPassword, 12);
 
     await prismadb.user.update({
@@ -48,10 +52,13 @@ export async function POST(req: Request) {
       },
     });
 
-    await prismadb.resetCode.delete({
+    await prismadb.resetCode.update({
       where: {
         id: resetCodeId,
       },
+        data: {
+            isUsed: true,
+        },
     });
 
     return NextResponse.json({ message: "Password updated" });

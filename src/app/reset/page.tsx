@@ -47,6 +47,31 @@ const Reset = () => {
   const firstInputRef = useRef<HTMLInputElement>(null);
   const lastInputRef = useRef<HTMLInputElement>(null);
 
+  const formSchema = z.object({
+    email: z.string().email({ message: "Invalid email format" }),
+    password: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters long" }) // Enforce minimum length
+      .refine((value) => /[a-z]/.test(value), {
+        message: "Password must contain at least one lowercase letter.",
+      })
+      .refine((value) => /[A-Z]/.test(value), {
+        message: "Password must contain at least one uppercase letter.",
+      })
+      .refine((value) => /\d/.test(value), {
+        message: "Password must contain at least one number.",
+      }),
+  });
+
+  // Define the form.
+  const form = useForm<IFormInput>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
   async function onReset(values: z.infer<typeof formSchema>) {
     const { password } = values;
 
@@ -87,33 +112,9 @@ const Reset = () => {
     }
 
     // Clear the form.
-    form.reset();
+    form.setValue("email", user.email);
+    form.setValue("password", "");
   }
-
-  const formSchema = z.object({
-    email: z.string().email({ message: "Invalid email format" }),
-    password: z
-      .string()
-      .min(8, { message: "Password must be at least 8 characters long" }) // Enforce minimum length
-      .refine((value) => /[a-z]/.test(value), {
-        message: "Password must contain at least one lowercase letter.",
-      })
-      .refine((value) => /[A-Z]/.test(value), {
-        message: "Password must contain at least one uppercase letter.",
-      })
-      .refine((value) => /\d/.test(value), {
-        message: "Password must contain at least one number.",
-      }),
-  });
-
-  // Define the form.
-  const form = useForm<IFormInput>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
 
   useEffect(() => {
     // Focus the first input on page load
@@ -203,7 +204,7 @@ const Reset = () => {
   const routeAuth = () => {
     router.push("/auth");
   };
-  
+
   useEffect(() => {
     // Check if all input boxes are filled
     setSubmitButtonDisabled(values.some((value) => value === ""));
