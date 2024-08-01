@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 // Sending back a 200 code every time for security reasons
 export const POST = async (req: Request) => {
-  const message = "If you have an account with this email, a five minute code has been sent it";
+  const message = "If you have an account with this email, a five minute code has been sent to it";
 
   try {
     const { email } = await req.json();
