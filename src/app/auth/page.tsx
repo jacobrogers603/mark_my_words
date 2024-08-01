@@ -135,46 +135,15 @@ const AuthPage = () => {
   };
 
   const forgot = async (email: string) => {
-    try {
-      const userId = await axios.get(`/api/getUserIdFromEmail/${email}`);
+    setErrMssg(["Sending reset code...", "text-amber-500"]);
+    const resetSendResponse = await axios.post("/api/generateResetCode", {
+      email,
+    });
 
-      if (userId.status !== 200) {
-        setErrMssg(["User not found", "text-red-500"]);
-        return;
-      }
-
-      const userName = await axios.get(`/api/getUsernameById/${userId.data}`);
-
-      if (userName.status !== 200) {
-        setErrMssg(["An error occurred", "text-red-500"]);
-        return;
-      }
-
-      const resetCode = await axios.post("/api/generateResetCode", {
-        userId: userId.data,
-      });
-
-      if (resetCode.status !== 200) {
-        setErrMssg(["An error occurred", "text-red-500"]);
-        return;
-      }
-
-      setErrMssg(["Sending reset code...", "text-amber-500"]);
-      const emailSent = await axios.post("/api/sendResetEmail", {
-        userName: userName.data.username,
-        resetCode: resetCode.data.resetCode.resetCode,
-        email: email,
-      });
-
-      if (emailSent.status !== 200) {
-        setErrMssg(["An error occurred", "text-red-500"]);
-        return;
-      }
-      
-      setErrMssg(["Reset code sent", "text-green-500"]);
-    } catch (error) {
-      setErrMssg(["An error occurred", "text-red-500"]);
-      return;
+    if (resetSendResponse.status === 200) {
+      setErrMssg([resetSendResponse.data.message, "text-green-500"]);
+    } else {
+      setErrMssg([resetSendResponse.data.message, "text-red-500"]);
     }
   };
 
@@ -199,6 +168,10 @@ const AuthPage = () => {
 
   const routeAuth = () => {
     router.push("/auth");
+  };
+
+  const routeReset = () => {
+    router.push("/reset");
   };
 
   if (loading)
@@ -313,6 +286,15 @@ const AuthPage = () => {
                   className="text-black text-semibold hover:underline cursor-pointer"
                   onClick={() => toggleVariant("forgot")}>
                   Forgot Password?
+                </span>
+              </p>
+            ) : variant === "forgot" ? (
+              <p className="text-gray-500">
+                Have your reset code?&nbsp;
+                <span
+                  className="text-black text-semibold hover:underline cursor-pointer"
+                  onClick={routeReset}>
+                  Reset Password
                 </span>
               </p>
             ) : null}

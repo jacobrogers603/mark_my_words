@@ -54,8 +54,10 @@ model Image {
 }
 
 model ResetCode {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  resetCode    String   @unique
-  userId       String   @db.ObjectId
-  expires      DateTime
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  resetCode String   @unique
+  userId    String   @db.ObjectId
+  isUsed    Boolean
+  expires   DateTime
+  createdAt DateTime @default(now())
 }

@@ -1,32 +1,35 @@
 import prismadb from "@/lib/prismadb";
 import { NextResponse } from "next/server";
-import { encrypt } from "@/lib/encryption";
+import { decrypt, encrypt } from "@/lib/encryption";
+import { Resend } from "resend";
+import { EmailTemplate } from "@/components/email-template";
 export const dynamic = "force-dynamic";
 
+// Sending back a 200 code every time for security reasons
 export const POST = async (req: Request) => {
   try {
-    const { userId } = await req.json();
+    const { email } = await req.json();
 
-    if (!userId) {
-      return NextResponse.json({ error: "UserIs is required." });
+    if (!email) {
+      return NextResponse.json({ message: "route executed" }, { status: 200 });
     }
 
     const user = await prismadb.user.findUnique({
-      where: { id: userId },
+      where: { email: email },
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found." });
+      return NextResponse.json({ message: "route executed" }, { status: 200 });
     }
 
     // Check if the user has a reset code already, if so delete them
     const existingResetCode = await prismadb.resetCode.findMany({
-      where: { userId: userId },
+      where: { userId: user.id },
     });
 
     if (existingResetCode.length > 0) {
       await prismadb.resetCode.deleteMany({
-        where: { userId: userId },
+        where: { userId: user.id },
       });
     }
 
@@ -50,12 +53,30 @@ export const POST = async (req: Request) => {
         userId: user.id,
         expires: new Date(Date.now() + 1000 * 60 * 5), // 5 minutes
         resetCode: encryptedCode,
+        isUsed: false,
+        createdAt: new Date(),
       },
     });
 
-    return NextResponse.json({ resetCode }, { status: 200 });
+    if (!resetCode) {
+      return NextResponse.json({ message: "route executed" }, { status: 200 });
+    }
+
+    // Send the email
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
+    const decryptedCode = decrypt(resetCode.resetCode, true);
+
+    await resend.emails.send({
+      from: "noreply@mark-my-words.net",
+      to: [email],
+      subject: "Mark My Words Password Reset",
+      react: EmailTemplate({ userName: user.username, resetCode: decryptedCode }),
+    });
+
+    return NextResponse.json({ message: "route executed" }, { status: 200 });
   } catch (error) {
     console.log(error);
-    return NextResponse.json(error);
+    return NextResponse.json({ message: "error", error },  { status: 500 });
   }
 };
