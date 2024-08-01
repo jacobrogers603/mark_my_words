@@ -106,9 +106,8 @@ const Reset = () => {
       } else {
         // Fallback error message
         setErrMssg("An error occurred");
+        console.error(error);
       }
-
-      console.error(error);
     }
 
     // Clear the form.
@@ -195,9 +194,8 @@ const Reset = () => {
       } else {
         // Fallback error message
         setErrMssg("An error occurred");
+        console.error(error);
       }
-
-      console.error(error);
     }
   };
 
