@@ -7,11 +7,13 @@ export const dynamic = "force-dynamic";
 
 // Sending back a 200 code every time for security reasons
 export const POST = async (req: Request) => {
+  const message = "If you have a account with this email, a five minute code has been sent";
+
   try {
     const { email } = await req.json();
 
     if (!email) {
-      return NextResponse.json({ message: "route executed" }, { status: 200 });
+      return NextResponse.json({ message: message }, { status: 200 });
     }
 
     const user = await prismadb.user.findUnique({
@@ -19,7 +21,7 @@ export const POST = async (req: Request) => {
     });
 
     if (!user) {
-      return NextResponse.json({ message: "route executed" }, { status: 200 });
+      return NextResponse.json({ message: message }, { status: 200 });
     }
 
     // Check if the user has a reset code already, if so delete them
@@ -59,7 +61,7 @@ export const POST = async (req: Request) => {
     });
 
     if (!resetCode) {
-      return NextResponse.json({ message: "route executed" }, { status: 200 });
+      return NextResponse.json({ message: message }, { status: 200 });
     }
 
     // Send the email
@@ -74,7 +76,7 @@ export const POST = async (req: Request) => {
       react: EmailTemplate({ userName: user.username, resetCode: decryptedCode }),
     });
 
-    return NextResponse.json({ message: "route executed" }, { status: 200 });
+    return NextResponse.json({ message: message }, { status: 200 });
   } catch (error) {
     console.log(error);
     return NextResponse.json({ message: "error", error },  { status: 500 });
