@@ -194,7 +194,7 @@ const AuthPage = () => {
     <main className="grid place-items-center w-full h-screen">
       <div className="grid place-items-center border rounded-md w-80 h-auto p-12">
         <Form {...form}>
-          <FormDescription className="flex flex-col text-black font-bold mb-8 ">
+          <FormDescription className="flex flex-col text-black text-center font-bold mb-4 ">
             {variant === "signin"
               ? "Sign in to your account"
               : variant === "signup"
@@ -202,7 +202,7 @@ const AuthPage = () => {
               : variant === "forgot"
               ? "Forgot Password"
               : ""}
-            <span className={`${errMssg[1]} self-center`}>
+            <span className={`${errMssg[1]} self-center text-center mt-4`}>
               {errMssg[0] !== "" ? errMssg[0] : ""}
             </span>
           </FormDescription>
