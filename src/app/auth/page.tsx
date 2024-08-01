@@ -170,7 +170,7 @@ const AuthPage = () => {
         setErrMssg(["An error occurred", "text-red-500"]);
         return;
       }
-      
+
       setErrMssg(["Reset code sent", "text-green-500"]);
     } catch (error) {
       setErrMssg(["An error occurred", "text-red-500"]);
@@ -199,6 +199,10 @@ const AuthPage = () => {
 
   const routeAuth = () => {
     router.push("/auth");
+  };
+
+  const routeReset = () => {
+    router.push("/reset");
   };
 
   if (loading)
@@ -313,6 +317,15 @@ const AuthPage = () => {
                   className="text-black text-semibold hover:underline cursor-pointer"
                   onClick={() => toggleVariant("forgot")}>
                   Forgot Password?
+                </span>
+              </p>
+            ) : variant === "forgot" ? (
+              <p className="text-gray-500">
+                Have your reset code?&nbsp;
+                <span
+                  className="text-black text-semibold hover:underline cursor-pointer"
+                  onClick={routeReset}>
+                  Reset Password
                 </span>
               </p>
             ) : null}
