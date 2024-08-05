@@ -137,7 +137,7 @@ const SideDrawer = ({
         </div>
 
         {/* Md cheat sheet info */}
-        <div className="p-4 flex flex-col col-start-5 h-auto w-auto p-2 border-black border-solid rounded-md text-center">
+        <div className="p-4 flex flex-col col-start-5 h-auto w-auto p-2 border-black border-solid rounded-md text-center overflow-y-auto h-full">
           <h2 className="font-extrabold">Markdown Cheat Sheet</h2>
           <Separator
             className="h-[2px] bg-gray-800 my-2"

@@ -12,6 +12,7 @@ import { PencilRuler } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { redirect, useRouter } from "next/navigation";
 import React, { use, useEffect, useState } from "react";
+import { set } from "react-hook-form";
 
 interface User {
   id: string;
@@ -60,6 +61,7 @@ const Shared = () => {
   const [sharedWithMeNotes, setSharedWithMeNotes] = useState<NoteIdentifier[]>(
     []
   );
+  const [loadingNotes, setLoadingNotes] = useState<boolean>(true);
   // const [loadedUsernames, setLoadedUsernames] = useState<boolean>(false);
 
   // const addUsernames = async () => {
@@ -106,6 +108,7 @@ const Shared = () => {
     } catch (error) {
       console.error("Failed to fetch shared notes:", error);
     }
+    setLoadingNotes(false);
   };
 
   useEffect(() => {
@@ -156,7 +159,7 @@ const Shared = () => {
           ))
         ) : sharedWithMeNotes.length === 0 && currentUser ? (
           <div className="flex justify-center items-center w-fit h-10 p-4 border-solid rounded-md border-black border-2 text-black font-semibold bg-amber-400">
-            No notes shared with you
+            {loadingNotes ? "Loading..." : "No notes shared with you"}
           </div>
         ) : null}
       </div>

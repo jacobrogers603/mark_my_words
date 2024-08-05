@@ -20,7 +20,14 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { ArrowDownFromLine, ArrowLeft, Eye, Home, Link, PencilRuler } from "lucide-react";
+import {
+  ArrowDownFromLine,
+  ArrowLeft,
+  Eye,
+  Home,
+  Link,
+  PencilRuler,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -131,6 +138,7 @@ const NoteSettings = () => {
     }
   }, [isCreator, noteId]);
 
+  const [inputValue, setInputValue] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
   const [allowedUsers, setAllowedUsers] = useState<string[]>([]);
@@ -258,10 +266,7 @@ const NoteSettings = () => {
       // update the access list to be public, or not, depending on the new parent, if it is a directory, do it recursively
       const accessResponse = await changeAccess(publicDir, noteId);
 
-      if (
-        response.data.success === true &&
-        accessResponse === true
-      ) {
+      if (response.data.success === true && accessResponse === true) {
         fetchParentDirectory(id);
         fetchNote();
       }
@@ -270,7 +275,10 @@ const NoteSettings = () => {
     }
   };
 
-  const changeAccess = async (publicAccess: boolean, noteId: string | string[]) => {
+  const changeAccess = async (
+    publicAccess: boolean,
+    noteId: string | string[]
+  ) => {
     try {
       const childrenIdsResponse = await axios.get(
         `/api/getChildrenIds/${noteId}`
@@ -482,6 +490,32 @@ const NoteSettings = () => {
     });
   };
 
+  const [inputValueSaveable, setInputValueSaveable] = useState(false);
+  const handleInputValueChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const newValue = event.target.value;
+    setInputValue(newValue);
+    setInputValueSaveable(newValue.length > 0);
+  };
+
+  const handleSaveTitle = async () => {
+    try {
+      const response = await axios.post("/api/renameDirectory", {
+        noteId: noteId,
+        newTitle: inputValue,
+      });
+
+      if(response.status === 200) {
+        fetchNote();
+        setInputValue("");
+        setInputValueSaveable(false);
+      }
+    } catch (error) {
+      console.error("Failed to rename directory:", error);
+    }
+  };
+
   if (status === "loading" || !isCreator || !note) {
     return (
       <main className="w-full h-screen grid place-items-center pt-14">
@@ -605,10 +639,15 @@ const NoteSettings = () => {
 
         {/* Home & Edit button */}
         <div className="flex w-full md:w-[60%] items-center justify-center mt-6">
-          <Button className="mr-2 w-[9rem] border-2 border-gray-300" onClick={routeView} variant={"secondary"}>
-            <Eye size={15} />
-            <span className="ml-2">View note</span>
-          </Button>
+          {!note.isDirectory ? (
+            <Button
+              className="mr-2 w-[9rem] border-2 border-gray-300"
+              onClick={routeView}
+              variant={"secondary"}>
+              <Eye size={15} />
+              <span className="ml-2">View note</span>
+            </Button>
+          ) : null}
           {note?.isDirectory ? null : (
             <Button className="w-[9rem]" onClick={routeEditor}>
               <FaEdit size={15} />
@@ -738,32 +777,40 @@ const NoteSettings = () => {
           <AccordionItem value="item-3">
             <AccordionTrigger>Delete & Other Options</AccordionTrigger>
             <AccordionContent className="grid place-items-center p-2">
+              {note.isDirectory ? (
+                <div className="flex flex-col">
+                  <Label className="text-lg" htmlFor="title">
+                    Rename Directory
+                  </Label>
+                  <Input
+                    className="w-auto"
+                    id="title"
+                    placeholder={note.title}
+                    value={inputValue}
+                    onChange={handleInputValueChange}
+                  />
+                  <Button
+                    className="mt-2"
+                    onClick={handleSaveTitle}
+                    disabled={!inputValueSaveable}>
+                    Save
+                  </Button>
+                </div>
+              ) : null}
               <Button
-                className="ml-2 w-[12rem]"
+                className="ml-2 w-[12rem] mt-8"
                 onClick={handleDownloadHtmlPress}>
                 <ArrowDownFromLine size={15} />
                 <span className="ml-2">Download HTML</span>
               </Button>
-              {note?.isDirectory ? null : (
-                <Button
-                  className="mb-8 mt-8 w-[9rem]"
-                  variant={"destructive"}
-                  onClick={deleteButtonPressed}>
-                  <span className="ml-2">
-                    Delete {note?.isDirectory ? "directory" : "note"}
-                  </span>
-                </Button>
-              )}
-              {note?.isDirectory ? (
-                <Button
-                  className="mb-8 mt-8 w-[9rem]"
-                  variant={"destructive"}
-                  onClick={deleteButtonPressed}>
-                  <span className="ml-2">
-                    Delete {note?.isDirectory ? "directory" : "note"}
-                  </span>
-                </Button>
-              ) : null}
+              <Button
+                className="mb-8 mt-8 w-[9rem]"
+                variant={"destructive"}
+                onClick={deleteButtonPressed}>
+                <span className="ml-2">
+                  Delete {note?.isDirectory ? "directory" : "note"}
+                </span>
+              </Button>
             </AccordionContent>
           </AccordionItem>
         </Accordion>
