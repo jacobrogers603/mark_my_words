@@ -151,10 +151,6 @@ const Note = () => {
     }
   };
 
-  const routeBack = () => {
-    router.back();
-  }
-
   const routeEdit = () => {
     router.push(`/editor/${noteId}`);
   };
@@ -215,10 +211,6 @@ const Note = () => {
         userProp={user}
       />
       <div className="mt-[5.25rem] mb-2 grid grid-cols-2 grid-rows-2  md:flex flex-row col-start-2 col-end-10 justify-self-start">
-        <Button className="mr-2 w-[9rem] mb-4 md:mb-0" onClick={routeBack}>
-          <ArrowLeft size={15} />
-          <span className="ml-2">Back</span>
-        </Button>
         {status === "authenticated" ? (
           <Button
             className="mr-2 w-[9rem] mb-4 md:mb-0"

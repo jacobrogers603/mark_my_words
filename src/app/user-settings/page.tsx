@@ -138,10 +138,6 @@ const UserSettings = () => {
     router.push("/");
   };
 
-  const routeBack = () => {
-    router.back();
-  };
-
   const handleDownloadHtmlPress = async () => {
     try {
       const rootNote = await axios.get(`/api/getNote/root`);
@@ -358,12 +354,6 @@ const UserSettings = () => {
       <h1 className="mt-[6.5rem] font-semibold text-2xl p-2 border-2 border-black rounded-md">
         User-Settings
       </h1>
-
-      {/* Back Button */}
-      <Button className="mt-12 w-[9rem]" onClick={routeBack}>
-        <ArrowLeft size={15} />
-        <span className="ml-2">Back</span>
-      </Button>
 
       <Accordion
         className="mt-4 w-full md:w-[60%] p-4"

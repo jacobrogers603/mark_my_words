@@ -41,6 +41,7 @@ import {
 import { useToast } from "./ui/use-toast";
 import { Toaster } from "./ui/toaster";
 import { GiRamProfile } from "react-icons/gi";
+import { set } from "react-hook-form";
 
 interface NoteIdentifier {
   title: string;
@@ -67,6 +68,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
   const [notes, setNotes] = useState<NoteIdentifier[]>([]);
   const [pathTitles, setPathTitles] = useState<string[]>([]);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [loadingNotes, setLoadingNotes] = useState(true);
   const { toast } = useToast();
 
   const fetchNotes = async () => {
@@ -82,6 +84,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
     } catch (error) {
       console.error("Failed to fetch notes", error);
     }
+    setLoadingNotes(false);
   };
 
   useEffect(() => {
@@ -411,7 +414,7 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
           <span className="col-start-2 col-end-5">↑ . . .</span>
         </div>
       ) : null}
-      <div className="overflow-y-auto flex-grow pt-2">
+      <div className="overflow-y-auto flex-grow pt-2 flex flex-col items-center">
         {/* Render directories first */}
         {dirNotes.map((note) => (
           <DirectoryItem
@@ -432,6 +435,11 @@ export const DirectoryItems: React.FC<DirectoryItemsProps> = ({
             currentUserIsCreator={currentUserIsCreator}
           />
         ))}
+        {dirNotes.length === 0 && nonDirNotes.length === 0 ? (
+          <div className="flex justify-center items-center w-fit h-10 p-4 border-solid rounded-md border-black border-2 text-black font-semibold bg-amber-400">
+            {loadingNotes ? "Loading notes..." : "No notes here"}
+          </div>
+        ) : null}
       </div>
     </main>
   );

@@ -149,12 +149,16 @@ const Shared = () => {
       <h1 className="mt-12 font-semibold text-2xl p-2 border-2 border-black rounded-md">
         Shared with you
       </h1>
-      <div className="mt-12 w-[80%] md:w-[60%]">
-        {sharedWithMeNotes.length > 0 && currentUser
-          ? sharedWithMeNotes.map((note) => (
-              <SharedItem key={note.id} note={note} currentUser={currentUser} />
-            ))
-          : null}
+      <div className="mt-12 w-[80%] md:w-[60%] flex flex-col items-center">
+        {sharedWithMeNotes.length > 0 && currentUser ? (
+          sharedWithMeNotes.map((note) => (
+            <SharedItem key={note.id} note={note} currentUser={currentUser} />
+          ))
+        ) : sharedWithMeNotes.length === 0 && currentUser ? (
+          <div className="flex justify-center items-center w-fit h-10 p-4 border-solid rounded-md border-black border-2 text-black font-semibold bg-amber-400">
+            No notes shared with you
+          </div>
+        ) : null}
       </div>
     </main>
   );

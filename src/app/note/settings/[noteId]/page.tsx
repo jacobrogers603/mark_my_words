@@ -20,7 +20,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { ArrowDownFromLine, ArrowLeft, Home, Link, PencilRuler } from "lucide-react";
+import { ArrowDownFromLine, ArrowLeft, Eye, Home, Link, PencilRuler } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -307,8 +307,8 @@ const NoteSettings = () => {
     }
   };
 
-  const routeBack = () => {
-    router.back();
+  const routeView = () => {
+    router.push(`/note/${noteId}`);
   };
 
   const routeEditor = () => {
@@ -604,10 +604,10 @@ const NoteSettings = () => {
         </h1>
 
         {/* Home & Edit button */}
-        <div className="flex w-full md:w-[60%] items-center justify-center mt-12">
-          <Button className="mr-2 w-[9rem]" onClick={routeBack}>
-            <ArrowLeft size={15} />
-            <span className="ml-2">Back</span>
+        <div className="flex w-full md:w-[60%] items-center justify-center mt-6">
+          <Button className="mr-2 w-[9rem] border-2 border-gray-300" onClick={routeView} variant={"secondary"}>
+            <Eye size={15} />
+            <span className="ml-2">View note</span>
           </Button>
           {note?.isDirectory ? null : (
             <Button className="w-[9rem]" onClick={routeEditor}>
@@ -618,7 +618,7 @@ const NoteSettings = () => {
         </div>
 
         <Accordion
-          className="mt-4 w-full md:w-[60%] p-4 rounded-md shadow-md bg-white"
+          className="mt-6 w-full md:w-[60%] p-4 rounded-md shadow-md bg-white"
           type="single"
           collapsible>
           {!note.isDirectory ? (

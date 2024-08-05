@@ -129,6 +129,7 @@ export default function Editor() {
   const { toast } = useToast();
   const [isSaved, setIsSaved] = useState(true);
   const [homePressed, setHomePressed] = useState(false);
+  const [viewPressed, setViewPressed] = useState(false);
   const [settingsPressed, setSettingsPressed] = useState(false);
   const [lgMode, setLgMode] = useState(false);
   const [isTemplatesDialogOpen, setIsTemplatesDialogOpen] = useState(false);
@@ -258,17 +259,9 @@ export default function Editor() {
     }
   };
 
-  const routeBack = () => {
-    if (!isSaved && !isUnsavedDialogOpen) {
-      setIsUnsavedDialogOpen(true);
-      return;
-    }
-
-    router.back();
-  };
-
   const routeView = () => {
     if (!isSaved && !isUnsavedDialogOpen) {
+      setViewPressed(true);
       setIsUnsavedDialogOpen(true);
       return;
     }
@@ -358,6 +351,13 @@ export default function Editor() {
     setIsSaved(false);
   };
 
+  // All the places you could exit the page are:
+  // 1. navBar icon
+  // 2. Back Button
+  // 3. Settings Button
+  // 4. View Button
+  // 5. profile icon
+  // 6. browser back button
   const handleCloseWithoutSavingPress = () => {
     if (homePressed) {
       if(isPublicNote && currentUser){
@@ -368,6 +368,9 @@ export default function Editor() {
       }
     } else if (settingsPressed) {
       router.push(`/note/settings/${noteId}`);
+    }
+    else if(viewPressed){
+      router.push(`/note/${noteId}`);
     }
   };
 
@@ -629,12 +632,6 @@ export default function Editor() {
               <h1 className="font-bold">Note Editor</h1>
               <p className="text-gray-500 w-fit">Markdown Format</p>
             </div>
-            {lgMode ? (
-              <Button className="w-fit mr-6" onClick={routeBack}>
-                <ArrowLeft size={15} />
-                <span className="ml-2">Back</span>
-              </Button>
-            ) : null}
             {lgMode && !newNote ? (
               <Button className="w-fit mr-6" onClick={routeView} variant={"outline"}>
                 <Eye size={15} />
@@ -709,7 +706,6 @@ export default function Editor() {
                 routeHome={routeHome}
                 routeSettings={routeSettings}
                 routeView={routeView}
-                routeBack={routeBack}
                 saveNote={saveNote}
                 noteId={`${noteId === "new" || noteId.includes("newPublic") ? generatedId : noteId.toString()}`}
                 title={title}

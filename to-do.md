@@ -4,16 +4,11 @@
 
 **Things that the user would notice during normal use, breaking or just embarrassing**
 
-- implement password reset by email
-- If you press close w/o saving after pressing the back button in the editor, nothing happens
-- If you press close w/o saving after pressing the view button in the editor, nothing happens
-- allow larger files sizes, and return an error if it is too big
-
 ## Pri II
 
 **Things that the user may not notice, or are more under the hood, but are still important**
 
-- If two people are saving at the same time it overwrites, saves the last one
+- allow larger files sizes, and return an error if it is too big
 
 ## Pri III 
 
@@ -35,4 +30,5 @@
 - Add currentPathTitles to User model in schema: we have to query the database for the name of every path title, so each layer we go down in terms of nesting for making folders and sub folders we have the ask the server what the ID's name is to display it to the user... this is bad
 - shared notes should show username as well as email
 - add delete account option
+- If two people are saving at the same time it overwrites, saves the last one
 

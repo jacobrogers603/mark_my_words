@@ -19,7 +19,6 @@ type SideDrawerProps = {
   saveNote: () => void;
   isSaved: boolean;
   routeSettings: () => void;
-  routeBack: () => void;
   routeView: () => void;
   appendTemplate: (template: string) => void;
   noteId: string;
@@ -43,7 +42,6 @@ const SideDrawer = ({
   saveNote,
   isSaved,
   routeSettings,
-  routeBack,
   routeView,
   appendTemplate,
   noteId,
@@ -66,13 +64,7 @@ const SideDrawer = ({
         <MenuIcon />
       </DrawerTrigger>
       <DrawerContent className="overflow-y-auto overflow-x-hidden">
-        <div className="grid grid-rows-3 grid-cols-2 gap-4 place-items-center p-2">
-          {!lgMode ? (
-            <Button className="w-fit row-start-2 " onClick={routeBack}>
-              <ArrowLeft size={15} />
-              <span className="ml-2">Back</span>
-            </Button>
-          ) : null}
+        <div className="grid grid-rows-3 grid-cols-2 gap-4 place-items-center p-2">         
           {!lgMode ? (
             <div className="flex flex-col col-span-2">
               <label htmlFor="title" className="font-bold">
@@ -91,13 +83,13 @@ const SideDrawer = ({
               />
             </div>
           ) : null}
-          {!newNote && !lgMode ? (
+          {!lgMode ? (
             <Button
               className={`w-fit row-start-2 ${
-                isCreator ? "cursor-pointer" : "cursor-not-allowed"
+                isCreator && !newNote ? "cursor-pointer" : "cursor-not-allowed"
               }`}
               onClick={routeSettings}
-              disabled={!isCreator}>
+              disabled={!isCreator || newNote}>
               <IoSettingsSharp />
               <span className="ml-2">Settings</span>
             </Button>
@@ -109,8 +101,8 @@ const SideDrawer = ({
               Templates
             </Button>
           ) : null}
-          {!lgMode && !newNote ? (
-            <Button className="w-fit row-start-4" onClick={routeView} variant={"outline"}>
+          {!lgMode ? (
+            <Button className="w-fit row-start-3 col-start-2" onClick={routeView} variant={"outline"} disabled={newNote}>
               <Eye size={15} />
               <span className="ml-2">View</span>
             </Button>
@@ -134,7 +126,7 @@ const SideDrawer = ({
               onClick={saveNote}
               variant={isSaved ? "secondary" : "default"}
               disabled={isSaved}
-              className={`w-fit ${
+              className={`w-fit col-span-2 ${
                 isSaved
                   ? "border-solid border-gray-600 border-2 rounded-md"
                   : ""

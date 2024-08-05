@@ -121,7 +121,7 @@ const NavBar: React.FC<NavBarProps> = ({
           className="col-start-1 hover:cursor-pointer"
         />
       )}
-      {status === "unauthenticated" || status === "loading" ? null : (
+      {status === "unauthenticated" || status === "loading" || /^\/editor\//.test(pathname) ? null : (
         <div className="col-start-8 z-20">
           {editor ? (
             <GiRamProfile
@@ -154,7 +154,7 @@ const NavBar: React.FC<NavBarProps> = ({
                     Public Profile
                   </Button>
                 ) : null}
-                {pathname === `/${user?.username}` ? (
+                {pathname !== `/` ? (
                   <Button
                     className="m-6 my-3"
                     variant="secondary"
