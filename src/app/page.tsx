@@ -1,17 +1,16 @@
 "use client";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { redirect, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import DirectoryItems from "@/components/DirectoryItems";
 import NavBar from "@/components/NavBar";
-import { FiPlusCircle } from "react-icons/fi";
 import { PencilRuler } from "lucide-react";
 
 export default function Home() {
   const router = useRouter();
 
-  const { data: session, status } = useSession({
+  const { status } = useSession({
     required: true,
     onUnauthenticated() {
       console.log("redirected");
@@ -21,31 +20,36 @@ export default function Home() {
 
   const [currentPath, setCurrentPath] = useState<string[]>([]);
 
-  useEffect(() => {
-    const fetchCurrentPath = async () => {
-      try {
-        const response = await axios.get("/api/getCurrentPath");
+  const fetchCurrentPath = useCallback(async () => {
+    try {
+      const response = await axios.get("/api/getCurrentPath");
+      if (Array.isArray(response.data)) {
         setCurrentPath(response.data);
-      } catch (error) {
-        console.log("Failed to fetch current path", error);
       }
-    };
-
-    fetchCurrentPath();
+    } catch (error) {
+      console.log("Failed to fetch current path", error);
+    }
   }, []);
 
+  useEffect(() => {
+    fetchCurrentPath();
+  }, [fetchCurrentPath]);
 
   const updateCurrentPath = async (directoryId?: string) => {
     try {
-      if (directoryId) {
-        await axios.post("/api/setCurrentPath", { directoryId });
-        setCurrentPath([...currentPath, directoryId]);
+      const response = directoryId
+        ? await axios.post("/api/setCurrentPath", { directoryId })
+        : await axios.delete("/api/setCurrentPath");
+
+      // Always trust DB-backed path returned by the API.
+      if (Array.isArray(response.data)) {
+        setCurrentPath(response.data);
       } else {
-        await axios.delete("/api/setCurrentPath");
-        setCurrentPath(currentPath.slice(0, -1));
+        await fetchCurrentPath();
       }
     } catch (error) {
       console.log("Failed to update current path", error);
+      await fetchCurrentPath();
     }
   };
 
@@ -72,7 +76,7 @@ export default function Home() {
 
   return (
     <main className="h-screen w-full flex flex-col items-center justify-between">
-      <NavBar routeHomeProvided={false} userProvided={false}/>
+      <NavBar routeHomeProvided={false} userProvided={false} />
       <h1 className="mt-[6.5rem] font-semibold text-2xl p-2 border-2 border-black rounded-md">
         Private Profile
       </h1>
